@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dino Runner</title>
+<style>
+  :root {
+    --bg: #eff4eb;
+    --ink: #26332b;
+    --muted: #75806f;
+    --ground: #66745e;
+    --accent: #5aa847;
+    --danger: #cf5a42;
+    --sky: #bcdcef;
+  }
+
+  * { box-sizing: border-box; }
+
+  html,
+  body {
+    margin: 0;
+    height: 100%;
+    background: linear-gradient(180deg, var(--sky) 0%, var(--bg) 58%, #dfe8d8 100%);
+    color: var(--ink);
+    font-family: "Courier New", Courier, monospace;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  body {
+    display: grid;
+    place-items: center;
+  }
+
+  #wrap {
+    width: min(920px, calc(100vw - 24px));
+    display: grid;
+    gap: 12px;
+  }
+
+  header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(28px, 7vw, 58px);
+    line-height: 0.95;
+    letter-spacing: 0;
+  }
+
+  #hud {
+    display: flex;
+    gap: 18px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  #hud span {
+    color: var(--ink);
+  }
+
+  #stage {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid var(--ground);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.35), transparent 45%),
+      var(--bg);
+    box-shadow: 0 22px 44px rgba(38, 51, 43, 0.2);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+  }
+
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(239, 244, 235, 0.82);
+    text-align: center;
+    padding: 24px;
+  }
+
+  #overlay.hidden {
+    display: none;
+  }
+
+  #overlayContent {
+    max-width: 420px;
+  }
+
+  #overlayTitle {
+    margin: 0 0 10px;
+    font-size: 28px;
+    color: var(--accent);
+  }
+
+  #overlayText {
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  button {
+    min-height: 44px;
+    padding: 0 24px;
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    font: 700 14px/1 "Courier New", Courier, monospace;
+  }
+
+  button:hover,
+  button:focus-visible {
+    filter: brightness(1.07);
+    outline: none;
+  }
+
+  #hint {
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  @media (max-width: 620px) {
+    #wrap {
+      width: min(100vw - 16px, 520px);
+    }
+
+    header {
+      align-items: start;
+      flex-direction: column;
+    }
+
+    #hud {
+      width: 100%;
+      justify-content: space-between;
+      text-align: left;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <h1>Dino Runner</h1>
+    <div id="hud">
+      <div>SCORE <span id="score">0</span></div>
+      <div>BEST <span id="best">0</span></div>
+    </div>
+  </header>
+
+  <div id="stage">
+    <canvas id="game" width="900" height="340"></canvas>
+    <div id="overlay">
+      <div id="overlayContent">
+        <h2 id="overlayTitle">Dino Runner</h2>
+        <p id="overlayText">Jump over cactus clusters, duck under flyers, and stay alive as the pace climbs.</p>
+        <button id="startBtn" type="button">Start Run</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="hint">Space / Arrow Up / Tap to jump · Arrow Down to duck</div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const scoreEl = document.getElementById("score");
+  const bestEl = document.getElementById("best");
+  const overlay = document.getElementById("overlay");
+  const overlayTitle = document.getElementById("overlayTitle");
+  const overlayText = document.getElementById("overlayText");
+  const startBtn = document.getElementById("startBtn");
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const groundY = 258;
+  const gravity = 0.82;
+  const jumpVelocity = -15.2;
+  const bestKey = "timeflo-dino-best";
+
+  let best = Number(localStorage.getItem(bestKey) || 0);
+  let player;
+  let obstacles;
+  let clouds;
+  let particles;
+  let speed;
+  let score;
+  let frame;
+  let running;
+  let ducking;
+  let nextObstacle;
+  let lastTime;
+  let animationId;
+
+  bestEl.textContent = best;
+
+  function reset(){
+    player = {
+      x: 72,
+      y: groundY - 54,
+      w: 48,
+      h: 54,
+      vy: 0,
+      grounded: true
+    };
+    obstacles = [];
+    clouds = [
+      { x: 130, y: 74, s: 0.7 },
+      { x: 410, y: 48, s: 0.95 },
+      { x: 720, y: 86, s: 0.62 }
+    ];
+    particles = [];
+    speed = 7.2;
+    score = 0;
+    frame = 0;
+    running = true;
+    ducking = false;
+    nextObstacle = 58;
+    lastTime = performance.now();
+    updateHud();
+  }
+
+  function updateHud(){
+    scoreEl.textContent = Math.floor(score);
+    bestEl.textContent = best;
+  }
+
+  function start(){
+    reset();
+    overlay.classList.add("hidden");
+    cancelAnimationFrame(animationId);
+    animationId = requestAnimationFrame(loop);
+  }
+
+  function gameOver(){
+    running = false;
+    best = Math.max(best, Math.floor(score));
+    localStorage.setItem(bestKey, best);
+    updateHud();
+    overlayTitle.textContent = "Run Over";
+    overlayText.textContent = "Score " + Math.floor(score) + " · Best " + best;
+    startBtn.textContent = "Run Again";
+    overlay.classList.remove("hidden");
+  }
+
+  function jump(){
+    if (!running) {
+      start();
+      return;
+    }
+    if (player.grounded) {
+      player.vy = jumpVelocity;
+      player.grounded = false;
+    }
+  }
+
+  function spawnObstacle(){
+    const flyerAllowed = score > 120;
+    const isFlyer = flyerAllowed && Math.random() < Math.min(0.42, 0.18 + score / 1200);
+    if (isFlyer) {
+      obstacles.push({
+        type: "flyer",
+        x: W + 24,
+        y: groundY - 92 - Math.random() * 34,
+        w: 48,
+        h: 26
+      });
+    } else {
+      const clusterRoll = Math.random();
+      const count = score > 420 && clusterRoll > 0.72 ? 3 : clusterRoll > 0.45 ? 2 : 1;
+      obstacles.push({
+        type: "cactus",
+        x: W + 24,
+        y: groundY - 44,
+        w: count === 3 ? 60 : count === 2 ? 42 : 24,
+        h: 44,
+        count
+      });
+    }
+    const minGap = Math.max(28, 58 - speed * 1.8);
+    const maxGap = Math.max(48, 106 - speed * 4.6);
+    nextObstacle = minGap + Math.random() * maxGap;
+  }
+
+  function loop(now){
+    const dt = Math.min(32, now - lastTime) / 16.67;
+    lastTime = now;
+    update(dt);
+    draw();
+    if (running) animationId = requestAnimationFrame(loop);
+  }
+
+  function update(dt){
+    frame += dt;
+    score += dt * 0.85;
+    speed = Math.min(18.5, 7.2 + score / 115);
+
+    const playerHeight = ducking && player.grounded ? 34 : 54;
+    player.h = playerHeight;
+    player.y += player.vy * dt;
+    player.vy += gravity * dt;
+    if (player.y + player.h >= groundY) {
+      player.y = groundY - player.h;
+      player.vy = 0;
+      player.grounded = true;
+    }
+
+    nextObstacle -= dt;
+    if (nextObstacle <= 0) spawnObstacle();
+
+    obstacles.forEach((obstacle) => {
+      obstacle.x -= speed * dt;
+    });
+    obstacles = obstacles.filter((obstacle) => obstacle.x + obstacle.w > -20);
+
+    clouds.forEach((cloud) => {
+      cloud.x -= speed * 0.18 * cloud.s * dt;
+      if (cloud.x < -90) {
+        cloud.x = W + 80;
+        cloud.y = 38 + Math.random() * 66;
+        cloud.s = 0.55 + Math.random() * 0.55;
+      }
+    });
+
+    if (player.grounded && frame % 4 < 1) {
+      particles.push({ x: player.x + 12, y: groundY + 2, life: 26, vx: -speed * 0.45 });
+    }
+    particles.forEach((particle) => {
+      particle.x += particle.vx * dt;
+      particle.life -= dt;
+    });
+    particles = particles.filter((particle) => particle.life > 0);
+
+    for (const obstacle of obstacles) {
+      if (intersects(player, obstacle)) {
+        draw();
+        gameOver();
+        return;
+      }
+    }
+
+    updateHud();
+  }
+
+  function intersects(a, b){
+    const padX = b.type === "flyer" ? 8 : 6;
+    const padY = b.type === "flyer" ? 7 : 4;
+    return (
+      a.x + 7 < b.x + b.w - padX &&
+      a.x + a.w - 8 > b.x + padX &&
+      a.y + 5 < b.y + b.h - padY &&
+      a.y + a.h - 2 > b.y + padY
+    );
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    drawSky();
+    drawGround();
+    drawPlayer();
+    obstacles.forEach(drawObstacle);
+    drawParticles();
+  }
+
+  function drawSky(){
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    clouds.forEach((cloud) => {
+      const x = cloud.x;
+      const y = cloud.y;
+      const s = cloud.s;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 34 * s, 12 * s, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + 25 * s, y - 5 * s, 24 * s, 12 * s, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + 50 * s, y, 32 * s, 11 * s, 0, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  function drawGround(){
+    ctx.strokeStyle = "#66745e";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(W, groundY);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(102,116,94,0.48)";
+    for (let x = -((frame * speed) % 64); x < W; x += 64) {
+      ctx.fillRect(x, groundY + 24, 34, 3);
+      ctx.fillRect(x + 42, groundY + 43, 18, 3);
+    }
+  }
+
+  function drawPlayer(){
+    const x = player.x;
+    const y = player.y;
+    ctx.fillStyle = "#5aa847";
+    if (ducking && player.grounded) {
+      ctx.fillRect(x, y + 10, 54, 27);
+      ctx.fillRect(x + 38, y, 22, 20);
+      ctx.fillRect(x + 10, y + 34, 9, 16);
+      ctx.fillRect(x + 35, y + 34, 9, 16);
+      ctx.fillStyle = "#26332b";
+      ctx.fillRect(x + 54, y + 6, 4, 4);
+      return;
+    }
+
+    ctx.fillRect(x + 10, y + 13, 27, 34);
+    ctx.fillRect(x + 30, y, 28, 22);
+    ctx.fillRect(x + 4, y + 23, 12, 8);
+    ctx.fillRect(x + 14, y + 47, 10, 18);
+    ctx.fillRect(x + 31, y + 47, 10, 18);
+    ctx.fillRect(x + 36, y + 18, 10, 14);
+    ctx.fillStyle = "#26332b";
+    ctx.fillRect(x + 51, y + 7, 4, 4);
+    ctx.fillStyle = "#e9f2e3";
+    ctx.fillRect(x + 57, y + 16, 4, 3);
+  }
+
+  function drawObstacle(obstacle){
+    if (obstacle.type === "flyer") {
+      ctx.fillStyle = "#cf5a42";
+      ctx.fillRect(obstacle.x + 8, obstacle.y + 9, 30, 10);
+      ctx.fillRect(obstacle.x + 36, obstacle.y + 6, 9, 8);
+      const wingY = Math.sin(frame / 5) > 0 ? 0 : 13;
+      ctx.fillRect(obstacle.x, obstacle.y + wingY, 22, 7);
+      ctx.fillRect(obstacle.x + 18, obstacle.y + 19 - wingY, 22, 7);
+      return;
+    }
+
+    ctx.fillStyle = "#66745e";
+    for (let i = 0; i < obstacle.count; i++) {
+      const x = obstacle.x + i * 20;
+      ctx.fillRect(x + 8, obstacle.y, 11, obstacle.h);
+      ctx.fillRect(x, obstacle.y + 14, 10, 8);
+      ctx.fillRect(x + 18, obstacle.y + 22, 10, 8);
+      ctx.fillRect(x + 2, obstacle.y + 7, 6, 16);
+      ctx.fillRect(x + 22, obstacle.y + 15, 6, 16);
+    }
+  }
+
+  function drawParticles(){
+    ctx.fillStyle = "rgba(102,116,94,0.5)";
+    particles.forEach((particle) => {
+      ctx.fillRect(particle.x, particle.y, 4, 4);
+    });
+  }
+
+  startBtn.addEventListener("click", start);
+
+  window.addEventListener("keydown", (event) => {
+    if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+      event.preventDefault();
+      jump();
+    }
+    if (event.code === "ArrowDown" || event.code === "KeyS") {
+      ducking = true;
+    }
+  });
+
+  window.addEventListener("keyup", (event) => {
+    if (event.code === "ArrowDown" || event.code === "KeyS") {
+      ducking = false;
+    }
+  });
+
+  canvas.addEventListener("pointerdown", jump);
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>VOID SIEGE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+  :root{
+    --bg-deep: #0a0d1f;
+    --bg-panel: #10142c;
+    --magenta: #ff3ec9;
+    --cyan: #3efee3;
+    --yellow: #ffd93e;
+    --green: #4dff88;
+    --red: #ff4d4d;
+    --grid-line: rgba(62, 254, 227, 0.08);
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg-deep);
+    font-family: 'VT323', monospace;
+    overflow: hidden;
+    color: var(--cyan);
+    touch-action: none;
+  }
+
+  body{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(255,62,201,0.08), transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(62,254,227,0.08), transparent 50%),
+      var(--bg-deep);
+  }
+
+  #stage{
+    position: relative;
+    width: min(96vw, 640px);
+    aspect-ratio: 3 / 4;
+    background: var(--bg-panel);
+    border: 2px solid rgba(62,254,227,0.25);
+    border-radius: 4px;
+    box-shadow:
+      0 0 0 1px rgba(255,62,201,0.08),
+      0 0 40px rgba(62,254,227,0.12),
+      inset 0 0 80px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+
+  canvas{
+    display:block;
+    width:100%;
+    height:100%;
+    image-rendering: pixelated;
+  }
+
+  /* CRT scanline + vignette overlay -- signature element */
+  #scanlines{
+    position:absolute; inset:0; pointer-events:none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0.18) 3px,
+      rgba(0,0,0,0.18) 4px
+    );
+    mix-blend-mode: multiply;
+    z-index: 5;
+  }
+  #vignette{
+    position:absolute; inset:0; pointer-events:none;
+    box-shadow: inset 0 0 120px 40px rgba(0,0,0,0.65);
+    z-index: 6;
+  }
+  #flicker{
+    position:absolute; inset:0; pointer-events:none;
+    background: rgba(62,254,227,0.02);
+    animation: flick 6s infinite steps(2);
+    z-index: 5;
+  }
+  @keyframes flick{
+    0%, 92%, 100% { opacity: 0; }
+    93% { opacity: 1; }
+  }
+
+  #hud{
+    position:absolute; top:0; left:0; right:0;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding: 10px 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(9px, 2.2vw, 13px);
+    color: var(--cyan);
+    text-shadow: 0 0 6px rgba(62,254,227,0.6);
+    z-index: 7;
+    pointer-events:none;
+    letter-spacing: 1px;
+  }
+  #hud .label{ color: rgba(62,254,227,0.5); font-size: 0.75em; display:block; margin-bottom:4px;}
+  #hud .val{ color: var(--yellow); text-shadow: 0 0 6px rgba(255,217,62,0.7);}
+  #lives{ display:flex; gap:6px; margin-top:2px; }
+  #lives span{ color: var(--magenta); text-shadow: 0 0 6px rgba(255,62,201,0.7); }
+
+  #center-text{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:16px;
+    font-family:'Press Start 2P', monospace;
+    z-index: 8;
+    background: rgba(10,13,31,0.82);
+  }
+  #center-text.hidden{ display:none; }
+  #center-text h1{
+    font-size: clamp(20px, 6vw, 34px);
+    color: var(--magenta);
+    text-shadow: 0 0 12px rgba(255,62,201,0.8), 0 0 30px rgba(255,62,201,0.4);
+    margin:0;
+    letter-spacing: 2px;
+  }
+  #center-text p{
+    font-family:'VT323', monospace;
+    font-size: clamp(16px, 3.4vw, 20px);
+    color: var(--cyan);
+    margin: 0;
+    max-width: 80%;
+    line-height: 1.5;
+  }
+  #center-text .prompt{
+    color: var(--yellow);
+    font-family:'Press Start 2P', monospace;
+    font-size: clamp(10px, 2.4vw, 14px);
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse{ 50%{ opacity: 0.25; } }
+
+  #wave-banner{
+    position:absolute; top:44%; left:0; right:0;
+    text-align:center;
+    font-family:'Press Start 2P', monospace;
+    font-size: clamp(14px, 3.6vw, 22px);
+    color: var(--yellow);
+    text-shadow: 0 0 14px rgba(255,217,62,0.8);
+    z-index: 9;
+    opacity: 0;
+    pointer-events:none;
+  }
+  #wave-banner.show{ animation: wavepop 1.4s ease-out; }
+  @keyframes wavepop{
+    0%{ opacity:0; transform: translateY(10px) scale(0.8); }
+    20%{ opacity:1; transform: translateY(0) scale(1); }
+    80%{ opacity:1; }
+    100%{ opacity:0; }
+  }
+
+  #touch-controls{
+    position:absolute; bottom:0; left:0; right:0;
+    display:none;
+    justify-content:space-between;
+    padding: 14px;
+    z-index: 7;
+  }
+  #touch-controls button{
+    width: 64px; height:64px;
+    border-radius: 50%;
+    border: 2px solid rgba(62,254,227,0.4);
+    background: rgba(16,20,44,0.7);
+    color: var(--cyan);
+    font-family:'Press Start 2P';
+    font-size: 16px;
+    -webkit-user-select:none; user-select:none;
+  }
+  #touch-controls button:active{ background: rgba(62,254,227,0.25); }
+  #fire-btn{
+    border-color: rgba(255,62,201,0.5) !important;
+    color: var(--magenta) !important;
+  }
+  .dpad{ display:flex; gap:10px; }
+
+  #footer-hint{
+    margin-top: 14px;
+    font-family:'VT323', monospace;
+    color: rgba(62,254,227,0.5);
+    font-size: 15px;
+    text-align:center;
+  }
+
+  @media (max-width: 640px){
+    #touch-controls{ display:flex; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="game"></canvas>
+  <div id="hud">
+    <div>
+      <span class="label">SCORE</span>
+      <span class="val" id="score">0000</span>
+    </div>
+    <div style="text-align:center;">
+      <span class="label">WAVE</span>
+      <span class="val" id="wave">1</span>
+    </div>
+    <div style="text-align:right;">
+      <span class="label">SHIPS</span>
+      <div id="lives"></div>
+    </div>
+  </div>
+
+  <div id="wave-banner"></div>
+
+  <div id="scanlines"></div>
+  <div id="flicker"></div>
+  <div id="vignette"></div>
+
+  <div id="center-text">
+    <h1 id="title-text">VOID SIEGE</h1>
+    <p id="sub-text">Alien formations descend from the dark.<br>Hold the line. Don't let them land.</p>
+    <p class="prompt" id="prompt-text">PRESS SPACE / TAP TO START</p>
+  </div>
+
+  <div id="touch-controls">
+    <div class="dpad">
+      <button id="left-btn">◀</button>
+      <button id="right-btn">▶</button>
+    </div>
+    <button id="fire-btn">●</button>
+  </div>
+</div>
+
+<div id="footer-hint">← → or A/D to move · SPACE to fire · P to pause</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  // Internal resolution (pixel-art style, scaled up via CSS)
+  const W = 300, H = 400;
+  canvas.width = W;
+  canvas.height = H;
+
+  const COLORS = {
+    magenta: '#ff3ec9',
+    cyan: '#3efee3',
+    yellow: '#ffd93e',
+    green: '#4dff88',
+    red: '#ff4d4d',
+    white: '#eef6ff'
+  };
+
+  // ---------- State ----------
+  let state = 'idle'; // idle, playing, paused, wave-clear, gameover
+  let score = 0;
+  let wave = 1;
+  let lives = 3;
+  let frame = 0;
+  let stars = [];
+
+  const scoreEl = document.getElementById('score');
+  const waveEl = document.getElementById('wave');
+  const livesEl = document.getElementById('lives');
+  const centerText = document.getElementById('center-text');
+  const titleText = document.getElementById('title-text');
+  const subText = document.getElementById('sub-text');
+  const promptText = document.getElementById('prompt-text');
+  const waveBanner = document.getElementById('wave-banner');
+
+  function updateHUD(){
+    scoreEl.textContent = String(score).padStart(4,'0');
+    waveEl.textContent = wave;
+    livesEl.innerHTML = '';
+    for(let i=0;i<lives;i++){
+      const s = document.createElement('span');
+      s.textContent = '▲';
+      livesEl.appendChild(s);
+    }
+  }
+
+  // ---------- Player ----------
+  const player = {
+    w: 20, h: 12,
+    x: W/2 - 10, y: H - 30,
+    speed: 2.6,
+    cooldown: 0,
+    alive: true
+  };
+
+  let bullets = []; // player bullets
+  let enemyBullets = [];
+  let particles = [];
+
+  // ---------- Invaders ----------
+  let invaders = [];
+  let invDir = 1;
+  let invSpeed = 0.4;
+  let invDropAmount = 8;
+  let invMoveTimer = 0;
+  let invMoveInterval = 34; // frames between step; decreases as fewer remain
+  const ROWS = 4, COLS = 8;
+  const INV_W = 16, INV_H = 12, INV_GAP_X = 10, INV_GAP_Y = 14;
+
+  function spawnWave(){
+    invaders = [];
+    const totalW = COLS * (INV_W + INV_GAP_X) - INV_GAP_X;
+    const startX = (W - totalW)/2;
+    const startY = 40;
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        invaders.push({
+          x: startX + c*(INV_W+INV_GAP_X),
+          y: startY + r*(INV_H+INV_GAP_Y),
+          w: INV_W, h: INV_H,
+          row: r,
+          alive: true,
+          type: r === 0 ? 'boss' : (r < 2 ? 'mid' : 'low')
+        });
+      }
+    }
+    invDir = 1;
+    invSpeed = 0.4 + (wave-1)*0.12;
+    invMoveInterval = Math.max(10, 34 - (wave-1)*3);
+    invMoveTimer = 0;
+    // barriers
+    spawnBarriers();
+  }
+
+  // ---------- Barriers ----------
+  let barriers = [];
+  function spawnBarriers(){
+    barriers = [];
+    const count = 4;
+    const bw = 28, bh = 16;
+    const margin = (W - count*bw) / (count+1);
+    for(let i=0;i<count;i++){
+      const bx = margin + i*(bw+margin);
+      const by = H - 70;
+      const blocks = [];
+      const cols = 7, rows = 4;
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          // carve an arch shape
+          if(r===0 && (c===0 || c===cols-1)) continue;
+          if(r===rows-1 && c>=2 && c<=4) continue;
+          blocks.push({x: bx + c*4, y: by + r*4, w:4, h:4, hp:2});
+        }
+      }
+      barriers.push(blocks);
+    }
+  }
+
+  // ---------- Stars background ----------
+  function initStars(){
+    stars = [];
+    for(let i=0;i<60;i++){
+      stars.push({
+        x: Math.random()*W,
+        y: Math.random()*H,
+        speed: 0.2 + Math.random()*0.8,
+        size: Math.random() < 0.15 ? 2 : 1,
+        tw: Math.random()*Math.PI*2
+      });
+    }
+  }
+  initStars();
+
+  // ---------- Input ----------
+  const keys = {};
+  window.addEventListener('keydown', (e)=>{
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
+    keys[e.key] = true;
+    if(e.key === ' '){
+      if(state === 'idle' || state === 'gameover'){ startGame(); }
+      else if(state === 'playing'){ tryFire(); }
+    }
+    if(e.key.toLowerCase() === 'p' && state === 'playing'){
+      state = 'paused';
+      showCenter('PAUSED', 'The siege waits.', 'PRESS P TO RESUME');
+    } else if(e.key.toLowerCase() === 'p' && state === 'paused'){
+      state = 'playing';
+      hideCenter();
+    }
+  });
+  window.addEventListener('keyup', (e)=>{ keys[e.key] = false; });
+
+  document.getElementById('left-btn').addEventListener('touchstart', e=>{e.preventDefault(); keys['ArrowLeft']=true;});
+  document.getElementById('left-btn').addEventListener('touchend', e=>{e.preventDefault(); keys['ArrowLeft']=false;});
+  document.getElementById('right-btn').addEventListener('touchstart', e=>{e.preventDefault(); keys['ArrowRight']=true;});
+  document.getElementById('right-btn').addEventListener('touchend', e=>{e.preventDefault(); keys['ArrowRight']=false;});
+  document.getElementById('fire-btn').addEventListener('touchstart', e=>{
+    e.preventDefault();
+    if(state === 'idle' || state === 'gameover'){ startGame(); }
+    else if(state === 'playing'){ tryFire(); }
+  });
+  centerText.addEventListener('touchstart', ()=>{ if(state === 'idle' || state === 'gameover') startGame(); });
+  centerText.addEventListener('click', ()=>{ if(state === 'idle' || state === 'gameover') startGame(); });
+
+  function tryFire(){
+    if(player.cooldown <= 0 && player.alive){
+      bullets.push({x: player.x + player.w/2 - 1, y: player.y - 6, w:2, h:8});
+      player.cooldown = 14;
+    }
+  }
+
+  // ---------- Game flow ----------
+  function showCenter(title, sub, prompt){
+    titleText.textContent = title;
+    subText.innerHTML = sub;
+    promptText.textContent = prompt;
+    centerText.classList.remove('hidden');
+  }
+  function hideCenter(){ centerText.classList.add('hidden'); }
+
+  function startGame(){
+    score = 0; wave = 1; lives = 3;
+    player.x = W/2 - 10; player.alive = true;
+    bullets = []; enemyBullets = []; particles = [];
+    spawnWave();
+    updateHUD();
+    hideCenter();
+    state = 'playing';
+  }
+
+  function nextWave(){
+    wave++;
+    bullets = []; enemyBullets = [];
+    spawnWave();
+    updateHUD();
+    flashWaveBanner('WAVE ' + wave);
+    state = 'playing';
+  }
+
+  function flashWaveBanner(text){
+    waveBanner.textContent = text;
+    waveBanner.classList.remove('show');
+    void waveBanner.offsetWidth;
+    waveBanner.classList.add('show');
+  }
+
+  function gameOver(win){
+    state = 'gameover';
+    if(win){
+      showCenter('VICTORY', 'The formation is broken.<br>Final score: ' + score, 'PRESS SPACE / TAP TO RETRY');
+    } else {
+      showCenter('SIGNAL LOST', 'Your ship fell at wave ' + wave + '.<br>Final score: ' + score, 'PRESS SPACE / TAP TO RETRY');
+    }
+  }
+
+  // ---------- Update ----------
+  function update(){
+    frame++;
+
+    // stars
+    for(const s of stars){
+      s.y += s.speed;
+      if(s.y > H){ s.y = 0; s.x = Math.random()*W; }
+    }
+
+    if(state !== 'playing') return;
+
+    // player movement
+    if((keys['ArrowLeft'] || keys['a'] || keys['A']) && player.x > 4) player.x -= player.speed;
+    if((keys['ArrowRight'] || keys['d'] || keys['D']) && player.x < W - player.w - 4) player.x += player.speed;
+    if(player.cooldown > 0) player.cooldown--;
+
+    // bullets
+    bullets.forEach(b=> b.y -= 4.2);
+    bullets = bullets.filter(b=> b.y > -10);
+
+    enemyBullets.forEach(b=> b.y += 2.4 + wave*0.15);
+    enemyBullets = enemyBullets.filter(b=> b.y < H+10);
+
+    // invader movement (stepped)
+    invMoveTimer++;
+    if(invMoveTimer >= invMoveInterval){
+      invMoveTimer = 0;
+      let hitEdge = false;
+      const aliveInv = invaders.filter(i=>i.alive);
+      for(const inv of aliveInv){
+        const nx = inv.x + invDir * invDropAmount * 0.5 * 0 + invDir * 6;
+        if(nx < 4 || nx > W - inv.w - 4) hitEdge = true;
+      }
+      if(hitEdge){
+        invDir *= -1;
+        for(const inv of invaders) inv.y += invDropAmount;
+      } else {
+        for(const inv of invaders) inv.x += invDir * 6;
+      }
+      // speed up as fewer remain
+      const remaining = aliveInv.length;
+      const total = ROWS*COLS;
+      invMoveInterval = Math.max(6, Math.floor(34 - (wave-1)*3 - (total-remaining)*0.5));
+    }
+
+    // enemy fire
+    const aliveInv = invaders.filter(i=>i.alive);
+    if(aliveInv.length > 0 && Math.random() < 0.02 + wave*0.002){
+      const shooter = aliveInv[Math.floor(Math.random()*aliveInv.length)];
+      enemyBullets.push({x: shooter.x + shooter.w/2 - 1, y: shooter.y + shooter.h, w:2, h:8});
+    }
+
+    // check invaders reach player line
+    for(const inv of aliveInv){
+      if(inv.y + inv.h >= player.y){
+        lives = 0;
+        updateHUD();
+        gameOver(false);
+        return;
+      }
+    }
+
+    // bullet vs invader
+    for(const b of bullets){
+      for(const inv of invaders){
+        if(!inv.alive) continue;
+        if(b.x < inv.x+inv.w && b.x+b.w > inv.x && b.y < inv.y+inv.h && b.y+b.h > inv.y){
+          inv.alive = false;
+          b.hit = true;
+          const pts = inv.type === 'boss' ? 30 : inv.type === 'mid' ? 20 : 10;
+          score += pts;
+          spawnBurst(inv.x+inv.w/2, inv.y+inv.h/2, COLORS.magenta);
+          updateHUD();
+        }
+      }
+      for(const blocks of barriers){
+        for(const blk of blocks){
+          if(blk.hp<=0) continue;
+          if(b.x < blk.x+blk.w && b.x+b.w > blk.x && b.y < blk.y+blk.h && b.y+b.h > blk.y){
+            blk.hp--; b.hit = true;
+          }
+        }
+      }
+    }
+    bullets = bullets.filter(b=> !b.hit);
+
+    // enemy bullet vs player & barriers
+    for(const b of enemyBullets){
+      for(const blocks of barriers){
+        for(const blk of blocks){
+          if(blk.hp<=0) continue;
+          if(b.x < blk.x+blk.w && b.x+b.w > blk.x && b.y < blk.y+blk.h && b.y+b.h > blk.y){
+            blk.hp--; b.hit = true;
+          }
+        }
+      }
+      if(player.alive && b.x < player.x+player.w && b.x+b.w > player.x && b.y < player.y+player.h && b.y+b.h > player.y){
+        b.hit = true;
+        lives--;
+        updateHUD();
+        spawnBurst(player.x+player.w/2, player.y+player.h/2, COLORS.cyan);
+        if(lives <= 0){
+          gameOver(false);
+          return;
+        }
+      }
+    }
+    enemyBullets = enemyBullets.filter(b=> !b.hit);
+
+    // particles
+    particles.forEach(p=>{ p.x += p.vx; p.y += p.vy; p.life--; });
+    particles = particles.filter(p=> p.life > 0);
+
+    // wave clear
+    if(invaders.every(i=> !i.alive)){
+      state = 'wave-clear';
+      setTimeout(()=>{ if(state==='wave-clear') nextWave(); }, 900);
+    }
+  }
+
+  function spawnBurst(x,y,color){
+    for(let i=0;i<8;i++){
+      const ang = Math.random()*Math.PI*2;
+      const spd = 0.6 + Math.random()*1.4;
+      particles.push({x,y, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd, life: 18+Math.random()*10, color});
+    }
+  }
+
+  // ---------- Draw ----------
+  function drawStars(){
+    ctx.save();
+    for(const s of stars){
+      const alpha = 0.4 + 0.4*Math.sin(frame*0.05 + s.tw);
+      ctx.fillStyle = `rgba(200,220,255,${alpha.toFixed(2)})`;
+      ctx.fillRect(s.x, s.y, s.size, s.size);
+    }
+    ctx.restore();
+  }
+
+  function drawPlayer(){
+    if(!player.alive) return;
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.fillStyle = COLORS.cyan;
+    ctx.shadowColor = COLORS.cyan;
+    ctx.shadowBlur = 8;
+    // simple ship shape
+    ctx.beginPath();
+    ctx.moveTo(player.w/2, 0);
+    ctx.lineTo(player.w, player.h);
+    ctx.lineTo(0, player.h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = COLORS.white;
+    ctx.fillRect(player.w/2-1, 2, 2, 4);
+    ctx.restore();
+  }
+
+  function drawInvader(inv){
+    if(!inv.alive) return;
+    const color = inv.type === 'boss' ? COLORS.magenta : inv.type === 'mid' ? COLORS.yellow : COLORS.green;
+    ctx.save();
+    ctx.translate(inv.x, inv.y);
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 5;
+    const bob = Math.sin(frame*0.15 + inv.x*0.1) > 0;
+    // pixel-invader body
+    ctx.fillRect(4,0, inv.w-8, 4);
+    ctx.fillRect(0,4, inv.w, 4);
+    ctx.fillRect(0,8, inv.w, 2);
+    if(bob){
+      ctx.fillRect(2,10,3,2);
+      ctx.fillRect(inv.w-5,10,3,2);
+    } else {
+      ctx.fillRect(0,10,3,2);
+      ctx.fillRect(inv.w-3,10,3,2);
+    }
+    ctx.restore();
+  }
+
+  function drawBarriers(){
+    for(const blocks of barriers){
+      for(const blk of blocks){
+        if(blk.hp<=0) continue;
+        ctx.fillStyle = blk.hp === 2 ? 'rgba(77,255,136,0.8)' : 'rgba(77,255,136,0.35)';
+        ctx.fillRect(blk.x, blk.y, blk.w, blk.h);
+      }
+    }
+  }
+
+  function drawBullets(){
+    ctx.fillStyle = COLORS.yellow;
+    ctx.shadowColor = COLORS.yellow;
+    ctx.shadowBlur = 6;
+    bullets.forEach(b=> ctx.fillRect(b.x,b.y,b.w,b.h));
+    ctx.fillStyle = COLORS.red;
+    ctx.shadowColor = COLORS.red;
+    enemyBullets.forEach(b=> ctx.fillRect(b.x,b.y,b.w,b.h));
+    ctx.shadowBlur = 0;
+  }
+
+  function drawParticles(){
+    particles.forEach(p=>{
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.life/28);
+      ctx.fillRect(p.x, p.y, 2, 2);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawGroundLine(){
+    ctx.strokeStyle = 'rgba(62,254,227,0.15)';
+    ctx.beginPath();
+    ctx.moveTo(0, H-14);
+    ctx.lineTo(W, H-14);
+    ctx.stroke();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    drawStars();
+    drawBarriers();
+    invaders.forEach(drawInvader);
+    drawPlayer();
+    drawBullets();
+    drawParticles();
+    drawGroundLine();
+  }
+
+  function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  updateHUD();
+  showCenter('VOID SIEGE', 'Alien formations descend from the dark.<br>Hold the line. Don\'t let them land.', 'PRESS SPACE / TAP TO START');
+  loop();
+})();
+</script>
+
+</body>
+</html>

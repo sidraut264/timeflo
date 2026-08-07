@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kong Climber</title>
+<style>
+  :root{
+    --bg:#0d0714;
+    --bg2:#1a0f2b;
+    --girder:#e0466b;
+    --girder-dark:#a52d4c;
+    --ladder:#ffcf4a;
+    --player:#4ad6ff;
+    --barrel:#c4622a;
+    --barrel-dark:#7a3a17;
+    --goal:#ff5fa2;
+    --text:#f4e9ff;
+  }
+  html,body{
+    margin:0;
+    height:100%;
+    background:
+      radial-gradient(ellipse at 50% 0%, #2a1640 0%, var(--bg) 60%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: 'Courier New', monospace;
+    overflow:hidden;
+  }
+  #wrap{
+    position:relative;
+    box-shadow: 0 0 0 4px #000, 0 0 0 8px var(--girder), 0 20px 60px rgba(0,0,0,0.6);
+    border-radius:4px;
+  }
+  canvas{
+    display:block;
+    background: linear-gradient(180deg, #1a0f2b 0%, #0d0714 100%);
+    image-rendering: pixelated;
+  }
+  #hud{
+    position:absolute;
+    top:0; left:0; right:0;
+    display:flex;
+    justify-content:space-between;
+    padding:10px 16px;
+    color:var(--text);
+    font-size:14px;
+    letter-spacing:2px;
+    text-shadow: 0 0 6px rgba(255,95,162,0.6);
+    pointer-events:none;
+  }
+  #overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:rgba(10,5,18,0.88);
+    color:var(--text);
+    text-align:center;
+    gap:14px;
+  }
+  #overlay h1{
+    margin:0;
+    font-size:28px;
+    color:var(--goal);
+    text-shadow: 0 0 12px rgba(255,95,162,0.8);
+    letter-spacing:3px;
+  }
+  #overlay p{
+    margin:0;
+    font-size:13px;
+    opacity:0.85;
+    line-height:1.6;
+    max-width:320px;
+  }
+  #overlay button{
+    margin-top:8px;
+    padding:10px 22px;
+    background:var(--girder);
+    color:#1a0f2b;
+    border:none;
+    border-radius:3px;
+    font-family:inherit;
+    font-weight:bold;
+    letter-spacing:2px;
+    font-size:13px;
+    cursor:pointer;
+    box-shadow:0 0 16px rgba(224,70,107,0.6);
+  }
+  #overlay button:hover{ filter:brightness(1.1); }
+  .hidden{ display:none !important; }
+  kbd{
+    background:#2a1640;
+    border:1px solid #4a2a6a;
+    border-radius:3px;
+    padding:1px 6px;
+    font-size:11px;
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" width="480" height="560"></canvas>
+  <div id="hud">
+    <span id="lives">LIVES: 3</span>
+    <span id="score">SCORE: 0</span>
+  </div>
+  <div id="overlay">
+    <h1>KONG CLIMBER</h1>
+    <p>
+      Climb the girders, dodge the rolling barrels, reach the top platform.<br><br>
+      <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &nbsp; <kbd>&uarr;</kbd> <kbd>&darr;</kbd> ladders &nbsp; <kbd>SPACE</kbd> jump
+    </p>
+    <button id="startBtn">START GAME</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const overlay = document.getElementById('overlay');
+  const startBtn = document.getElementById('startBtn');
+  const livesEl = document.getElementById('lives');
+  const scoreEl = document.getElementById('score');
+
+  const GRAVITY = 0.55;
+  const MOVE_SPEED = 2.2;
+  const CLIMB_SPEED = 1.8;
+  const JUMP_V = -6.8;
+
+  // ---- Level geometry: rows of slanted girders like classic DK ----
+  // Each platform: y, x1, x2, slope direction (for drawing only), and gaps are climbable via ladders
+  const platforms = [
+    { y: 520, x1: 20,  x2: 460, dir: 1 },
+    { y: 440, x1: 20,  x2: 460, dir: -1 },
+    { y: 360, x1: 20,  x2: 460, dir: 1 },
+    { y: 280, x1: 20,  x2: 460, dir: -1 },
+    { y: 200, x1: 20,  x2: 460, dir: 1 },
+    { y: 120, x1: 20,  x2: 460, dir: -1 },
+    { y: 70,  x1: 140, x2: 340, dir: 0 } // goal platform
+  ];
+
+  const ladders = [
+    { x: 380, y1: 440, y2: 520 },
+    { x: 90,  x2:null, y1: 360, y2: 440 },
+    { x: 380, y1: 280, y2: 360 },
+    { x: 90,  y1: 200, y2: 280 },
+    { x: 380, y1: 120, y2: 200 },
+    { x: 220, y1: 70,  y2: 120 },
+  ];
+
+  const GOAL = { x: 220, y: 45, w: 40, h: 30 };
+
+  let player, barrels, keys, lives, score, gameState, barrelTimer, frame, hammer;
+  const HAMMER_DURATION = 420; // ~7 seconds at 60fps
+  const HAMMER_RESPAWN = 480;  // ~8 seconds between pickups
+
+  function resetGame(){
+    player = {
+      x: 40, y: 500, w: 18, h: 22,
+      vx: 0, vy: 0,
+      onGround: true,
+      onLadder: false,
+      climbing: false,
+      dir: 1,
+      dead: false,
+      invuln: 0,
+      hammerTimer: 0
+    };
+    barrels = [];
+    keys = {};
+    lives = 3;
+    score = 0;
+    barrelTimer = 0;
+    frame = 0;
+    hammer = { x: 250, y: 262, w: 18, h: 18, active: true, respawnTimer: 0 };
+    gameState = 'ready';
+    updateHud();
+  }
+
+  function updateHud(){
+    livesEl.textContent = 'LIVES: ' + lives;
+    scoreEl.textContent = 'SCORE: ' + score;
+  }
+
+  function platformAt(px, py, pw){
+    // find the platform the player's feet are resting on (closest below)
+    let best = null;
+    for(const p of platforms){
+      if(px + pw > p.x1 && px < p.x2){
+        if(Math.abs(py - p.y) < 6){
+          best = p;
+        }
+      }
+    }
+    return best;
+  }
+
+  function onLadderZone(px, pw, py, ph){
+    for(const l of ladders){
+      const lx1 = l.x - 10, lx2 = l.x + 10;
+      if(px + pw > lx1 && px < lx2){
+        if(py + ph > l.y1 - 4 && py < l.y2 + 6){
+          return l;
+        }
+      }
+    }
+    return null;
+  }
+
+  function spawnBarrel(){
+    barrels.push({
+      x: 150, y: 104, w: 16, h: 16,
+      vx: 1.35,
+      vy: 0,
+      state: 'rolling', // 'rolling' | 'falling'
+      targetY: null,
+      platformY: 120
+    });
+  }
+
+  function update(){
+    if(gameState !== 'playing') return;
+    frame++;
+
+    // barrel spawning
+    barrelTimer++;
+    if(barrelTimer > 150){
+      barrelTimer = 0;
+      spawnBarrel();
+    }
+
+    // ---- player input ----
+    const p = player;
+    const ladder = onLadderZone(p.x, p.w, p.y, p.h);
+    p.onLadder = !!ladder;
+
+    if(keys['ArrowLeft']){ p.vx = -MOVE_SPEED; p.dir = -1; }
+    else if(keys['ArrowRight']){ p.vx = MOVE_SPEED; p.dir = 1; }
+    else { p.vx = 0; }
+
+    if(p.onLadder && (keys['ArrowUp'] || keys['ArrowDown'])){
+      p.climbing = true;
+      p.vy = keys['ArrowUp'] ? -CLIMB_SPEED : CLIMB_SPEED;
+      p.vx = 0;
+    } else if(p.climbing && !p.onLadder){
+      p.climbing = false;
+    }
+
+    if(!p.climbing){
+      p.vy += GRAVITY;
+      if(keys['Space'] && p.onGround){
+        p.vy = JUMP_V;
+        p.onGround = false;
+      }
+    } else {
+      p.onGround = false;
+    }
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    p.x = Math.max(10, Math.min(W - 10 - p.w, p.x));
+
+    // landing on platforms
+    p.onGround = false;
+    for(const plat of platforms){
+      if(p.x + p.w > plat.x1 && p.x < plat.x2){
+        if(p.vy >= 0 && p.y + p.h >= plat.y && p.y + p.h <= plat.y + 12){
+          p.y = plat.y - p.h;
+          p.vy = 0;
+          p.onGround = true;
+          p.climbing = false;
+        }
+      }
+    }
+    if(p.y + p.h > H){ p.y = H - p.h; p.vy = 0; p.onGround = true; }
+    if(p.y < 30){ p.y = 30; }
+
+    if(p.invuln > 0) p.invuln--;
+
+    // win check
+    if(p.y <= GOAL.y + GOAL.h + 6 && p.x + p.w > GOAL.x - 10 && p.x < GOAL.x + GOAL.w + 10){
+      gameState = 'won';
+      showOverlay('YOU WIN!', 'You reached the top with a score of ' + score + '.', 'PLAY AGAIN');
+    }
+
+    // ---- barrels ----
+    for(const b of barrels){
+      if(b.state === 'rolling'){
+        b.x += b.vx;
+        if(b.x < 15){ b.x = 15; b.vx = Math.abs(b.vx); }
+        if(b.x > W - 15 - b.w){ b.x = W - 15 - b.w; b.vx = -Math.abs(b.vx); }
+
+        // look for a ladder on this platform that leads down, and start
+        // descending if the barrel is near it (checked with decent tolerance
+        // so barrels reliably find ladders as they roll back and forth)
+        for(const l of ladders){
+          if(Math.abs(l.y1 - b.platformY) < 6 && Math.abs((b.x + b.w/2) - l.x) < 6){
+            b.state = 'falling';
+            b.targetY = l.y2;
+            b.x = l.x - b.w/2;
+            b.vx = 0;
+            b.vy = 1.2;
+            break;
+          }
+        }
+      } else { // falling down a ladder
+        b.vy += GRAVITY * 0.6;
+        b.y += b.vy;
+        if(b.y >= b.targetY - b.h){
+          b.y = b.targetY - b.h;
+          b.vy = 0;
+          b.state = 'rolling';
+          b.platformY = b.targetY;
+          b.vx = Math.random() < 0.5 ? -1.6 : 1.6;
+        }
+      }
+
+      // score for jumping over — simple proximity based bonus once
+      if(!b.scored && Math.abs(b.y - p.y) < 4 && Math.abs(b.x - p.x) < 20 && p.y < b.y - 10){
+        b.scored = true;
+        score += 50;
+        updateHud();
+      }
+    }
+    barrels = barrels.filter(b => b.y < H + 40);
+
+    // collision -> lose life
+    if(p.invuln === 0){
+      for(const b of barrels){
+        if(rectsOverlap(p, b)){
+          loseLife();
+          break;
+        }
+      }
+    }
+  }
+
+  function rectsOverlap(a, b){
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function loseLife(){
+    lives--;
+    updateHud();
+    if(lives <= 0){
+      gameState = 'over';
+      showOverlay('GAME OVER', 'Final score: ' + score + '.', 'TRY AGAIN');
+    } else {
+      player.x = 40; player.y = 500; player.vx = 0; player.vy = 0;
+      player.invuln = 90;
+      barrels = [];
+    }
+  }
+
+  function showOverlay(title, msg, btnText){
+    overlay.querySelector('h1').textContent = title;
+    overlay.querySelector('p').innerHTML = msg;
+    startBtn.textContent = btnText;
+    overlay.classList.remove('hidden');
+  }
+
+  // ---- drawing ----
+  function drawGirder(p){
+    ctx.fillStyle = getCss('--girder');
+    ctx.fillRect(p.x1, p.y, p.x2 - p.x1, 10);
+    ctx.fillStyle = getCss('--girder-dark');
+    for(let x = p.x1; x < p.x2; x += 22){
+      ctx.fillRect(x, p.y, 4, 10);
+    }
+  }
+
+  function getCss(v){
+    return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  }
+  const cGirder = '#e0466b', cGirderDark = '#a52d4c', cLadder = '#ffcf4a',
+        cPlayer = '#4ad6ff', cBarrel = '#c4622a', cBarrelDark = '#7a3a17', cGoal = '#ff5fa2';
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    // background stars
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    for(let i=0;i<40;i++){
+      const sx = (i * 97) % W;
+      const sy = (i * 53 + frame*0.1) % H;
+      ctx.fillRect(sx, sy, 1.5, 1.5);
+    }
+
+    // platforms
+    for(const p of platforms){
+      ctx.fillStyle = cGirder;
+      ctx.fillRect(p.x1, p.y, p.x2 - p.x1, 10);
+      ctx.fillStyle = cGirderDark;
+      for(let x = p.x1; x < p.x2; x += 22){
+        ctx.fillRect(x, p.y, 4, 10);
+      }
+    }
+
+    // ladders
+    ctx.strokeStyle = cLadder;
+    ctx.lineWidth = 3;
+    for(const l of ladders){
+      ctx.beginPath();
+      ctx.moveTo(l.x - 8, l.y1);
+      ctx.lineTo(l.x - 8, l.y2);
+      ctx.moveTo(l.x + 8, l.y1);
+      ctx.lineTo(l.x + 8, l.y2);
+      ctx.stroke();
+      for(let y = l.y1 + 6; y < l.y2; y += 12){
+        ctx.beginPath();
+        ctx.moveTo(l.x - 8, y);
+        ctx.lineTo(l.x + 8, y);
+        ctx.stroke();
+      }
+    }
+
+    // goal marker
+    ctx.fillStyle = cGoal;
+    ctx.beginPath();
+    ctx.moveTo(GOAL.x, GOAL.y + GOAL.h);
+    ctx.lineTo(GOAL.x + GOAL.w/2, GOAL.y - 14);
+    ctx.lineTo(GOAL.x + GOAL.w, GOAL.y + GOAL.h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#1a0f2b';
+    ctx.fillText('GOAL', GOAL.x + 4, GOAL.y + GOAL.h - 6);
+
+    // barrels
+    for(const b of barrels){
+      ctx.fillStyle = cBarrel;
+      ctx.beginPath();
+      ctx.arc(b.x + b.w/2, b.y + b.h/2, b.w/2, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = cBarrelDark;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(b.x + b.w/2, b.y + b.h/2, b.w/2 - 3, 0, Math.PI*2);
+      ctx.stroke();
+    }
+
+    // player
+    if(player.invuln === 0 || frame % 10 < 5){
+      ctx.fillStyle = cPlayer;
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+      ctx.fillStyle = '#0d0714';
+      const eyeX = player.dir > 0 ? player.x + player.w - 6 : player.x + 2;
+      ctx.fillRect(eyeX, player.y + 4, 4, 4);
+    }
+  }
+
+  function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // ---- input ----
+  window.addEventListener('keydown', (e) => {
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code)){
+      e.preventDefault();
+    }
+    keys[e.code] = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    keys[e.code] = false;
+  });
+
+  startBtn.addEventListener('click', () => {
+    resetGame();
+    gameState = 'playing';
+    overlay.classList.add('hidden');
+  });
+
+  resetGame();
+  loop();
+})();
+</script>
+</body>
+</html>

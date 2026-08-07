@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CROSSING — a Frogger game</title>
+<style>
+  :root{
+    --ink:#07110d;
+    --panel:#0d1f17;
+    --grid:#123527;
+    --neon:#5CF29A;
+    --neon-dim:#2c8a5e;
+    --amber:#F2C15C;
+    --red:#F25C5C;
+    --cream:#EAF4EC;
+    --water:#0e2a4a;
+    --water2:#123a63;
+    --road:#1a1a1e;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    height:100%;
+    background:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Courier New', monospace;
+    color:var(--cream);
+    overflow:hidden;
+  }
+  #wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    padding:16px;
+  }
+  .title{
+    font-family:'Courier New', monospace;
+    letter-spacing:10px;
+    font-size:14px;
+    color:var(--neon);
+    text-shadow:0 0 8px rgba(92,242,154,0.6);
+    margin:0 0 2px 0;
+  }
+  .hud{
+    display:flex;
+    justify-content:space-between;
+    width:100%;
+    font-size:13px;
+    letter-spacing:2px;
+    color:var(--amber);
+    padding:0 2px;
+  }
+  .hud span.val{color:var(--cream);}
+  #stage{
+    position:relative;
+    border:3px solid var(--grid);
+    box-shadow:0 0 0 6px var(--ink), 0 0 30px rgba(92,242,154,0.15), inset 0 0 40px rgba(0,0,0,0.6);
+    border-radius:2px;
+  }
+  canvas{
+    display:block;
+    image-rendering:pixelated;
+  }
+  #overlay{
+    position:absolute;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:rgba(7,17,13,0.88);
+    gap:14px;
+    text-align:center;
+  }
+  #overlay.show{display:flex;}
+  #overlay h2{
+    margin:0;
+    font-size:22px;
+    letter-spacing:6px;
+    color:var(--neon);
+    text-shadow:0 0 10px rgba(92,242,154,0.7);
+  }
+  #overlay p{
+    margin:0;
+    font-size:12px;
+    letter-spacing:2px;
+    color:var(--cream);
+    opacity:0.85;
+  }
+  button{
+    font-family:inherit;
+    font-size:13px;
+    letter-spacing:3px;
+    background:var(--neon);
+    color:var(--ink);
+    border:none;
+    padding:10px 18px;
+    cursor:pointer;
+    font-weight:bold;
+  }
+  button:hover{background:var(--amber);}
+  .controls{
+    display:none;
+    grid-template-columns:repeat(3,44px);
+    grid-template-rows:repeat(2,44px);
+    gap:6px;
+    margin-top:4px;
+  }
+  .controls button.dpad{
+    background:var(--panel);
+    color:var(--neon);
+    border:2px solid var(--grid);
+    font-size:16px;
+    padding:0;
+  }
+  .controls button.dpad:active{background:var(--neon-dim);}
+  #up{grid-column:2;grid-row:1;}
+  #left{grid-column:1;grid-row:2;}
+  #down{grid-column:2;grid-row:2;}
+  #right{grid-column:3;grid-row:2;}
+  .hint{font-size:10px;letter-spacing:2px;color:var(--neon-dim);}
+  @media (hover:none){
+    .controls{display:grid;}
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="title">CROSSING</div>
+  <div class="hud" style="max-width:480px;">
+    <div>SCORE <span class="val" id="score">0</span></div>
+    <div>TIME <span class="val" id="time">30</span></div>
+    <div>LIVES <span class="val" id="lives">●●●</span></div>
+  </div>
+  <div id="stage">
+    <canvas id="game" width="480" height="560"></canvas>
+    <div id="overlay">
+      <h2 id="overlayTitle">CROSSING</h2>
+      <p id="overlaySub">ARROW KEYS TO HOP. REACH ALL 5 LILY PADS.</p>
+      <button id="startBtn">START</button>
+    </div>
+  </div>
+  <div class="controls">
+    <button class="dpad" id="up">▲</button>
+    <button class="dpad" id="left">◀</button>
+    <button class="dpad" id="down">▼</button>
+    <button class="dpad" id="right">▶</button>
+  </div>
+  <div class="hint">ARROWS / WASD TO HOP · TAP PADS ON MOBILE</div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const COLS = 12, ROWS = 14;
+  const CELL = 40;
+
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const livesEl = document.getElementById('lives');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlaySub = document.getElementById('overlaySub');
+  const startBtn = document.getElementById('startBtn');
+
+  // Row types top(0) to bottom(13)
+  // 0: goal row (lily pads)
+  // 1-5: water lanes
+  // 6: median (safe)
+  // 7-11: road lanes
+  // 12: start safe
+  // Actually let's define 14 rows total: 0 goal,1-5 water,6 safe,7-11 road,12 safe(start),  we need 14 rows -> add one more safe row at very bottom for spawn margin
+  const ROW = {
+    GOAL:0,
+    WATER:[1,2,3,4,5],
+    MEDIAN:6,
+    ROAD:[7,8,9,10,11],
+    START:12,
+    MARGIN:13
+  };
+
+  let frog, lanes, lilypads, score, lives, timeLeft, gameState, lastTime, timerAccum, moveCooldown;
+  let particles = [];
+
+  function initLanes(){
+    lanes = [];
+    // water lanes: logs and turtles moving
+    const waterDirs = [1,-1,1,-1,1];
+    const waterSpeeds = [55,70,60,80,50];
+    ROW.WATER.forEach((r,i)=>{
+      const dir = waterDirs[i];
+      const speed = waterSpeeds[i]*dir;
+      const isTurtle = i===2;
+      const objs = [];
+      const count = isTurtle ? 3 : 3;
+      const gap = COLS*CELL/count;
+      for(let k=0;k<count;k++){
+        objs.push({
+          x: k*gap + (i%2===0?0:gap/2),
+          w: isTurtle ? 90 : 100 + (i*8),
+          type: isTurtle?'turtle':'log'
+        });
+      }
+      lanes.push({row:r, dir, speed, objs, kind:'water'});
+    });
+    // road lanes: cars
+    const roadDirs = [-1,1,-1,1,-1];
+    const roadSpeeds = [90,70,110,60,95];
+    const carColors = ['#F25C5C','#F2C15C','#5CA0F2','#C25CF2','#F28C5C'];
+    ROW.ROAD.forEach((r,i)=>{
+      const dir = roadDirs[i];
+      const speed = roadSpeeds[i]*dir;
+      const objs = [];
+      const count = 3;
+      const gap = COLS*CELL/count;
+      for(let k=0;k<count;k++){
+        objs.push({
+          x: k*gap + (i%2===0?gap*0.3:gap*0.7),
+          w: 46,
+          color: carColors[(i+k)%carColors.length]
+        });
+      }
+      lanes.push({row:r, dir, speed, objs, kind:'road'});
+    });
+  }
+
+  function initLilypads(){
+    // 5 goal slots
+    lilypads = [false,false,false,false,false];
+  }
+
+  function resetFrog(){
+    frog = { col:5.5, row:ROW.START, px:5.5*CELL, py:ROW.START*CELL, onLog:null, alive:true, animT:0 };
+  }
+
+  function newGame(){
+    score = 0; lives = 3; timeLeft = 30; gameState='playing';
+    initLanes(); initLilypads(); resetFrog();
+    moveCooldown = 0;
+    updateHUD();
+  }
+
+  function updateHUD(){
+    scoreEl.textContent = score;
+    timeEl.textContent = Math.max(0,Math.ceil(timeLeft));
+    livesEl.textContent = '●'.repeat(Math.max(0,lives)) + '○'.repeat(Math.max(0,3-lives));
+  }
+
+  function showOverlay(title, sub, btnText){
+    overlayTitle.textContent = title;
+    overlaySub.textContent = sub;
+    startBtn.textContent = btnText;
+    overlay.classList.add('show');
+  }
+  function hideOverlay(){ overlay.classList.remove('show'); }
+
+  function loseLife(reason){
+    lives--;
+    updateHUD();
+    spawnParticles(frog.px+CELL/2, frog.py+CELL/2, reason==='water' ? '#5CA0F2' : '#F25C5C');
+    if(lives<=0){
+      gameState='over';
+      showOverlay('GAME OVER', 'FINAL SCORE '+score, 'RETRY');
+    } else {
+      resetFrog();
+    }
+  }
+
+  function spawnParticles(x,y,color){
+    for(let i=0;i<14;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = 40+Math.random()*80;
+      particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:0.5,color});
+    }
+  }
+
+  function tryMove(dc,dr){
+    if(gameState!=='playing') return;
+    const nc = Math.round(frog.col)+dc;
+    const nr = frog.row+dr;
+    if(nc<0 || nc>COLS-1) return;
+    if(nr>ROW.START) return;
+    frog.col = nc;
+    frog.row = nr;
+    frog.animT = 1;
+    if(dr<0) { score += 10; }
+    updateHUD();
+    checkRowEvent();
+  }
+
+  function checkRowEvent(){
+    if(frog.row===ROW.GOAL){
+      const slot = Math.floor(frog.col/ (COLS/5));
+      const laneObjs = null;
+      // check if landing spot overlaps a lilypad zone and not already filled
+      const padWidth = COLS/5;
+      const padIndex = Math.min(4,Math.max(0,Math.floor(frog.col/padWidth)));
+      // must be reasonably centered — simple check
+      if(!lilypads[padIndex]){
+        lilypads[padIndex] = true;
+        score += 50;
+        updateHUD();
+        spawnParticles(frog.px+CELL/2, frog.py+CELL/2, '#5CF29A');
+        if(lilypads.every(Boolean)){
+          gameState='won';
+          showOverlay('YOU WIN', 'ALL PADS FILLED · SCORE '+score, 'PLAY AGAIN');
+        } else {
+          timeLeft = 30;
+          resetFrog();
+        }
+      } else {
+        loseLife('pad');
+      }
+    }
+  }
+
+  // Input
+  const keyMap = {
+    ArrowUp:[0,-1], KeyW:[0,-1],
+    ArrowDown:[0,1], KeyS:[0,1],
+    ArrowLeft:[-1,0], KeyA:[-1,0],
+    ArrowRight:[1,0], KeyD:[1,0]
+  };
+  window.addEventListener('keydown', (e)=>{
+    if(keyMap[e.code]){
+      e.preventDefault();
+      const [dc,dr] = keyMap[e.code];
+      tryMove(dc,dr);
+    }
+  });
+  document.getElementById('up').addEventListener('click',()=>tryMove(0,-1));
+  document.getElementById('down').addEventListener('click',()=>tryMove(0,1));
+  document.getElementById('left').addEventListener('click',()=>tryMove(-1,0));
+  document.getElementById('right').addEventListener('click',()=>tryMove(1,0));
+
+  startBtn.addEventListener('click', ()=>{
+    newGame();
+    hideOverlay();
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+  });
+
+  function update(dt){
+    if(gameState!=='playing') return;
+
+    timeLeft -= dt;
+    if(timeLeft<=0){
+      timeLeft = 30;
+      loseLife('time');
+      updateHUD();
+      return;
+    }
+    updateHUD();
+
+    // move lane objects
+    lanes.forEach(lane=>{
+      lane.objs.forEach(o=>{
+        o.x += lane.speed*dt;
+        const wrapW = COLS*CELL;
+        if(lane.speed>0 && o.x > wrapW+60) o.x -= wrapW+120;
+        if(lane.speed<0 && o.x < -160) o.x += wrapW+120;
+      });
+    });
+
+    // frog world pixel pos (smooth toward target)
+    const targetPx = frog.col*CELL;
+    const targetPy = frog.row*CELL;
+    frog.px += (targetPx-frog.px)*Math.min(1,dt*14);
+    frog.py += (targetPy-frog.py)*Math.min(1,dt*14);
+    if(frog.animT>0) frog.animT = Math.max(0,frog.animT-dt*6);
+
+    // water lane logic
+    if(ROW.WATER.includes(frog.row)){
+      const lane = lanes.find(l=>l.row===frog.row);
+      let onSomething = false;
+      for(const o of lane.objs){
+        if(frog.col*CELL+CELL/2 > o.x && frog.col*CELL+CELL/2 < o.x+o.w){
+          onSomething = true;
+          break;
+        }
+      }
+      if(onSomething){
+        frog.col += (lane.speed*dt)/CELL;
+        frog.px += lane.speed*dt;
+        if(frog.col<0 || frog.col>COLS-0.2){
+          loseLife('water');
+        }
+      } else {
+        loseLife('water');
+      }
+    }
+
+    // road lane logic
+    if(ROW.ROAD.includes(frog.row)){
+      const lane = lanes.find(l=>l.row===frog.row);
+      for(const o of lane.objs){
+        const fx = frog.col*CELL+CELL/2;
+        if(fx > o.x+6 && fx < o.x+o.w-6){
+          loseLife('road');
+          break;
+        }
+      }
+    }
+
+    // particles
+    particles.forEach(p=>{
+      p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt;
+      p.vx*=0.9; p.vy*=0.9;
+    });
+    particles = particles.filter(p=>p.life>0);
+  }
+
+  function drawGrid(){
+    ctx.fillStyle = '#07110d';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    for(let r=0;r<ROWS;r++){
+      const y = r*CELL;
+      if(r===ROW.GOAL){
+        ctx.fillStyle = '#0a2818';
+        ctx.fillRect(0,y,canvas.width,CELL);
+      } else if(ROW.WATER.includes(r)){
+        ctx.fillStyle = r%2===0 ? 'var(--water)' : 'var(--water)';
+        ctx.fillStyle = '#0e2a4a';
+        ctx.fillRect(0,y,canvas.width,CELL);
+      } else if(r===ROW.MEDIAN){
+        ctx.fillStyle = '#152318';
+        ctx.fillRect(0,y,canvas.width,CELL);
+      } else if(ROW.ROAD.includes(r)){
+        ctx.fillStyle = '#17171a';
+        ctx.fillRect(0,y,canvas.width,CELL);
+      } else {
+        ctx.fillStyle = '#152318';
+        ctx.fillRect(0,y,canvas.width,CELL);
+      }
+    }
+
+    // road lane dashes
+    ROW.ROAD.forEach(r=>{
+      const y = r*CELL+CELL/2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10,10]);
+      ctx.beginPath();
+      ctx.moveTo(0,y);
+      ctx.lineTo(canvas.width,y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // water shimmer lines
+    ROW.WATER.forEach((r,i)=>{
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for(let x=0;x<canvas.width;x+=24){
+        ctx.beginPath();
+        ctx.moveTo(x + (i%2===0?0:12), r*CELL+8);
+        ctx.lineTo(x+10 + (i%2===0?0:12), r*CELL+8);
+        ctx.stroke();
+      }
+    });
+
+    // goal lily pads
+    const padWidth = (COLS/5)*CELL;
+    for(let i=0;i<5;i++){
+      const cx = i*padWidth + padWidth/2;
+      const cy = ROW.GOAL*CELL+CELL/2;
+      ctx.beginPath();
+      ctx.fillStyle = lilypads[i] ? '#5CF29A' : '#12492e';
+      ctx.arc(cx,cy,14,0,Math.PI*2);
+      ctx.fill();
+      if(lilypads[i]){
+        ctx.shadowColor='#5CF29A'; ctx.shadowBlur=14;
+        ctx.fill();
+        ctx.shadowBlur=0;
+      }
+      ctx.strokeStyle = '#0a2818';
+      ctx.lineWidth=2;
+      ctx.stroke();
+    }
+
+    // safe row markers
+    ctx.fillStyle = 'rgba(92,242,154,0.06)';
+    ctx.fillRect(0,ROW.MEDIAN*CELL,canvas.width,CELL);
+    ctx.fillRect(0,ROW.START*CELL,canvas.width,CELL);
+  }
+
+  function drawLaneObjs(){
+    lanes.forEach(lane=>{
+      lane.objs.forEach(o=>{
+        const y = lane.row*CELL;
+        if(lane.kind==='water'){
+          if(o.type==='log'){
+            ctx.fillStyle = '#6b4226';
+            roundRect(o.x,y+6,o.w,CELL-12,6);
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            for(let gx=8;gx<o.w-8;gx+=14){
+              ctx.fillRect(o.x+gx,y+8,3,CELL-16);
+            }
+          } else {
+            ctx.fillStyle = '#2f8f5a';
+            roundRect(o.x,y+8,o.w,CELL-16,10);
+            for(let k=0;k<Math.floor(o.w/30);k++){
+              ctx.fillStyle='#1f6b40';
+              ctx.beginPath();
+              ctx.arc(o.x+16+k*30,y+CELL/2,8,0,Math.PI*2);
+              ctx.fill();
+            }
+          }
+        } else {
+          ctx.fillStyle = o.color;
+          roundRect(o.x,y+5,o.w,CELL-10,5);
+          ctx.fillStyle='rgba(255,255,255,0.25)';
+          ctx.fillRect(o.x+4,y+8,o.w-8,4);
+          // wheels hint
+          ctx.fillStyle='#0a0a0a';
+          ctx.fillRect(o.x+4,y+CELL-12,8,4);
+          ctx.fillRect(o.x+o.w-12,y+CELL-12,8,4);
+        }
+      });
+    });
+  }
+
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawFrog(){
+    if(gameState==='over') return;
+    const x = frog.px, y = frog.py;
+    const squash = frog.animT>0 ? 1-frog.animT*0.25 : 1;
+    ctx.save();
+    ctx.translate(x+CELL/2,y+CELL/2);
+    ctx.scale(1, squash);
+    ctx.fillStyle = '#5CF29A';
+    ctx.shadowColor='rgba(92,242,154,0.7)';
+    ctx.shadowBlur=10;
+    ctx.beginPath();
+    ctx.ellipse(0,4,13,10,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+    // eyes
+    ctx.fillStyle='#07110d';
+    ctx.beginPath();
+    ctx.arc(-6,-6,3,0,Math.PI*2);
+    ctx.arc(6,-6,3,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle='#5CF29A';
+    ctx.beginPath();
+    ctx.arc(-6,-9,4,0,Math.PI*2);
+    ctx.arc(6,-9,4,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle='#07110d';
+    ctx.beginPath();
+    ctx.arc(-6,-9,1.6,0,Math.PI*2);
+    ctx.arc(6,-9,1.6,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawParticles(){
+    particles.forEach(p=>{
+      ctx.globalAlpha = Math.max(0,p.life/0.5);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x-2,p.y-2,4,4);
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  function draw(){
+    drawGrid();
+    drawLaneObjs();
+    drawParticles();
+    drawFrog();
+  }
+
+  function loop(now){
+    const dt = Math.min(0.05,(now-lastTime)/1000);
+    lastTime = now;
+    update(dt);
+    draw();
+    if(gameState==='playing'){
+      requestAnimationFrame(loop);
+    } else {
+      draw();
+    }
+  }
+
+  // initial idle render
+  initLanes(); initLilypads(); resetFrog(); gameState='idle';
+  draw();
+  showOverlay('CROSSING','ARROW KEYS TO HOP. REACH ALL 5 LILY PADS.','START');
+})();
+</script>
+</body>
+</html>
