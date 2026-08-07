@@ -571,9 +571,187 @@
       white-space: nowrap;
     }
 
+    /* === SIDEBAR TOGGLE BUTTON === */
+    .sidebar-toggle-btn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 120;
+      background: rgba(26, 0, 16, 0.85);
+      border: 2px solid var(--gold);
+      border-radius: 30px;
+      color: var(--gold);
+      font-family: 'Orbitron', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), inset 0 0 10px rgba(255, 215, 0, 0.1);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s;
+    }
+
+    .sidebar-toggle-btn:hover, .sidebar-toggle-btn:active {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+      background: rgba(45, 0, 24, 0.95);
+    }
+
+    /* === SIDEBAR OVERLAY & DRAWER === */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sidebar-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 320px;
+      max-width: 85vw;
+      background: linear-gradient(180deg, #1f0012 0%, #0d0007 100%);
+      border-right: 3px solid var(--gold-dark);
+      box-shadow: 10px 0 40px rgba(255, 45, 120, 0.4);
+      z-index: 160;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-overlay.open .sidebar-drawer {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 2px solid rgba(255, 215, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .sidebar-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-close-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .sidebar-close-btn:hover {
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .sidebar-games-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar-game-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 215, 0, 0.15);
+      border-radius: 12px;
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .sidebar-game-card:hover, .sidebar-game-card:active {
+      background: rgba(255, 45, 120, 0.15);
+      border-color: var(--neon-pink);
+      transform: translateX(4px);
+    }
+
+    .sidebar-game-icon {
+      font-size: 26px;
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      flex-shrink: 0;
+    }
+
+    .sidebar-game-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+    }
+
+    .sidebar-game-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-game-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     /* === RESPONSIVE === */
     @media (max-width: 650px) {
+      .sidebar-toggle-btn {
+        top: 12px; left: 12px;
+        font-size: 11px;
+        padding: 8px 14px;
+      }
       .scene { gap: 6px; }
+
       .machine { width: 320px; }
       .machine-title { font-size: 18px; letter-spacing: 2px; }
       .reels-panel { margin: 10px 12px; }
@@ -593,7 +771,29 @@
   <div class="star-field"></div>
   <div class="marquee-lights"></div>
 
+  <!-- SIDEBAR TOGGLE BUTTON -->
+  <button class="sidebar-toggle-btn" id="openSidebarBtn" type="button" aria-label="Open Games Sidebar">
+    <span>☰</span>
+    <span>SELECT GAME</span>
+  </button>
+
+  <!-- SIDEBAR DRAWER & OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay">
+    <div class="sidebar-drawer">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          <span>🎰</span> ARCADE GAMES
+        </div>
+        <button class="sidebar-close-btn" id="closeSidebarBtn" type="button" aria-label="Close Sidebar">✕</button>
+      </div>
+      <div class="sidebar-games-list" id="sidebarGamesList">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
   <div class="win-flash" id="winFlash"></div>
+
 
   <div class="scene">
     <!-- LEVER (Left Side) -->
@@ -658,31 +858,63 @@
 
   <script>
     const GAMES = [
-      { name: 'The Backrooms',    url: 'games/backrooms-arena.html',   icon: '👁️' },
-      { name: 'Kong Climber',     url: 'games/kong-climber.html',      icon: '🦍' },
-      { name: 'Sling Siege',      url: 'games/sling-siege.html',       icon: '🏹' },
-      { name: 'Crossing',         url: 'games/crossing-frogger.html',  icon: '🐸' },
-      { name: 'Neon Pong',        url: 'games/neon-pong.html',         icon: '🏓' },
-      { name: 'Void Siege',       url: 'games/void-siege.html',        icon: '🚀' },
-      { name: 'Flappy Clone',     url: 'games/flappy-clone.html',      icon: '🐦' },
-      { name: 'Pixel Plumber',    url: 'games/pixel-plumber.html',     icon: '🔧' },
-      { name: 'Snake',            url: 'games/snake.html',             icon: '🐍' },
-      { name: 'Pac-Man',          url: 'games/pac-man.html',           icon: '🟡' },
-      { name: 'Dino Runner',      url: 'games/dino-runner.html',       icon: '🦕' },
-      { name: 'Smash Grid',       url: 'games/smash-grid.html',        icon: '💥' },
+      { name: 'The Backrooms',    url: 'games/backrooms-arena.html',   icon: '👁️', desc: 'Arena survival maze' },
+      { name: 'Kong Climber',     url: 'games/kong-climber.html',      icon: '🦍', desc: 'Platforms & rolling barrels' },
+      { name: 'Sling Siege',      url: 'games/sling-siege.html',       icon: '🏹', desc: 'Physics fortress shots' },
+      { name: 'Crossing',         url: 'games/crossing-frogger.html',  icon: '🐸', desc: 'Frogger-style lane crossing' },
+      { name: 'Neon Pong',        url: 'games/neon-pong.html',         icon: '🏓', desc: 'Arcade pong power-ups' },
+      { name: 'Void Siege',       url: 'games/void-siege.html',        icon: '🚀', desc: 'Space arcade defense' },
+      { name: 'Flappy Clone',     url: 'games/flappy-clone.html',      icon: '🐦', desc: 'Tap to flap through pipes' },
+      { name: 'Pixel Plumber',    url: 'games/pixel-plumber.html',     icon: '🔧', desc: 'Side-scrolling platformer' },
+      { name: 'Snake',            url: 'games/snake.html',             icon: '🐍', desc: 'Classic grid chase' },
+      { name: 'Pac-Man',          url: 'games/pac-man.html',           icon: '🟡', desc: 'Maze dots and ghosts' },
+      { name: 'Dino Runner',      url: 'games/dino-runner.html',       icon: '🦕', desc: 'Endless desert runner' },
+      { name: 'Smash Grid',       url: 'games/smash-grid.html',        icon: '💥', desc: 'Brick breaker grid' },
     ];
 
     let spinning = false;
     let credits = 777;
     let totalSpins = 0;
 
-    const spinBtn       = document.getElementById('spinBtn');
-    const lever         = document.getElementById('lever');
-    const coinValue     = document.getElementById('coinValue');
-    const spinCount     = document.getElementById('spinCount');
-    const resultDisplay = document.getElementById('resultDisplay');
-    const jackpotSign   = document.getElementById('jackpotSign');
-    const winFlash      = document.getElementById('winFlash');
+    const spinBtn          = document.getElementById('spinBtn');
+    const lever            = document.getElementById('lever');
+    const coinValue        = document.getElementById('coinValue');
+    const spinCount        = document.getElementById('spinCount');
+    const resultDisplay    = document.getElementById('resultDisplay');
+    const jackpotSign      = document.getElementById('jackpotSign');
+    const winFlash         = document.getElementById('winFlash');
+    const openSidebarBtn   = document.getElementById('openSidebarBtn');
+    const closeSidebarBtn  = document.getElementById('closeSidebarBtn');
+    const sidebarOverlay   = document.getElementById('sidebarOverlay');
+    const sidebarGamesList = document.getElementById('sidebarGamesList');
+
+    // Populate Sidebar Games List
+    function populateSidebar() {
+      sidebarGamesList.innerHTML = '';
+      GAMES.forEach(game => {
+        const a = document.createElement('a');
+        a.className = 'sidebar-game-card';
+        a.href = game.url;
+        a.innerHTML = `
+          <div class="sidebar-game-icon">${game.icon}</div>
+          <div class="sidebar-game-info">
+            <span class="sidebar-game-name">${game.name}</span>
+            <span class="sidebar-game-desc">${game.desc}</span>
+          </div>
+        `;
+        sidebarGamesList.appendChild(a);
+      });
+    }
+
+    populateSidebar();
+
+    // Sidebar Toggle Handlers
+    openSidebarBtn.addEventListener('click', () => sidebarOverlay.classList.add('open'));
+    closeSidebarBtn.addEventListener('click', () => sidebarOverlay.classList.remove('open'));
+    sidebarOverlay.addEventListener('click', (e) => {
+      if (e.target === sidebarOverlay) sidebarOverlay.classList.remove('open');
+    });
+
 
     // Build items inside strips
     function buildStrips() {
