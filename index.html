@@ -3,125 +3,804 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Timeflo Arcade</title>
-  <link rel="stylesheet" href="styles/launcher.css">
+  <title>Timeflo Arcade – Slot Machine</title>
+  <meta name="description" content="Pull the lever on the Timeflo Arcade slot machine to get a random game. Your next adventure is just a spin away!">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #ffd700;
+      --gold-dark: #b8860b;
+      --red: #e63946;
+      --red-dark: #9b0e1a;
+      --neon-pink: #ff2d78;
+      --neon-blue: #00d4ff;
+      --neon-green: #39ff14;
+      --bg-deep: #0a0005;
+      --bg-mid: #12000a;
+      --chrome-light: #e8e8e8;
+      --chrome-dark: #808080;
+    }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* === AMBIENT BACKGROUND === */
+    .bg-stars {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,45,120,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0,212,255,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 20% 80%, rgba(255,215,0,0.08) 0%, transparent 50%);
+    }
+
+    .star-field {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(2px 2px at 30% 60%, rgba(255,215,0,0.4) 0%, transparent 100%),
+        radial-gradient(2px 2px at 85% 75%, rgba(255,45,120,0.4) 0%, transparent 100%);
+      background-size: 600px 600px;
+      animation: twinkle 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    /* === NEON MARQUEE LIGHTS === */
+    .marquee-lights {
+      position: fixed; top: 0; left: 0; right: 0; height: 6px;
+      background: linear-gradient(90deg,
+        transparent 0%, var(--neon-pink) 10%, transparent 20%,
+        var(--gold) 30%, transparent 40%,
+        var(--neon-blue) 50%, transparent 60%,
+        var(--neon-green) 70%, transparent 80%,
+        var(--neon-pink) 90%, transparent 100%);
+      background-size: 200% 100%;
+      animation: marquee-scroll 3s linear infinite;
+      z-index: 100;
+      box-shadow: 0 0 12px var(--neon-pink), 0 0 24px var(--neon-pink);
+    }
+
+    @keyframes marquee-scroll {
+      0% { background-position: 0% 0%; }
+      100% { background-position: -200% 0%; }
+    }
+
+    /* === MAIN SCENE === */
+    .scene {
+      position: relative; z-index: 10;
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    /* === SLOT MACHINE BODY === */
+    .machine {
+      position: relative;
+      width: 520px;
+      background: linear-gradient(160deg, #2a0018 0%, #1a000e 40%, #0f0008 100%);
+      border-radius: 28px 28px 20px 20px;
+      border: 3px solid var(--gold-dark);
+      box-shadow:
+        0 0 0 1px rgba(255,215,0,0.2),
+        0 0 40px rgba(255,45,120,0.3),
+        0 0 80px rgba(255,45,120,0.1),
+        inset 0 2px 0 rgba(255,215,0,0.3),
+        inset 0 -2px 0 rgba(0,0,0,0.5),
+        0 20px 60px rgba(0,0,0,0.8);
+      user-select: none;
+    }
+
+    /* Top decorative panel */
+    .machine-top {
+      padding: 20px 24px 14px;
+      text-align: center;
+      border-bottom: 2px solid rgba(255,215,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .machine-top::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,215,0,0.08) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Bulb lights row */
+    .bulb-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .bulb {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold), 0 0 12px var(--gold);
+      animation: bulb-blink 1.2s ease-in-out infinite;
+    }
+    .bulb:nth-child(2n) { animation-delay: 0.3s; background: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink), 0 0 12px var(--neon-pink); }
+    .bulb:nth-child(3n) { animation-delay: 0.6s; background: var(--neon-blue); box-shadow: 0 0 6px var(--neon-blue), 0 0 12px var(--neon-blue); }
+
+    @keyframes bulb-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .machine-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, var(--gold) 0%, #fff8dc 40%, var(--gold) 70%, var(--gold-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 8px rgba(255,215,0,0.6));
+      line-height: 1;
+    }
+
+    .machine-subtitle {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      letter-spacing: 6px;
+      color: var(--neon-pink);
+      text-transform: uppercase;
+      margin-top: 4px;
+      filter: drop-shadow(0 0 4px var(--neon-pink));
+    }
+
+    /* === REELS PANEL === */
+    .reels-panel {
+      margin: 16px 24px;
+      background: #000;
+      border-radius: 12px;
+      border: 3px solid var(--gold-dark);
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 30px rgba(0,0,0,0.9),
+        0 0 0 2px rgba(255,215,0,0.1),
+        0 0 20px rgba(255,215,0,0.2);
+      position: relative;
+    }
+
+    .reels-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg,
+        rgba(0,0,0,0.7) 0%,
+        transparent 20%,
+        transparent 80%,
+        rgba(0,0,0,0.7) 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Win line */
+    .win-line {
+      position: absolute;
+      top: 50%; left: 0; right: 0;
+      height: 3px;
+      margin-top: -1.5px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      z-index: 3;
+      opacity: 0.7;
+      box-shadow: 0 0 8px var(--gold);
+    }
+
+    .reels-container {
+      display: flex;
+      gap: 0;
+      padding: 0;
+    }
+
+    /* === SINGLE REEL === */
+    .reel-wrapper {
+      flex: 1;
+      height: 160px;
+      overflow: hidden;
+      position: relative;
+      border-right: 1px solid rgba(255,215,0,0.15);
+    }
+    .reel-wrapper:last-child { border-right: none; }
+
+    .reel-strip {
+      display: flex;
+      flex-direction: column;
+      will-change: transform;
+    }
+
+    .reel-item {
+      height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .reel-item .icon {
+      font-size: 52px;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+
+    .reel-item .label {
+      font-family: 'Orbitron', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-align: center;
+      color: rgba(255,255,255,0.85);
+      text-transform: uppercase;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* === RESULT DISPLAY === */
+    .result-display {
+      margin: 0 24px 16px;
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 10px;
+      text-align: center;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-display::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,215,0,0.03), transparent);
+      animation: scan 3s linear infinite;
+    }
+
+    @keyframes scan {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .result-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: rgba(255,215,0,0.6);
+      white-space: nowrap;
+    }
+
+    .result-game {
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--neon-green);
+      filter: drop-shadow(0 0 6px var(--neon-green));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-idle {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* === PLAY BUTTON === */
+    .play-btn {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      background: linear-gradient(135deg, var(--neon-green), #00a800);
+      border: 2px solid var(--neon-green);
+      border-radius: 8px;
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 0 20px rgba(57,255,20,0.4);
+      transition: all 0.2s;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .play-btn:hover {
+      box-shadow: 0 0 30px rgba(57,255,20,0.8);
+      transform: scale(1.05);
+    }
+    .play-btn.visible { display: flex; }
+
+    /* === MACHINE BOTTOM === */
+    .machine-bottom {
+      padding: 14px 24px 22px;
+      border-top: 2px solid rgba(255,215,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .coin-counter {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .coin-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: rgba(255,215,0,0.5);
+    }
+
+    .coin-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--gold);
+      filter: drop-shadow(0 0 6px var(--gold));
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .spin-btn {
+      position: relative;
+      flex: 1;
+      padding: 16px 24px;
+      background: linear-gradient(180deg, var(--red) 0%, var(--red-dark) 100%);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      cursor: pointer;
+      box-shadow:
+        0 6px 0 #5a0007,
+        0 0 20px rgba(230,57,70,0.5),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: all 0.1s;
+      text-transform: uppercase;
+      overflow: hidden;
+    }
+
+    .spin-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+      border-radius: inherit;
+    }
+
+    .spin-btn:hover:not(:disabled) {
+      box-shadow:
+        0 6px 0 #5a0007,
+        0 0 40px rgba(230,57,70,0.8),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      background: linear-gradient(180deg, #ff4d5a 0%, var(--red-dark) 100%);
+    }
+
+    .spin-btn:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow:
+        0 2px 0 #5a0007,
+        0 0 20px rgba(230,57,70,0.5),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .spin-btn-glow {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,150,150,0.3), transparent 70%);
+      pointer-events: none;
+    }
+
+    .jackpot-lights {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    /* === LEVER (RIGHT SIDE OR LEFT SIDE) === */
+    .lever-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .lever-ball {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ff6b6b, var(--red) 50%, var(--red-dark) 100%);
+      border: 3px solid rgba(255,255,255,0.2);
+      box-shadow:
+        0 4px 8px rgba(0,0,0,0.5),
+        0 0 20px rgba(230,57,70,0.6),
+        inset 0 2px 4px rgba(255,255,255,0.3);
+      position: relative;
+      z-index: 2;
+      transition: transform 0.3s;
+    }
+
+    .lever-container:hover .lever-ball {
+      box-shadow:
+        0 4px 8px rgba(0,0,0,0.5),
+        0 0 35px rgba(230,57,70,0.9),
+        inset 0 2px 4px rgba(255,255,255,0.3);
+    }
+
+    .lever-shaft {
+      width: 12px;
+      height: 180px;
+      background: linear-gradient(90deg, var(--chrome-dark), var(--chrome-light), var(--chrome-light), var(--chrome-dark));
+      border-radius: 6px;
+      margin-top: -4px;
+      transform-origin: bottom center;
+      transition: transform 0.2s ease-in;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.5);
+    }
+
+    .lever-base {
+      width: 40px; height: 20px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--chrome-light), var(--chrome-dark));
+      margin-top: -4px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+
+    .lever-container.pulling .lever-shaft {
+      transform: rotate(-35deg) scaleY(0.7);
+    }
+    .lever-container.pulling .lever-ball {
+      transform: translateY(60px) translateX(-20px);
+    }
+
+    .lever-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* === WIN CELEBRATION === */
+    .win-flash {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      display: none;
+    }
+
+    @keyframes win-flash-anim {
+      0% { background: rgba(255,215,0,0.25); }
+      100% { background: transparent; }
+    }
+
+    .coin-particle {
+      position: fixed;
+      font-size: 24px;
+      pointer-events: none;
+      z-index: 998;
+      animation: coin-fall 1.8s ease-in forwards;
+    }
+
+    @keyframes coin-fall {
+      0% { transform: translateY(-20px) rotateY(0deg); opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(100vh) rotateY(720deg); opacity: 0; }
+    }
+
+    /* === JACKPOT SIGN === */
+    .jackpot-sign {
+      display: none;
+      position: absolute;
+      top: -45px; left: 50%; transform: translateX(-50%);
+      font-family: 'Orbitron', monospace;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-shadow: 0 0 10px var(--gold), 0 0 30px var(--gold);
+      animation: jackpot-pulse 0.4s ease-in-out infinite alternate;
+      white-space: nowrap;
+    }
+
+    @keyframes jackpot-pulse {
+      from { transform: translateX(-50%) scale(1); }
+      to { transform: translateX(-50%) scale(1.08); }
+    }
+
+    .credits {
+      position: fixed;
+      bottom: 16px; left: 50%; transform: translateX(-50%);
+      font-family: 'Orbitron', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.2);
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 650px) {
+      .scene { gap: 6px; }
+      .machine { width: 320px; }
+      .machine-title { font-size: 18px; letter-spacing: 2px; }
+      .reels-panel { margin: 10px 12px; }
+      .reel-item .icon { font-size: 34px; }
+      .reel-item .label { font-size: 7px; }
+      .reel-wrapper { height: 110px; }
+      .reel-item { height: 110px; }
+      .lever-shaft { height: 130px; }
+      .lever-ball { width: 32px; height: 32px; }
+      .coin-value { font-size: 16px; }
+      .spin-btn { font-size: 11px; padding: 12px 14px; }
+    }
+  </style>
 </head>
 <body>
-  <main class="shell">
-    <header class="masthead">
-      <div>
-        <p class="eyebrow">Choose a game</p>
-        <h1>Timeflo Arcade</h1>
+  <div class="bg-stars"></div>
+  <div class="star-field"></div>
+  <div class="marquee-lights"></div>
+
+  <div class="win-flash" id="winFlash"></div>
+
+  <div class="scene">
+    <!-- LEVER (Left Side) -->
+    <div class="lever-container" id="lever" title="Pull Lever to Spin!">
+      <div class="lever-ball" id="leverBall"></div>
+      <div class="lever-shaft" id="leverShaft"></div>
+      <div class="lever-base"></div>
+      <div class="lever-label">PULL</div>
+    </div>
+
+    <!-- SLOT MACHINE BODY -->
+    <div class="machine">
+      <!-- Top -->
+      <div class="machine-top">
+        <div class="bulb-row">
+          <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+          <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+          <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+          <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+        </div>
+        <div class="machine-title">TIMEFLO</div>
+        <div class="machine-subtitle">CASINO ARCADE</div>
+        <div class="jackpot-sign" id="jackpotSign">🎰 JACKPOT! 🎰</div>
       </div>
-      <button class="random-button" id="randomGameBtn" type="button">Random Game</button>
-    </header>
 
-    <section class="game-grid" aria-label="Game launcher">
-      <a class="game-card backrooms" href="games/backrooms-arena.html">
-        <span class="game-icon">B</span>
-        <span>
-          <strong>The Backrooms</strong>
-          <small>Arena survival</small>
-        </span>
-      </a>
+      <!-- Reels -->
+      <div class="reels-panel">
+        <div class="win-line"></div>
+        <div class="reels-container">
+          <div class="reel-wrapper"><div class="reel-strip" id="strip0"></div></div>
+          <div class="reel-wrapper"><div class="reel-strip" id="strip1"></div></div>
+          <div class="reel-wrapper"><div class="reel-strip" id="strip2"></div></div>
+        </div>
+      </div>
 
-      <a class="game-card kong" href="games/kong-climber.html">
-        <span class="game-icon">K</span>
-        <span>
-          <strong>Kong Climber</strong>
-          <small>Platforms and barrels</small>
-        </span>
-      </a>
+      <!-- Result Display -->
+      <div class="result-display" id="resultDisplay">
+        <span class="result-idle">PULL LEVER TO GET A GAME</span>
+      </div>
 
-      <a class="game-card sling" href="games/sling-siege.html">
-        <span class="game-icon">S</span>
-        <span>
-          <strong>Sling Siege</strong>
-          <small>Physics fortress shots</small>
-        </span>
-      </a>
+      <!-- Bottom controls -->
+      <div class="machine-bottom">
+        <div class="coin-counter">
+          <span class="coin-label">CREDITS</span>
+          <span class="coin-value" id="coinValue">777</span>
+        </div>
 
-      <a class="game-card crossing" href="games/crossing-frogger.html">
-        <span class="game-icon">C</span>
-        <span>
-          <strong>Crossing</strong>
-          <small>Frogger-style lanes</small>
-        </span>
-      </a>
+        <button class="spin-btn" id="spinBtn" type="button">
+          <span class="spin-btn-glow"></span>
+          🎰 SPIN
+        </button>
 
-      <a class="game-card pong" href="games/neon-pong.html">
-        <span class="game-icon">P</span>
-        <span>
-          <strong>Neon Pong</strong>
-          <small>20 power-ups</small>
-        </span>
-      </a>
+        <div class="jackpot-lights">
+          <span class="coin-label">SPINS</span>
+          <span class="coin-value" id="spinCount">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      <a class="game-card void" href="games/void-siege.html">
-        <span class="game-icon">V</span>
-        <span>
-          <strong>Void Siege</strong>
-          <small>Arcade defense</small>
-        </span>
-      </a>
-
-      <a class="game-card flappy" href="games/flappy-clone.html">
-        <span class="game-icon">F</span>
-        <span>
-          <strong>Flappy Clone</strong>
-          <small>Tap through gaps</small>
-        </span>
-      </a>
-
-      <a class="game-card plumber" href="games/pixel-plumber.html">
-        <span class="game-icon">M</span>
-        <span>
-          <strong>Pixel Plumber</strong>
-          <small>Side-scrolling platformer</small>
-        </span>
-      </a>
-
-      <a class="game-card snake" href="games/snake.html">
-        <span class="game-icon">N</span>
-        <span>
-          <strong>Snake</strong>
-          <small>Classic grid chase</small>
-        </span>
-      </a>
-
-      <a class="game-card pacman" href="games/pac-man.html">
-        <span class="game-icon">G</span>
-        <span>
-          <strong>Pac-Man</strong>
-          <small>Maze dots and ghosts</small>
-        </span>
-      </a>
-
-      <a class="game-card dino" href="games/dino-runner.html">
-        <span class="game-icon">🦕</span>
-        <span>
-          <strong>Dino Runner</strong>
-          <small>Endless runner</small>
-        </span>
-      </a>
-
-      <a class="game-card smash" href="games/smash-grid.html">
-        <span class="game-icon">X</span>
-        <span>
-          <strong>Smash Grid</strong>
-          <small>Brick breaker power-ups</small>
-        </span>
-      </a>
-    </section>
-  </main>
+  <div class="credits">TIMEFLO ARCADE © 2026 · CASINO EDITION</div>
 
   <script>
-    const randomGameBtn = document.getElementById("randomGameBtn");
-    const gameLinks = Array.from(document.querySelectorAll(".game-card"));
+    const GAMES = [
+      { name: 'The Backrooms',    url: 'games/backrooms-arena.html',   icon: '👁️' },
+      { name: 'Kong Climber',     url: 'games/kong-climber.html',      icon: '🦍' },
+      { name: 'Sling Siege',      url: 'games/sling-siege.html',       icon: '🏹' },
+      { name: 'Crossing',         url: 'games/crossing-frogger.html',  icon: '🐸' },
+      { name: 'Neon Pong',        url: 'games/neon-pong.html',         icon: '🏓' },
+      { name: 'Void Siege',       url: 'games/void-siege.html',        icon: '🚀' },
+      { name: 'Flappy Clone',     url: 'games/flappy-clone.html',      icon: '🐦' },
+      { name: 'Pixel Plumber',    url: 'games/pixel-plumber.html',     icon: '🔧' },
+      { name: 'Snake',            url: 'games/snake.html',             icon: '🐍' },
+      { name: 'Pac-Man',          url: 'games/pac-man.html',           icon: '🟡' },
+      { name: 'Dino Runner',      url: 'games/dino-runner.html',       icon: '🦕' },
+      { name: 'Smash Grid',       url: 'games/smash-grid.html',        icon: '💥' },
+    ];
 
-    randomGameBtn.addEventListener("click", () => {
-      const selectedGame = gameLinks[Math.floor(Math.random() * gameLinks.length)];
-      window.location.href = selectedGame.href;
+    let spinning = false;
+    let credits = 777;
+    let totalSpins = 0;
+
+    const spinBtn       = document.getElementById('spinBtn');
+    const lever         = document.getElementById('lever');
+    const coinValue     = document.getElementById('coinValue');
+    const spinCount     = document.getElementById('spinCount');
+    const resultDisplay = document.getElementById('resultDisplay');
+    const jackpotSign   = document.getElementById('jackpotSign');
+    const winFlash      = document.getElementById('winFlash');
+
+    // Build items inside strips
+    function buildStrips() {
+      for (let r = 0; r < 3; r++) {
+        const strip = document.getElementById(`strip${r}`);
+        strip.innerHTML = '';
+        // Create 20 items per strip for scrolling space
+        for (let i = 0; i < 20; i++) {
+          const g = GAMES[Math.floor(Math.random() * GAMES.length)];
+          const div = document.createElement('div');
+          div.className = 'reel-item';
+          div.innerHTML = `<span class="icon">${g.icon}</span><span class="label">${g.name}</span>`;
+          strip.appendChild(div);
+        }
+      }
+    }
+
+    buildStrips();
+
+    function doSpin() {
+      if (spinning) return;
+      spinning = true;
+      spinBtn.disabled = true;
+
+      // Pick selected game
+      const targetGame = GAMES[Math.floor(Math.random() * GAMES.length)];
+
+      // Adjust stats
+      if (credits > 0) credits -= 10;
+      coinValue.textContent = credits;
+      totalSpins++;
+      spinCount.textContent = totalSpins;
+
+      // Lever pull visual
+      lever.classList.add('pulling');
+      setTimeout(() => lever.classList.remove('pulling'), 400);
+
+      // UI state
+      resultDisplay.innerHTML = `<span class="result-idle">SPINNING...</span>`;
+      jackpotSign.style.display = 'none';
+
+      // Reel spin logic using CSS transform
+      const itemHeight = document.querySelector('.reel-item').offsetHeight || 160;
+
+      for (let r = 0; r < 3; r++) {
+        const strip = document.getElementById(`strip${r}`);
+        // Set target game at slot index 15
+        const targetSlot = 15;
+        const item = strip.children[targetSlot];
+        item.innerHTML = `<span class="icon">${targetGame.icon}</span><span class="label">${targetGame.name}</span>`;
+
+        // Animate
+        const finalTranslate = -(targetSlot * itemHeight);
+        const duration = 1.8 + r * 0.4; // staggered stop
+
+        strip.style.transition = `transform ${duration}s cubic-bezier(0.1, 0.9, 0.2, 1)`;
+        strip.style.transform = `translateY(${finalTranslate}px)`;
+      }
+
+      // Finish spin after last reel stops
+      setTimeout(() => {
+        onSpinComplete(targetGame);
+      }, 2700);
+    }
+
+    function onSpinComplete(game) {
+      spinning = false;
+      spinBtn.disabled = false;
+
+      // Reset strip transforms for next spin
+      for (let r = 0; r < 3; r++) {
+        const strip = document.getElementById(`strip${r}`);
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(0)';
+        // Set item 0 to target game so visual doesn't jump
+        strip.children[0].innerHTML = `<span class="icon">${game.icon}</span><span class="label">${game.name}</span>`;
+      }
+
+      // Display Win result with direct link to game
+      resultDisplay.innerHTML = `
+        <span class="result-label">WINNER:</span>
+        <span class="result-game">${game.name}</span>
+        <a class="play-btn visible" href="${game.url}">PLAY NOW ▶</a>
+      `;
+
+      // Visual effects
+      jackpotSign.style.display = 'block';
+      winFlash.style.display = 'block';
+      winFlash.style.animation = 'win-flash-anim 0.8s ease-out forwards';
+      setTimeout(() => winFlash.style.display = 'none', 800);
+
+      spawnCoins();
+    }
+
+    function spawnCoins() {
+      const coins = ['🪙', '💰', '🎰', '⭐', '💎'];
+      for (let i = 0; i < 25; i++) {
+        setTimeout(() => {
+          const el = document.createElement('div');
+          el.className = 'coin-particle';
+          el.textContent = coins[Math.floor(Math.random() * coins.length)];
+          el.style.left = (Math.random() * 90 + 5) + 'vw';
+          el.style.top = '-30px';
+          el.style.animationDuration = (1.2 + Math.random() * 1) + 's';
+          document.body.appendChild(el);
+          setTimeout(() => el.remove(), 2500);
+        }, i * 50);
+      }
+    }
+
+    spinBtn.addEventListener('click', doSpin);
+    lever.addEventListener('click', doSpin);
+
+    document.addEventListener('keydown', e => {
+      if ((e.code === 'Space' || e.code === 'Enter') && !spinning) {
+        e.preventDefault();
+        doSpin();
+      }
     });
   </script>
 </body>
