@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chalkboard Hangman</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --board: #26332C;
+            --board-edge: #1C2620;
+            --frame: #7A5230;
+            --frame-dark: #5A3A20;
+            --chalk: #F2EEDD;
+            --chalk-dim: #9FAFA4;
+            --chalk-yellow: #E8C468;
+            --chalk-red: #C1666B;
+            --chalk-green: #8FBF9F;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0F1512;
+            font-family: 'Space Mono', monospace;
+            padding: 24px;
+        }
+
+        .frame {
+            background: var(--frame);
+            background-image:
+                repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 2px, transparent 2px 40px),
+                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 40px);
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 0 0 6px var(--frame-dark), 0 20px 50px rgba(0, 0, 0, 0.5);
+            max-width: 640px;
+            width: 100%;
+        }
+
+        .board {
+            background: var(--board);
+            border-radius: 4px;
+            box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.45), inset 0 0 0 2px var(--board-edge);
+            padding: 28px 24px 32px;
+            position: relative;
+        }
+
+        .title {
+            font-family: 'Kalam', cursive;
+            font-weight: 700;
+            color: var(--chalk);
+            text-align: center;
+            font-size: 34px;
+            letter-spacing: 1px;
+            margin: 0 0 2px;
+            text-shadow: 0 0 1px rgba(242, 238, 221, 0.3);
+        }
+
+        .subtitle {
+            font-family: 'Kalam', cursive;
+            color: var(--chalk-dim);
+            text-align: center;
+            font-size: 15px;
+            margin: 0 0 18px;
+        }
+
+        .stage {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .gallows-wrap {
+            flex: 0 0 auto;
+        }
+
+        svg#gallows {
+            width: 170px;
+            height: 190px;
+        }
+
+        .gallows-line {
+            stroke: var(--chalk);
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            fill: none;
+            filter: url(#chalkTexture);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .gallows-line.show {
+            opacity: 1;
+        }
+
+        .figure-line {
+            stroke: var(--chalk-red);
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            fill: none;
+            filter: url(#chalkTexture);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .figure-line.show {
+            opacity: 1;
+        }
+
+        .figure-head {
+            stroke: var(--chalk-red);
+            stroke-width: 3.5;
+            fill: none;
+            filter: url(#chalkTexture);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .figure-head.show {
+            opacity: 1;
+        }
+
+        .right-col {
+            flex: 1 1 260px;
+            min-width: 240px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .category {
+            font-family: 'Kalam', cursive;
+            color: var(--chalk-yellow);
+            font-size: 14px;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .word {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            min-height: 44px;
+        }
+
+        .letter-slot {
+            width: 26px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--chalk);
+            border-bottom: 3px solid var(--chalk-dim);
+            padding-bottom: 2px;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .letter-slot.space {
+            border-bottom: none;
+            width: 14px;
+        }
+
+        .status-line {
+            text-align: center;
+            font-size: 13px;
+            color: var(--chalk-dim);
+            min-height: 18px;
+        }
+
+        .status-line.win {
+            color: var(--chalk-green);
+        }
+
+        .status-line.lose {
+            color: var(--chalk-red);
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .key {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--chalk);
+            background: transparent;
+            border: 1.5px solid rgba(242, 238, 221, 0.55);
+            border-radius: 4px;
+            padding: 8px 0;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.15s ease;
+        }
+
+        .key:hover:not(:disabled) {
+            background: rgba(242, 238, 221, 0.12);
+            border-color: var(--chalk);
+        }
+
+        .key:disabled {
+            cursor: default;
+            opacity: 0.35;
+        }
+
+        .key.correct {
+            border-color: var(--chalk-green);
+            color: var(--chalk-green);
+            opacity: 0.7;
+        }
+
+        .key.wrong {
+            border-color: var(--chalk-red);
+            color: var(--chalk-red);
+            opacity: 0.55;
+            text-decoration: line-through;
+        }
+
+        .footer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+        }
+
+        .misses {
+            font-family: 'Kalam', cursive;
+            color: var(--chalk-dim);
+            font-size: 14px;
+        }
+
+        .new-word-btn {
+            font-family: 'Kalam', cursive;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--board);
+            background: var(--chalk);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 18px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .new-word-btn:hover {
+            transform: scale(1.04);
+        }
+
+        .new-word-btn:active {
+            transform: scale(0.97);
+        }
+
+        @media (max-width:420px) {
+            .keyboard {
+                grid-template-columns: repeat(7, 1fr);
+            }
+
+            svg#gallows {
+                width: 130px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="frame">
+        <div class="board">
+            <p class="title">Hangman</p>
+            <p class="subtitle">— guess the word before the chalk runs out —</p>
+
+            <div class="stage">
+                <div class="gallows-wrap">
+                    <svg id="gallows" viewBox="0 0 170 190" aria-hidden="true">
+                        <defs>
+                            <filter id="chalkTexture" x="-20%" y="-20%" width="140%" height="140%">
+                                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" result="noise"
+                                    seed="4" />
+                                <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.6" />
+                            </filter>
+                        </defs>
+                        <line class="gallows-line show" x1="10" y1="180" x2="90" y2="180" />
+                        <line class="gallows-line show" x1="35" y1="180" x2="35" y2="15" />
+                        <line class="gallows-line show" x1="35" y1="15" x2="115" y2="15" />
+                        <line class="gallows-line show" x1="105" y1="15" x2="115" y2="15" />
+                        <line class="gallows-line" id="rope" x1="115" y1="15" x2="115" y2="35" />
+                        <circle class="figure-head" id="head" cx="115" cy="50" r="15" />
+                        <line class="figure-line" id="torso" x1="115" y1="65" x2="115" y2="110" />
+                        <line class="figure-line" id="armL" x1="115" y1="78" x2="98" y2="98" />
+                        <line class="figure-line" id="armR" x1="115" y1="78" x2="132" y2="98" />
+                        <line class="figure-line" id="legL" x1="115" y1="110" x2="100" y2="140" />
+                        <line class="figure-line" id="legR" x1="115" y1="110" x2="130" y2="140" />
+                    </svg>
+                </div>
+
+                <div class="right-col">
+                    <p class="category" id="category">category</p>
+                    <div class="word" id="word"></div>
+                    <p class="status-line" id="status">click a letter to begin</p>
+                    <div class="keyboard" id="keyboard"></div>
+                </div>
+            </div>
+
+            <div class="footer-row">
+                <span class="misses" id="misses">misses: 0 / 6</span>
+                <button class="new-word-btn" id="restart">new word</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var WORDS = [
+                { word: "GALAXY", cat: "space" },
+                { word: "COMPASS", cat: "tools" },
+                { word: "VELVET", cat: "texture" },
+                { word: "ORCHESTRA", cat: "music" },
+                { word: "PYRAMID", cat: "landmarks" },
+                { word: "WHISPER", cat: "sound" },
+                { word: "LANTERN", cat: "objects" },
+                { word: "GLACIER", cat: "nature" },
+                { word: "PUZZLE", cat: "games" },
+                { word: "HARBOR", cat: "places" },
+                { word: "MERIDIAN", cat: "geography" },
+                { word: "THUNDER", cat: "weather" },
+                { word: "MARBLE", cat: "materials" },
+                { word: "CACTUS", cat: "plants" },
+                { word: "VOYAGE", cat: "travel" },
+                { word: "ECLIPSE", cat: "space" },
+                { word: "BAMBOO", cat: "plants" },
+                { word: "CARNIVAL", cat: "events" },
+                { word: "SAPPHIRE", cat: "gems" },
+                { word: "ORIGAMI", cat: "craft" }
+            ];
+
+            var MAX_MISSES = 6;
+            var PART_ORDER = ["rope", "head", "torso", "armL", "armR", "legL", "legR"];
+
+            var current = null;
+            var guessed = new Set();
+            var misses = 0;
+            var over = false;
+
+            var wordEl = document.getElementById("word");
+            var categoryEl = document.getElementById("category");
+            var statusEl = document.getElementById("status");
+            var missesEl = document.getElementById("misses");
+            var keyboardEl = document.getElementById("keyboard");
+            var restartBtn = document.getElementById("restart");
+
+            function pickWord() {
+                return WORDS[Math.floor(Math.random() * WORDS.length)];
+            }
+
+            function buildKeyboard() {
+                keyboardEl.innerHTML = "";
+                var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+                letters.forEach(function (letter) {
+                    var btn = document.createElement("button");
+                    btn.className = "key";
+                    btn.textContent = letter;
+                    btn.setAttribute("aria-label", "Guess letter " + letter);
+                    btn.addEventListener("click", function () { guess(letter, btn); });
+                    keyboardEl.appendChild(btn);
+                });
+            }
+
+            function renderWord() {
+                wordEl.innerHTML = "";
+                current.word.split("").forEach(function (ch) {
+                    var slot = document.createElement("span");
+                    if (ch === " ") {
+                        slot.className = "letter-slot space";
+                    } else {
+                        slot.className = "letter-slot";
+                        slot.textContent = guessed.has(ch) || over ? ch : "";
+                    }
+                    wordEl.appendChild(slot);
+                });
+            }
+
+            function renderGallows() {
+                for (var i = 0; i < PART_ORDER.length; i++) {
+                    var el = document.getElementById(PART_ORDER[i]);
+                    if (i < misses) { el.classList.add("show"); }
+                    else { el.classList.remove("show"); }
+                }
+            }
+
+            function updateMisses() {
+                missesEl.textContent = "misses: " + misses + " / " + MAX_MISSES;
+            }
+
+            function isWon() {
+                return current.word.split("").every(function (ch) {
+                    return ch === " " || guessed.has(ch);
+                });
+            }
+
+            function guess(letter, btn) {
+                if (over || guessed.has(letter)) return;
+                guessed.add(letter);
+
+                if (current.word.indexOf(letter) === -1) {
+                    misses++;
+                    if (btn) btn.classList.add("wrong");
+                } else {
+                    if (btn) btn.classList.add("correct");
+                }
+                if (btn) btn.disabled = true;
+
+                updateMisses();
+                renderGallows();
+                renderWord();
+
+                if (misses >= MAX_MISSES) {
+                    over = true;
+                    statusEl.textContent = "out of chalk — the word was " + current.word;
+                    statusEl.className = "status-line lose";
+                    disableAllKeys();
+                    renderWord();
+                } else if (isWon()) {
+                    over = true;
+                    statusEl.textContent = "solved it — nicely done";
+                    statusEl.className = "status-line win";
+                    disableAllKeys();
+                } else {
+                    statusEl.textContent = "keep going";
+                    statusEl.className = "status-line";
+                }
+            }
+
+            function disableAllKeys() {
+                var keys = keyboardEl.querySelectorAll(".key");
+                keys.forEach(function (k) { k.disabled = true; });
+            }
+
+            function newGame() {
+                current = pickWord();
+                guessed = new Set();
+                misses = 0;
+                over = false;
+                categoryEl.textContent = current.cat;
+                statusEl.textContent = "click a letter to begin";
+                statusEl.className = "status-line";
+                updateMisses();
+                renderGallows();
+                buildKeyboard();
+                renderWord();
+            }
+
+            restartBtn.addEventListener("click", newGame);
+
+            document.addEventListener("keydown", function (e) {
+                var key = e.key.toUpperCase();
+                if (key.length === 1 && key >= "A" && key <= "Z") {
+                    var btn = Array.prototype.find.call(
+                        keyboardEl.querySelectorAll(".key"),
+                        function (k) { return k.textContent === key; }
+                    );
+                    if (btn && !btn.disabled) guess(key, btn);
+                }
+            });
+
+            newGame();
+        })();
+    </script>
+
+</body>
+
+</html>

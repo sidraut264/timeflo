@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Zen Garden</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap');
+
+        :root {
+            --sand-base: #ECDFC0;
+            --sand-shadow: rgba(120, 98, 58, 0.35);
+            --sand-highlight: rgba(255, 250, 232, 0.55);
+            --wood-dark: #5B4530;
+            --wood-mid: #7A5C3E;
+            --wood-light: #9C7A52;
+            --ink: #40372A;
+            --ink-soft: #7A6E5A;
+            --panel-bg: rgba(250, 244, 229, 0.88);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: var(--wood-dark);
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            color: var(--ink);
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .frame {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tray-wrap {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 22px;
+            background:
+                radial-gradient(ellipse at 30% 20%, var(--wood-light), var(--wood-mid) 55%, var(--wood-dark) 100%);
+        }
+
+        .tray-wrap::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: 6px;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25), inset 0 8px 24px rgba(0, 0, 0, 0.35);
+            pointer-events: none;
+        }
+
+        canvas {
+            position: absolute;
+            inset: 22px;
+            width: calc(100% - 44px);
+            height: calc(100% - 44px);
+            border-radius: 4px;
+            cursor: crosshair;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        .title {
+            position: absolute;
+            top: 34px;
+            left: 38px;
+            font-family: 'Shippori Mincho', serif;
+            font-size: 20px;
+            letter-spacing: 0.06em;
+            color: rgba(250, 244, 229, 0.85);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+
+        .subtitle {
+            position: absolute;
+            top: 64px;
+            left: 38px;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            color: rgba(250, 244, 229, 0.5);
+            pointer-events: none;
+        }
+
+        .toolbar {
+            position: absolute;
+            bottom: 34px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            background: var(--panel-bg);
+            padding: 8px;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .tool-btn {
+            width: 46px;
+            height: 46px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--ink);
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+
+        .tool-btn:hover {
+            background: rgba(122, 92, 62, 0.12);
+        }
+
+        .tool-btn:active {
+            transform: scale(0.94);
+        }
+
+        .tool-btn.active {
+            background: var(--wood-mid);
+            color: #F6EEDA;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .tool-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .divider {
+            width: 1px;
+            align-self: stretch;
+            margin: 4px 2px;
+            background: rgba(122, 92, 62, 0.2);
+        }
+
+        .tool-label {
+            position: absolute;
+            bottom: 88px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            color: rgba(250, 244, 229, 0.75);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .tool-label.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 520px) {
+            .title {
+                font-size: 16px;
+                top: 24px;
+                left: 24px;
+            }
+
+            .subtitle {
+                top: 48px;
+                left: 24px;
+                font-size: 10px;
+            }
+
+            .tool-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .tool-btn svg {
+                width: 19px;
+                height: 19px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="frame">
+        <div class="tray-wrap">
+            <div class="title">庭 &nbsp;Zen Garden</div>
+            <div class="subtitle">RAKE · PLACE STONES · NO GOAL</div>
+            <canvas id="c"></canvas>
+            <div class="tool-label" id="toolLabel"></div>
+            <div class="toolbar">
+                <button class="tool-btn active" data-tool="rakeFine" title="Fine rake">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round">
+                        <path d="M4 20 L8 6" />
+                        <path d="M9 20 L11 6" />
+                        <path d="M14 20 L14 6" />
+                        <path d="M19 20 L17 6" />
+                    </svg>
+                </button>
+                <button class="tool-btn" data-tool="rakeWide" title="Wide rake">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round">
+                        <path d="M2 20 L6 5" />
+                        <path d="M8 20 L9.5 5" />
+                        <path d="M13 20 L13 5" />
+                        <path d="M17.5 20 L16.5 5" />
+                        <path d="M22 20 L18 5" />
+                    </svg>
+                </button>
+                <div class="divider"></div>
+                <button class="tool-btn" data-tool="stone" title="Place stone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <ellipse cx="9" cy="14" rx="6" ry="4.5" />
+                        <ellipse cx="16" cy="9" rx="3.4" ry="2.6" />
+                    </svg>
+                </button>
+                <div class="divider"></div>
+                <button class="tool-btn" data-tool="smooth" title="Smooth sand">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round">
+                        <path d="M3 15 Q7 9 12 15 T21 15" />
+                        <path d="M3 19 Q7 13 12 19 T21 19" />
+                    </svg>
+                </button>
+                <button class="tool-btn" data-tool="clear" title="Clear garden">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M4 7 L20 7" />
+                        <path d="M9 7 V4 h6 v3" />
+                        <path d="M6 7 L7 20 h10 l1-13" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('c');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        let dpr = Math.max(1, window.devicePixelRatio || 1);
+
+        const toolLabel = document.getElementById('toolLabel');
+        const toolNames = {
+            rakeFine: 'Fine rake',
+            rakeWide: 'Wide rake',
+            stone: 'Stone — tap to place',
+            smooth: 'Smooth sand',
+            clear: 'Clear garden'
+        };
+
+        const stoneShades = [
+            { light: '#B7AE9E', dark: '#6B6459' },
+            { light: '#A9A192', dark: '#5C564C' },
+            { light: '#C4B9A4', dark: '#7A705C' }
+        ];
+
+        let currentTool = 'rakeFine';
+        let drawing = false;
+        let lastX = 0, lastY = 0;
+
+        function sizeCanvas(preserve) {
+            const rect = canvas.getBoundingClientRect();
+            let prev = null;
+            if (preserve && canvas.width > 0) {
+                prev = document.createElement('canvas');
+                prev.width = canvas.width;
+                prev.height = canvas.height;
+                prev.getContext('2d').drawImage(canvas, 0, 0);
+            }
+            dpr = Math.max(1, window.devicePixelRatio || 1);
+            canvas.width = Math.round(rect.width * dpr);
+            canvas.height = Math.round(rect.height * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            if (prev) {
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.drawImage(prev, 0, 0, prev.width, prev.height, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            } else {
+                paintBaseSand();
+            }
+        }
+
+        function paintBaseSand() {
+            const w = canvas.width, h = canvas.height;
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.fillStyle = '#ECDFC0';
+            ctx.fillRect(0, 0, w, h);
+            // subtle grain
+            const grains = Math.floor((w * h) / 1400);
+            for (let i = 0; i < grains; i++) {
+                const x = Math.random() * w, y = Math.random() * h;
+                const a = Math.random() * 0.06 + 0.02;
+                ctx.fillStyle = Math.random() > 0.5
+                    ? `rgba(120,98,58,${a})`
+                    : `rgba(255,250,232,${a})`;
+                ctx.fillRect(x, y, 1.4, 1.4);
+            }
+            // soft vignette
+            const grad = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.2, w / 2, h / 2, Math.max(w, h) * 0.7);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, 'rgba(60,45,25,0.14)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
+            ctx.restore();
+        }
+
+        function rakeStroke(x0, y0, x1, y1, wide) {
+            const dx = x1 - x0, dy = y1 - y0;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 0.4) { return; }
+            const ux = dx / dist, uy = dy / dist;
+            const px = -uy, py = ux;
+            const tineCount = wide ? 9 : 5;
+            const spacing = wide ? 6.5 : 5;
+            const total = (tineCount - 1) * spacing;
+
+            for (let i = 0; i < tineCount; i++) {
+                const offset = -total / 2 + i * spacing;
+                const sx0 = x0 + px * offset, sy0 = y0 + py * offset;
+                const sx1 = x1 + px * offset, sy1 = y1 + py * offset;
+
+                ctx.lineCap = 'round';
+                ctx.lineWidth = 1.3;
+
+                ctx.strokeStyle = 'rgba(110,90,52,0.4)';
+                ctx.beginPath();
+                ctx.moveTo(sx0 + 0.8, sy0 + 0.8);
+                ctx.lineTo(sx1 + 0.8, sy1 + 0.8);
+                ctx.stroke();
+
+                ctx.strokeStyle = 'rgba(255,250,232,0.55)';
+                ctx.beginPath();
+                ctx.moveTo(sx0 - 0.8, sy0 - 0.8);
+                ctx.lineTo(sx1 - 0.8, sy1 - 0.8);
+                ctx.stroke();
+            }
+        }
+
+        function smoothAt(x, y) {
+            const radius = 34;
+            const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+            grad.addColorStop(0, 'rgba(236,223,192,0.85)');
+            grad.addColorStop(1, 'rgba(236,223,192,0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            // faint re-grain so smoothed area isn't flat/dead
+            for (let i = 0; i < 10; i++) {
+                const a = Math.random() * Math.PI * 2, r = Math.random() * radius * 0.8;
+                const gx = x + Math.cos(a) * r, gy = y + Math.sin(a) * r;
+                const al = Math.random() * 0.04 + 0.015;
+                ctx.fillStyle = Math.random() > 0.5 ? `rgba(120,98,58,${al})` : `rgba(255,250,232,${al})`;
+                ctx.fillRect(gx, gy, 1.2, 1.2);
+            }
+        }
+
+        function placeStone(x, y) {
+            const size = 16 + Math.random() * 30;
+            const rot = Math.random() * Math.PI * 2;
+            const shade = stoneShades[Math.floor(Math.random() * stoneShades.length)];
+
+            // faint raked ring around the stone, like sand disturbed to settle it
+            ctx.save();
+            ctx.lineCap = 'round';
+            for (let ring = 0; ring < 2; ring++) {
+                const rr = size * (1.15 + ring * 0.45);
+                ctx.strokeStyle = ring === 0 ? 'rgba(110,90,52,0.28)' : 'rgba(255,250,232,0.3)';
+                ctx.lineWidth = 1.1;
+                ctx.beginPath();
+                ctx.ellipse(x + (ring === 0 ? 1 : -1), y + (ring === 0 ? 1 : -1), rr, rr * 0.82, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rot);
+
+            ctx.beginPath();
+            ctx.ellipse(3, 5, size * 0.62, size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(70,55,35,0.28)';
+            ctx.fill();
+
+            const g = ctx.createRadialGradient(-size * 0.22, -size * 0.28, size * 0.08, 0, 0, size * 0.75);
+            g.addColorStop(0, shade.light);
+            g.addColorStop(1, shade.dark);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, size * 0.6, size * 0.48, 0, 0, Math.PI * 2);
+            ctx.fillStyle = g;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.15, -size * 0.15, size * 0.22, size * 0.12, -0.5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.18)';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const t = e.touches ? e.touches[0] : e;
+            return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+        }
+
+        function pointerDown(e) {
+            e.preventDefault();
+            const p = getPos(e);
+            drawing = true;
+            lastX = p.x; lastY = p.y;
+            if (currentTool === 'stone') {
+                placeStone(p.x, p.y);
+                drawing = false;
+            } else if (currentTool === 'smooth') {
+                smoothAt(p.x, p.y);
+            } else {
+                rakeStroke(p.x, p.y, p.x + 0.1, p.y + 0.1, currentTool === 'rakeWide');
+            }
+        }
+
+        function pointerMove(e) {
+            if (!drawing) { return; }
+            e.preventDefault();
+            const p = getPos(e);
+            if (currentTool === 'smooth') {
+                smoothAt(p.x, p.y);
+            } else if (currentTool !== 'stone') {
+                rakeStroke(lastX, lastY, p.x, p.y, currentTool === 'rakeWide');
+            }
+            lastX = p.x; lastY = p.y;
+        }
+
+        function pointerUp() { drawing = false; }
+
+        canvas.addEventListener('mousedown', pointerDown);
+        canvas.addEventListener('mousemove', pointerMove);
+        window.addEventListener('mouseup', pointerUp);
+        canvas.addEventListener('touchstart', pointerDown, { passive: false });
+        canvas.addEventListener('touchmove', pointerMove, { passive: false });
+        window.addEventListener('touchend', pointerUp);
+
+        const buttons = document.querySelectorAll('.tool-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tool = btn.dataset.tool;
+                if (tool === 'clear') {
+                    paintBaseSand();
+                    flashLabel('Garden cleared');
+                    return;
+                }
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTool = tool;
+                flashLabel(toolNames[tool]);
+            });
+        });
+
+        let labelTimeout;
+        function flashLabel(text) {
+            toolLabel.textContent = text;
+            toolLabel.classList.add('show');
+            clearTimeout(labelTimeout);
+            labelTimeout = setTimeout(() => toolLabel.classList.remove('show'), 1400);
+        }
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => sizeCanvas(true), 120);
+        });
+
+        sizeCanvas(false);
+    </script>
+</body>
+
+</html>

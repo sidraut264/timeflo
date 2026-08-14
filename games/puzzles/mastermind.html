@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastermind — Crack the Code</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #15151a;
+            --panel: #1e1e26;
+            --panel-raised: #26262f;
+            --line: #35353f;
+            --brass: #c9a227;
+            --brass-bright: #e8c04a;
+            --brass-dim: #8a7220;
+            --text: #ece9e0;
+            --text-dim: #8f8d95;
+            --red: #e63946;
+            --blue: #457bff;
+            --green: #2a9d8f;
+            --yellow: #f4c000;
+            --purple: #a06bf0;
+            --orange: #f77f00;
+            --danger: #e63946;
+            --win: #2a9d8f;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201, 162, 39, 0.08), transparent),
+                var(--bg);
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 16px 60px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            max-width: 480px;
+        }
+
+        .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.28em;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 34px;
+            font-weight: 700;
+            margin: 0 0 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .sub {
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 460px;
+        }
+
+        /* Tries dial */
+        .dial-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .dial-pip {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--line);
+            transition: background .25s ease, transform .25s ease, box-shadow .25s ease;
+        }
+
+        .dial-pip.used {
+            background: var(--brass-dim);
+            transform: scale(0.85);
+        }
+
+        .dial-pip.active {
+            background: var(--brass);
+            box-shadow: 0 0 8px rgba(201, 162, 39, 0.6);
+            animation: pulse-pip 1.6s ease-in-out infinite;
+        }
+
+        .dial-pip.low {
+            background: var(--danger);
+            box-shadow: 0 0 8px rgba(230, 57, 70, 0.6);
+        }
+
+        @keyframes pulse-pip {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.4);
+            }
+        }
+
+        /* Vault panel holding the board */
+        .vault {
+            background: linear-gradient(180deg, var(--panel-raised), var(--panel));
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px 16px;
+            width: 100%;
+            box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            position: relative;
+            transition: transform .08s ease;
+        }
+
+        .vault.shake {
+            animation: shake .4s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20% {
+                transform: translateX(-8px);
+            }
+
+            40% {
+                transform: translateX(7px);
+            }
+
+            60% {
+                transform: translateX(-5px);
+            }
+
+            80% {
+                transform: translateX(3px);
+            }
+        }
+
+        .vault::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid rgba(201, 162, 39, 0.12);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .board-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+            padding: 4px 2px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass-dim) transparent;
+        }
+
+        .board-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .board-scroll::-webkit-scrollbar-thumb {
+            background: var(--brass-dim);
+            border-radius: 3px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 10px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.18);
+            border: 1px solid transparent;
+            transition: border-color .2s ease, background .2s ease;
+        }
+
+        .row.current {
+            border-color: rgba(201, 162, 39, 0.35);
+            background: rgba(201, 162, 39, 0.06);
+            box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.08), 0 0 18px -6px rgba(201, 162, 39, 0.35);
+        }
+
+        .row.correct-row {
+            border-color: rgba(42, 157, 143, 0.5);
+            background: rgba(42, 157, 143, 0.08);
+        }
+
+        .row-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            width: 18px;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .pegs {
+            display: flex;
+            gap: 7px;
+        }
+
+        .peg-slot {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #101014;
+            border: 2px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform .12s ease, border-color .15s ease, box-shadow .15s ease;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .row.current .peg-slot:hover {
+            border-color: var(--brass);
+            transform: scale(1.1);
+        }
+
+        .row.current .peg-slot.drag-over {
+            border-color: var(--brass-bright);
+            box-shadow: 0 0 0 4px rgba(201, 162, 39, 0.18);
+            transform: scale(1.14);
+        }
+
+        .peg-slot.filled {
+            animation: drop .28s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        .peg-slot.pop-clear {
+            animation: pop-out .18s ease forwards;
+        }
+
+        @keyframes drop {
+            0% {
+                transform: scale(0.3) translateY(-14px) rotate(-15deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.15) translateY(0) rotate(4deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0);
+            }
+        }
+
+        @keyframes pop-out {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+        }
+
+        .peg {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            box-shadow: inset -3px -3px 5px rgba(0, 0, 0, 0.35), inset 2px 2px 3px rgba(255, 255, 255, 0.25);
+        }
+
+        .feedback {
+            display: grid;
+            grid-template-columns: repeat(2, 9px);
+            grid-template-rows: repeat(2, 9px);
+            gap: 4px;
+            margin-left: auto;
+            padding: 4px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .fb-peg {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #2c2c34;
+            transform: scale(0);
+            opacity: 0;
+        }
+
+        .fb-peg.reveal {
+            animation: fb-in .28s cubic-bezier(.34, 1.56, .64, 1) forwards;
+        }
+
+        @keyframes fb-in {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .fb-peg.exact {
+            background: var(--brass);
+            box-shadow: 0 0 4px rgba(201, 162, 39, 0.7);
+        }
+
+        .fb-peg.close {
+            background: #e8e6de;
+        }
+
+        .fb-peg.empty {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* secret row (revealed at end) */
+        .secret-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 1px dashed var(--brass-dim);
+            background: rgba(201, 162, 39, 0.05);
+        }
+
+        .secret-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--brass);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-right: 2px;
+        }
+
+        /* Picker */
+        .picker {
+            width: 100%;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .picker-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .swatches {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .swatch {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: grab;
+            box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.35), inset 2px 2px 4px rgba(255, 255, 255, 0.25);
+            transition: transform .15s cubic-bezier(.34, 1.56, .64, 1), border-color .15s ease, box-shadow .15s ease;
+            position: relative;
+        }
+
+        .swatch:hover {
+            transform: scale(1.12) translateY(-2px);
+        }
+
+        .swatch:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .swatch.selected {
+            border-color: var(--text);
+            transform: scale(1.14) translateY(-2px);
+            box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.35), inset 2px 2px 4px rgba(255, 255, 255, 0.25), 0 0 0 4px rgba(236, 233, 224, 0.12);
+        }
+
+        .swatch.dragging {
+            opacity: 0.4;
+        }
+
+        .swatch .key-hint {
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: var(--text-dim);
+            opacity: 0.7;
+        }
+
+        .picker-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 10px;
+            border: none;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: filter .15s ease, transform .1s ease, box-shadow .15s ease;
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+
+        button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            flex: 1;
+            background: var(--brass);
+            color: #1a1608;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            filter: brightness(1.1);
+            box-shadow: 0 4px 16px -4px rgba(201, 162, 39, 0.6);
+        }
+
+        .btn-primary.ready {
+            animation: ready-glow 1.4s ease-in-out infinite;
+        }
+
+        @keyframes ready-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 rgba(201, 162, 39, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 16px 2px rgba(201, 162, 39, 0.45);
+            }
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--line);
+            color: var(--text-dim);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--text-dim);
+            color: var(--text);
+        }
+
+        .status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            color: var(--text-dim);
+            text-align: center;
+            min-height: 18px;
+            margin-top: 10px;
+            transition: opacity .15s ease;
+        }
+
+        .status.pop {
+            animation: status-pop .3s ease;
+        }
+
+        @keyframes status-pop {
+            0% {
+                transform: translateY(4px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .status.win {
+            color: var(--win);
+            font-weight: 600;
+        }
+
+        .status.lose {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .legend {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 4px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.exact {
+            background: var(--brass);
+        }
+
+        .legend-dot.close {
+            background: #e8e6de;
+        }
+
+        .hint-row {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            opacity: 0.55;
+            margin-top: 14px;
+        }
+
+        /* color values */
+        .c-red {
+            background: var(--red);
+        }
+
+        .c-blue {
+            background: var(--blue);
+        }
+
+        .c-green {
+            background: var(--green);
+        }
+
+        .c-yellow {
+            background: var(--yellow);
+        }
+
+        .c-purple {
+            background: var(--purple);
+        }
+
+        .c-orange {
+            background: var(--orange);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 20;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--panel-raised);
+            border: 1px solid var(--brass-dim);
+            border-radius: 16px;
+            padding: 28px 24px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.85) translateY(10px);
+            opacity: 0;
+            animation: modal-in .32s cubic-bezier(.34, 1.56, .64, 1) forwards;
+        }
+
+        @keyframes modal-in {
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal h2 {
+            margin: 0 0 10px;
+            font-size: 24px;
+        }
+
+        .modal p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin: 0 0 18px;
+        }
+
+        .modal-code {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .modal-code .peg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .modal-code .peg {
+            animation: drop .35s cubic-bezier(.34, 1.56, .64, 1) backwards;
+        }
+
+        .modal-code .peg:nth-child(1) {
+            animation-delay: .05s;
+        }
+
+        .modal-code .peg:nth-child(2) {
+            animation-delay: .13s;
+        }
+
+        .modal-code .peg:nth-child(3) {
+            animation-delay: .21s;
+        }
+
+        .modal-code .peg:nth-child(4) {
+            animation-delay: .29s;
+        }
+
+        #confettiCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 28px;
+            }
+
+            .peg-slot {
+                width: 30px;
+                height: 30px;
+            }
+
+            .peg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .swatch {
+                width: 38px;
+                height: 38px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <div class="header">
+        <div class="eyebrow">Vault Protocol · 4 Digits</div>
+        <h1>Mastermind</h1>
+        <p class="sub">Six colors, four slots, ten tries. Drag a color onto a slot, read the pins, narrow the vault
+            combination before you're locked out.</p>
+    </div>
+
+    <div class="layout">
+        <div class="dial-row" id="dialRow"></div>
+
+        <div class="vault" id="vaultPanel">
+            <div id="secretRow" class="secret-row" style="display:none;">
+                <span class="secret-label">Code was</span>
+                <div id="secretPegs" class="pegs"></div>
+            </div>
+            <div id="board" class="board-scroll"></div>
+        </div>
+
+        <div class="picker">
+            <div class="picker-label">Drag a color onto a slot, or tap it then tap a slot</div>
+            <div id="swatches" class="swatches"></div>
+            <div class="picker-actions">
+                <button class="btn-ghost" id="clearBtn">Clear row</button>
+                <button class="btn-primary" id="submitBtn" disabled>Lock in guess</button>
+            </div>
+            <div id="status" class="status">Pick your first color to begin.</div>
+            <div class="legend">
+                <div class="legend-item"><span class="legend-dot exact"></span> right color, right spot</div>
+                <div class="legend-item"><span class="legend-dot close"></span> right color, wrong spot</div>
+            </div>
+        </div>
+
+        <div class="hint-row">keys 1–6 pick a color · backspace clears last peg · enter locks in</div>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <h2 id="modalTitle">You cracked it!</h2>
+            <p id="modalText">The vault opens.</p>
+            <div id="modalCode" class="modal-code"></div>
+            <button class="btn-primary" id="playAgainBtn" style="width:100%;">Play again</button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const COLORS = [
+                { id: 'red', cls: 'c-red', hex: '#e63946' },
+                { id: 'blue', cls: 'c-blue', hex: '#457bff' },
+                { id: 'green', cls: 'c-green', hex: '#2a9d8f' },
+                { id: 'yellow', cls: 'c-yellow', hex: '#f4c000' },
+                { id: 'purple', cls: 'c-purple', hex: '#a06bf0' },
+                { id: 'orange', cls: 'c-orange', hex: '#f77f00' },
+            ];
+            const CODE_LEN = 4;
+            const MAX_TRIES = 10;
+
+            let secret = [];
+            let guesses = [];
+            let feedbacks = [];
+            let currentGuess = [];
+            let selectedColor = null;
+            let gameOver = false;
+
+            const boardEl = document.getElementById('board');
+            const swatchesEl = document.getElementById('swatches');
+            const statusEl = document.getElementById('status');
+            const submitBtn = document.getElementById('submitBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalText = document.getElementById('modalText');
+            const modalCode = document.getElementById('modalCode');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+            const secretRow = document.getElementById('secretRow');
+            const secretPegs = document.getElementById('secretPegs');
+            const vaultPanel = document.getElementById('vaultPanel');
+            const dialRow = document.getElementById('dialRow');
+
+            function colorMeta(id) { return COLORS.find(c => c.id === id); }
+            function colorClass(id) { const c = colorMeta(id); return c ? c.cls : ''; }
+
+            function newSecret() {
+                const s = [];
+                for (let i = 0; i < CODE_LEN; i++) s.push(COLORS[Math.floor(Math.random() * COLORS.length)].id);
+                return s;
+            }
+
+            function init() {
+                secret = newSecret();
+                guesses = [];
+                feedbacks = [];
+                currentGuess = Array(CODE_LEN).fill(null);
+                selectedColor = null;
+                gameOver = false;
+                modalOverlay.classList.remove('show');
+                secretRow.style.display = 'none';
+                vaultPanel.classList.remove('shake');
+                setStatus('Pick your first color to begin.', '');
+                renderSwatches();
+                renderDial();
+                renderBoard();
+                updateSubmitState();
+            }
+
+            function setStatus(text, cls) {
+                statusEl.className = 'status pop' + (cls ? ' ' + cls : '');
+                statusEl.textContent = text;
+                // restart animation
+                void statusEl.offsetWidth;
+                statusEl.classList.add('pop');
+            }
+
+            function renderDial() {
+                dialRow.innerHTML = '';
+                const used = guesses.length;
+                for (let i = 0; i < MAX_TRIES; i++) {
+                    const pip = document.createElement('div');
+                    const remaining = MAX_TRIES - used;
+                    if (i < used) {
+                        pip.className = 'dial-pip used';
+                    } else if (i === used) {
+                        pip.className = 'dial-pip active' + (remaining <= 3 ? ' low' : '');
+                    } else {
+                        pip.className = 'dial-pip' + (remaining <= 3 ? ' low' : '');
+                        if (remaining > 3) pip.style.opacity = '0.5';
+                    }
+                    dialRow.appendChild(pip);
+                }
+            }
+
+            function renderSwatches() {
+                swatchesEl.innerHTML = '';
+                COLORS.forEach((c, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'swatch ' + c.cls + (selectedColor === c.id ? ' selected' : '');
+                    btn.setAttribute('aria-label', c.id);
+                    btn.style.padding = 0;
+                    btn.draggable = true;
+
+                    const hint = document.createElement('span');
+                    hint.className = 'key-hint';
+                    hint.textContent = i + 1;
+                    btn.appendChild(hint);
+
+                    btn.addEventListener('click', () => {
+                        selectedColor = c.id;
+                        renderSwatches();
+                    });
+
+                    btn.addEventListener('dragstart', (e) => {
+                        btn.classList.add('dragging');
+                        e.dataTransfer.setData('text/plain', c.id);
+                        e.dataTransfer.effectAllowed = 'copy';
+                    });
+                    btn.addEventListener('dragend', () => btn.classList.remove('dragging'));
+
+                    swatchesEl.appendChild(btn);
+                });
+            }
+
+            function makePegSlot(colorId, clickable, index) {
+                const slot = document.createElement('div');
+                slot.className = 'peg-slot';
+                if (colorId) {
+                    const peg = document.createElement('div');
+                    peg.className = 'peg ' + colorClass(colorId);
+                    slot.appendChild(peg);
+                }
+                if (clickable) {
+                    slot.addEventListener('click', () => onSlotClick(index));
+
+                    slot.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'copy';
+                        slot.classList.add('drag-over');
+                    });
+                    slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+                    slot.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        slot.classList.remove('drag-over');
+                        const colorId = e.dataTransfer.getData('text/plain');
+                        if (colorId) {
+                            placeColor(index, colorId, slot);
+                        }
+                    });
+                }
+                return slot;
+            }
+
+            function placeColor(index, colorId, slotEl) {
+                currentGuess[index] = colorId;
+                renderBoard();
+                updateSubmitState();
+            }
+
+            function onSlotClick(index) {
+                if (gameOver || !selectedColor) return;
+                let idx = index;
+                if (currentGuess[index] !== null) {
+                    // slot already filled and directly clicked -> overwrite it
+                    idx = index;
+                } else {
+                    const emptyIdx = currentGuess.findIndex(v => v === null);
+                    idx = emptyIdx === -1 ? CODE_LEN - 1 : emptyIdx;
+                }
+                currentGuess[idx] = selectedColor;
+                renderBoard();
+                updateSubmitState();
+            }
+
+            function computeFeedback(guess) {
+                let exact = 0;
+                const secretRemain = [];
+                const guessRemain = [];
+                for (let i = 0; i < CODE_LEN; i++) {
+                    if (guess[i] === secret[i]) exact++;
+                    else {
+                        secretRemain.push(secret[i]);
+                        guessRemain.push(guess[i]);
+                    }
+                }
+                let close = 0;
+                const used = Array(secretRemain.length).fill(false);
+                guessRemain.forEach(g => {
+                    const idx = secretRemain.findIndex((s, i) => !used[i] && s === g);
+                    if (idx !== -1) { used[idx] = true; close++; }
+                });
+                return { exact, close };
+            }
+
+            function renderBoard() {
+                boardEl.innerHTML = '';
+                const rows = [];
+
+                guesses.forEach((g, i) => {
+                    rows.push(buildRow(i + 1, g, feedbacks[i], false, i === guesses.length - 1));
+                });
+
+                if (!gameOver && guesses.length < MAX_TRIES) {
+                    rows.push(buildRow(guesses.length + 1, currentGuess, null, true, false));
+                }
+
+                rows.forEach(r => boardEl.appendChild(r));
+            }
+
+            function buildRow(num, guessArr, feedback, isCurrent, animateFeedback) {
+                const row = document.createElement('div');
+                const isPerfect = feedback && feedback.exact === CODE_LEN;
+                row.className = 'row' + (isCurrent ? ' current' : '') + (isPerfect ? ' correct-row' : '');
+
+                const numEl = document.createElement('div');
+                numEl.className = 'row-num';
+                numEl.textContent = num;
+                row.appendChild(numEl);
+
+                const pegsEl = document.createElement('div');
+                pegsEl.className = 'pegs';
+                guessArr.forEach((colorId, i) => {
+                    pegsEl.appendChild(makePegSlot(colorId, isCurrent, i));
+                });
+                row.appendChild(pegsEl);
+
+                const fbEl = document.createElement('div');
+                fbEl.className = 'feedback';
+                if (feedback) {
+                    const pins = [];
+                    for (let i = 0; i < feedback.exact; i++) pins.push('exact');
+                    for (let i = 0; i < feedback.close; i++) pins.push('close');
+                    while (pins.length < CODE_LEN) pins.push('empty');
+                    pins.forEach((p, i) => {
+                        const pin = document.createElement('div');
+                        pin.className = 'fb-peg' + (p !== 'empty' ? ' ' + p : ' empty');
+                        if (animateFeedback) {
+                            pin.style.animationDelay = (i * 0.09) + 's';
+                            // force reflow trick handled by class add after append
+                            setTimeout(() => pin.classList.add('reveal'), 10);
+                        } else {
+                            pin.classList.add('reveal');
+                            pin.style.animation = 'none';
+                            pin.style.transform = 'scale(1)';
+                            pin.style.opacity = '1';
+                        }
+                        fbEl.appendChild(pin);
+                    });
+                } else {
+                    for (let i = 0; i < CODE_LEN; i++) {
+                        const pin = document.createElement('div');
+                        pin.className = 'fb-peg empty';
+                        pin.style.transform = 'scale(1)';
+                        pin.style.opacity = '1';
+                        fbEl.appendChild(pin);
+                    }
+                }
+                row.appendChild(fbEl);
+
+                return row;
+            }
+
+            function updateSubmitState() {
+                const full = currentGuess.every(v => v !== null);
+                submitBtn.disabled = !full || gameOver;
+                submitBtn.classList.toggle('ready', full && !gameOver);
+            }
+
+            clearBtn.addEventListener('click', () => {
+                if (gameOver) return;
+                currentGuess = Array(CODE_LEN).fill(null);
+                renderBoard();
+                updateSubmitState();
+            });
+
+            submitBtn.addEventListener('click', submitGuess);
+
+            function submitGuess() {
+                if (gameOver) return;
+                if (currentGuess.some(v => v === null)) {
+                    vaultPanel.classList.remove('shake');
+                    void vaultPanel.offsetWidth;
+                    vaultPanel.classList.add('shake');
+                    return;
+                }
+
+                const guess = currentGuess.slice();
+                const fb = computeFeedback(guess);
+                guesses.push(guess);
+                feedbacks.push(fb);
+                currentGuess = Array(CODE_LEN).fill(null);
+
+                if (fb.exact === CODE_LEN) {
+                    gameOver = true;
+                    renderBoard();
+                    renderDial();
+                    setStatus(`Cracked it in ${guesses.length} ${guesses.length === 1 ? 'try' : 'tries'}.`, 'win');
+                    launchConfetti();
+                    showModal(true);
+                    return;
+                }
+
+                if (guesses.length >= MAX_TRIES) {
+                    gameOver = true;
+                    renderBoard();
+                    renderDial();
+                    setStatus('Out of tries. The vault stays locked.', 'lose');
+                    vaultPanel.classList.remove('shake');
+                    void vaultPanel.offsetWidth;
+                    vaultPanel.classList.add('shake');
+                    revealSecret();
+                    showModal(false);
+                    return;
+                }
+
+                renderBoard();
+                renderDial();
+                updateSubmitState();
+                setStatus(`${fb.exact} exact, ${fb.close} close. ${MAX_TRIES - guesses.length} ${MAX_TRIES - guesses.length === 1 ? 'try' : 'tries'} left.`, '');
+            }
+
+            function revealSecret() {
+                secretRow.style.display = 'flex';
+                secretPegs.innerHTML = '';
+                secret.forEach(colorId => {
+                    secretPegs.appendChild(makePegSlot(colorId, false, -1));
+                });
+            }
+
+            function showModal(won) {
+                if (won) {
+                    modalTitle.textContent = 'You cracked it!';
+                    modalText.textContent = `Solved in ${guesses.length} of ${MAX_TRIES} tries.`;
+                } else {
+                    modalTitle.textContent = 'Locked out.';
+                    modalText.textContent = `You used all ${MAX_TRIES} tries. Here was the code:`;
+                }
+                modalCode.innerHTML = '';
+                secret.forEach(colorId => {
+                    const peg = document.createElement('div');
+                    peg.className = 'peg ' + colorClass(colorId);
+                    modalCode.appendChild(peg);
+                });
+                setTimeout(() => modalOverlay.classList.add('show'), won ? 400 : 0);
+            }
+
+            playAgainBtn.addEventListener('click', () => init());
+
+            // keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (gameOver) return;
+                if (e.key >= '1' && e.key <= '6') {
+                    selectedColor = COLORS[parseInt(e.key, 10) - 1].id;
+                    renderSwatches();
+                } else if (e.key === 'Backspace') {
+                    const lastFilled = [...currentGuess].reverse().findIndex(v => v !== null);
+                    if (lastFilled !== -1) {
+                        const idx = CODE_LEN - 1 - lastFilled;
+                        currentGuess[idx] = null;
+                        renderBoard();
+                        updateSubmitState();
+                    }
+                } else if (e.key === 'Enter') {
+                    if (!submitBtn.disabled) submitGuess();
+                }
+            });
+
+            // ---- confetti ----
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            let confettiParticles = [];
+            let confettiAnimId = null;
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            function launchConfetti() {
+                const colors = COLORS.map(c => c.hex);
+                confettiParticles = [];
+                const count = 140;
+                for (let i = 0; i < count; i++) {
+                    confettiParticles.push({
+                        x: canvas.width / 2 + (Math.random() - 0.5) * 120,
+                        y: canvas.height * 0.32,
+                        vx: (Math.random() - 0.5) * 11,
+                        vy: -Math.random() * 11 - 4,
+                        size: 5 + Math.random() * 5,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        rotation: Math.random() * Math.PI * 2,
+                        vr: (Math.random() - 0.5) * 0.3,
+                        gravity: 0.28 + Math.random() * 0.12,
+                        life: 0
+                    });
+                }
+                if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+                animateConfetti();
+            }
+
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                confettiParticles.forEach(p => {
+                    p.life++;
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += p.gravity;
+                    p.rotation += p.vr;
+                    p.vx *= 0.995;
+                    if (p.y < canvas.height + 30 && p.life < 260) {
+                        alive = true;
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rotation);
+                        ctx.globalAlpha = Math.max(0, 1 - p.life / 260);
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                        ctx.restore();
+                    }
+                });
+                if (alive) {
+                    confettiAnimId = requestAnimationFrame(animateConfetti);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            init();
+        })();
+    </script>
+</body>
+
+</html>

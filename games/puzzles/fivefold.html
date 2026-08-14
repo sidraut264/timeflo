@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>FIVEFOLD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --paper: #f2ede3;
+            --ink: #25221d;
+            --ink-soft: #5c574c;
+            --rule: #cfc6b3;
+            --correct: #5c7a5e;
+            --present: #c99a3a;
+            --absent: #8c8478;
+            --absent-bg: #e2dbca;
+            --accent: #b5482f;
+            --tile-bg: #faf7f0;
+            --hint-bg: #e8e2d4;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(ellipse at top, #fbf8f1 0%, var(--paper) 60%);
+            color: var(--ink);
+            font-family: 'Courier New', ui-monospace, SFMono-Regular, Menlo, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 14px 40px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.001s !important;
+                transition-duration: 0.001s !important;
+            }
+        }
+
+        header {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-bottom: 1px solid var(--rule);
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+
+        .masthead {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-weight: 700;
+            font-size: 34px;
+            letter-spacing: 6px;
+            margin: 0;
+        }
+
+        .masthead span {
+            color: var(--accent);
+        }
+
+        .subhead {
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-top: 4px;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 420px;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--ink-soft);
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            gap: 8px;
+        }
+
+        .meta-row button {
+            font-family: inherit;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            background: none;
+            border: 1px solid var(--rule);
+            color: var(--ink);
+            padding: 4px 10px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: background 0.2s;
+        }
+
+        .meta-row button:hover {
+            background: var(--rule);
+        }
+
+        .meta-row button.hint-btn {
+            background: var(--hint-bg);
+            border-color: #b8ad97;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .meta-row button.hint-btn:hover {
+            background: #ddd5c2;
+        }
+
+        #board {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .tile {
+            width: 52px;
+            height: 52px;
+            border: 2px solid var(--rule);
+            background: var(--tile-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: transform 0.15s ease, background 0.3s;
+            position: relative;
+        }
+
+        .tile.filled {
+            border-color: #a89f8c;
+            animation: pop 0.12s ease;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0.9);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .tile.flip {
+            animation: flip 0.55s ease forwards;
+        }
+
+        @keyframes flip {
+            0% {
+                transform: rotateX(0deg);
+            }
+
+            50% {
+                transform: rotateX(90deg);
+            }
+
+            51% {
+                transform: rotateX(90deg);
+            }
+
+            100% {
+                transform: rotateX(0deg);
+            }
+        }
+
+        .tile.correct {
+            background: var(--correct);
+            border-color: var(--correct);
+            color: #fbf8f1;
+        }
+
+        .tile.present {
+            background: var(--present);
+            border-color: var(--present);
+            color: #fbf8f1;
+        }
+
+        .tile.absent {
+            background: var(--absent-bg);
+            border-color: var(--absent-bg);
+            color: var(--absent);
+        }
+
+        .row.shake {
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+
+            10%,
+            90% {
+                transform: translateX(-2px);
+            }
+
+            20%,
+            80% {
+                transform: translateX(4px);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translateX(-8px);
+            }
+
+            40%,
+            60% {
+                transform: translateX(8px);
+            }
+        }
+
+        #message {
+            min-height: 20px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        #hint-message {
+            min-height: 18px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            color: var(--ink-soft);
+            margin-bottom: 12px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        #keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .krow {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .key {
+            font-family: inherit;
+            border: none;
+            background: var(--rule);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 0;
+            min-width: 32px;
+            flex: 1;
+            max-width: 42px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .key.wide {
+            max-width: 62px;
+            font-size: 10px;
+        }
+
+        .key:active {
+            transform: translateY(1px);
+        }
+
+        .key.correct {
+            background: var(--correct);
+            color: #fbf8f1;
+        }
+
+        .key.present {
+            background: var(--present);
+            color: #fbf8f1;
+        }
+
+        .key.absent {
+            background: #c9c1ae;
+            color: #8a8272;
+        }
+
+        footer {
+            margin-top: 18px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: var(--ink-soft);
+            text-align: center;
+            max-width: 340px;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(37, 34, 29, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .card {
+            background: var(--paper);
+            border: 1px solid var(--rule);
+            padding: 28px 30px;
+            max-width: 300px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            font-family: Georgia, serif;
+            margin: 0 0 6px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .card p {
+            color: var(--ink-soft);
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 8px 0 16px;
+        }
+
+        .card .word {
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--accent);
+        }
+
+        .card button {
+            font-family: inherit;
+            background: var(--accent);
+            color: #fbf8f1;
+            border: none;
+            padding: 10px 20px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1 class="masthead">FIVE<span>FOLD</span></h1>
+        <div class="subhead">a daily-ish word puzzle</div>
+    </header>
+
+    <div class="meta-row">
+        <span id="attemptLabel">Guess 1 of 6</span>
+        <div style="display:flex; gap:6px;">
+            <button id="hintBtn" class="hint-btn">Hint</button>
+            <button id="newGameBtn">New word</button>
+        </div>
+    </div>
+
+    <div id="board"></div>
+    <div id="message"></div>
+    <div id="hint-message"></div>
+    <div id="keyboard"></div>
+
+    <footer>Type or tap letters, ENTER to submit, ⌫ to delete. Use HINT for a clue.</footer>
+
+    <div class="overlay" id="overlay">
+        <div class="card">
+            <h2 id="resultTitle">You got it</h2>
+            <p id="resultBody">The word was <span class="word" id="resultWord"></span></p>
+            <button id="playAgainBtn">Play again</button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const ANSWERS = ["APPLE", "BRAVE", "CRANE", "DRIFT", "EAGLE", "FLAME", "GHOST", "HONEY", "IVORY", "JOLLY",
+                "KNEEL", "LEMON", "MOUNT", "NOBLE", "OCEAN", "PEARL", "QUICK", "RIVER", "STONE", "TIGER",
+                "UNITY", "VIVID", "WITCH", "YOUTH", "ZESTY", "AMBER", "BLEND", "CHESS", "DOUGH", "EMBER",
+                "FROST", "GRAPE", "HINGE", "IMAGE", "JOKER", "KIOSK", "LUNAR", "MERGE", "NORTH", "OASIS",
+                "PLUME", "QUILT", "ROBIN", "SHINE", "THORN", "URBAN", "VAPOR", "WOVEN", "YIELD", "ZEBRA",
+                "AUDIO", "BLOOM", "CIVIC", "DELTA", "EQUAL", "FABLE", "GLOBE", "HUMOR", "INBOX", "JELLY",
+                "KARMA", "LODGE", "MAPLE", "NIGHT", "OPERA", "PIXEL", "QUOTE", "RADIO", "SUGAR", "TEMPO",
+                "ULTRA", "VENOM", "WHALE", "XENON", "YOGA", "ZONAL", "ANGLE", "BRISK", "CANDY", "DWELL",
+                "EARTH", "FLOOR", "GRAND", "HORSE", "INLET", "JUICE", "KNOCK", "LARGE", "MINOR", "NURSE",
+                "ORBIT", "PLANT", "QUEST", "RAZOR", "SOLID", "TRACE", "UNCLE", "VALID", "WATER", "YOUNG"];
+            const VALID_EXTRA = new Set(["ABOUT", "ALLOW", "AROSE", "AUDIT", "BASIC", "BEACH", "BEGIN", "BLACK", "BLANK",
+                "BLOOD", "BOARD", "BREAD", "BUILD", "CHAIN", "CHAIR", "CHEAP", "CHILD", "CLAIM", "CLASS", "CLEAN",
+                "CLOCK", "CLOUD", "COAST", "COUCH", "COUNT", "COVER", "CRISP", "CROSS", "CROWD", "DANCE", "DEATH",
+                "DEPTH", "DOUBT", "DRAMA", "DREAM", "DRESS", "DRINK", "DRIVE", "EARLY", "EMPTY", "ENJOY", "ENTER",
+                "EVENT", "EVERY", "EXIST", "FAITH", "FIELD", "FIGHT", "FINAL", "FIRST", "FOCUS", "FORCE", "FRAME",
+                "FRESH", "FRONT", "FRUIT", "FUNNY", "GIANT", "GRACE", "GREEN", "GROUP", "GUARD", "GUESS", "GUIDE",
+                "HAPPY", "HEART", "HEAVY", "HOTEL", "HOUSE", "HUMAN", "IDEAL", "INDEX", "ISSUE", "JUDGE", "KNIFE",
+                "LAUGH", "LEARN", "LEVEL", "LIGHT", "LOGIC", "LOYAL", "LUCKY", "MAGIC", "MAJOR", "MARCH", "MATCH",
+                "MEDAL", "METAL", "MODEL", "MONEY", "MONTH", "MOTOR", "MOVIE", "MUSIC", "NAKED", "NOISE", "NOVEL",
+                "OFTEN", "ORDER", "OUTER", "OWNER", "PANEL", "PAPER", "PARTY", "PEACE", "PHASE", "PHONE", "PHOTO",
+                "PLACE", "PLAIN", "POWER", "PRESS", "PRICE", "PRIDE", "PRINT", "PRIZE", "PROOF", "PROUD", "PROVE",
+                "QUEEN", "RANGE", "RAPID", "READY", "REALM", "RIGHT", "ROUND", "ROYAL", "RURAL", "SCALE", "SCENE",
+                "SENSE", "SHAPE", "SHARE", "SHARP", "SHEET", "SHELF", "SHOCK", "SHOOT", "SHORT", "SIGHT", "SINCE",
+                "SIXTH", "SIZED", "SKILL", "SLEEP", "SMALL", "SMART", "SMILE", "SMOKE", "SOLAR", "SOUND", "SOUTH",
+                "SPACE", "SPARE", "SPEAK", "SPEED", "SPEND", "SPORT", "STAFF", "STAGE", "START", "STATE", "STEAM",
+                "STEEL", "STICK", "STOCK", "STORE", "STORM", "STORY", "STUDY", "STUFF", "STYLE", "SUPER", "SWEET",
+                "TABLE", "TASTE", "TEACH", "THANK", "THEME", "THICK", "THING", "THINK", "TIGHT", "TIRED", "TITLE",
+                "TODAY", "TOTAL", "TOUCH", "TOUGH", "TOWER", "TRACK", "TRADE", "TRAIN", "TREAT", "TREND", "TRIAL",
+                "TRUCK", "TRULY", "TRUST", "TRUTH", "TWICE", "UNDER", "UNION", "UNTIL", "UPPER", "VALUE", "VIDEO",
+                "VOICE", "WASTE", "WATCH", "WHEEL", "WHERE", "WHILE", "WHITE", "WHOLE", "WOMAN", "WORLD", "WORRY",
+                "WORTH", "WOUND", "WRITE", "WRONG", "YIELD"]);
+            ANSWERS.forEach(w => VALID_EXTRA.add(w));
+
+            const ROWS = 6, COLS = 5;
+            let answer = "";
+            let currentRow = 0;
+            let currentGuess = "";
+            let gameOver = false;
+            let grid = [];
+            let keyState = {};
+            let hintCount = 0;
+
+            const boardEl = document.getElementById('board');
+            const keyboardEl = document.getElementById('keyboard');
+            const messageEl = document.getElementById('message');
+            const hintMessageEl = document.getElementById('hint-message');
+            const attemptLabel = document.getElementById('attemptLabel');
+            const overlay = document.getElementById('overlay');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultBody = document.getElementById('resultBody');
+            const resultWord = document.getElementById('resultWord');
+            const hintBtn = document.getElementById('hintBtn');
+            const newGameBtn = document.getElementById('newGameBtn');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+
+            function pickAnswer() {
+                return ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+            }
+
+            function buildBoard() {
+                boardEl.innerHTML = "";
+                grid = [];
+                for (let r = 0; r < ROWS; r++) {
+                    const rowEl = document.createElement('div');
+                    rowEl.className = 'row';
+                    const tiles = [];
+                    for (let c = 0; c < COLS; c++) {
+                        const tile = document.createElement('div');
+                        tile.className = 'tile';
+                        rowEl.appendChild(tile);
+                        tiles.push(tile);
+                    }
+                    boardEl.appendChild(rowEl);
+                    grid.push(tiles);
+                }
+            }
+
+            const KB_ROWS = [
+                "Q W E R T Y U I O P".split(" "),
+                "A S D F G H J K L".split(" "),
+                ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "⌫"]
+            ];
+
+            function buildKeyboard() {
+                keyboardEl.innerHTML = "";
+                keyState = {};
+                KB_ROWS.forEach(rowKeys => {
+                    const krow = document.createElement('div');
+                    krow.className = 'krow';
+                    rowKeys.forEach(k => {
+                        const btn = document.createElement('button');
+                        btn.className = 'key' + (k.length > 1 ? ' wide' : '');
+                        btn.textContent = k;
+                        btn.dataset.key = k;
+                        btn.addEventListener('click', () => handleKey(k === '⌫' ? 'BACKSPACE' : (k === 'ENTER' ? 'ENTER' : k)));
+                        krow.appendChild(btn);
+                    });
+                    keyboardEl.appendChild(krow);
+                });
+            }
+
+            function setMessage(text, timeout) {
+                messageEl.textContent = text;
+                if (timeout) {
+                    setTimeout(() => { if (messageEl.textContent === text) messageEl.textContent = ""; }, timeout);
+                }
+            }
+
+            function setHintMessage(text, timeout) {
+                hintMessageEl.textContent = text;
+                if (timeout) {
+                    setTimeout(() => { if (hintMessageEl.textContent === text) hintMessageEl.textContent = ""; }, timeout);
+                }
+            }
+
+            function updateAttemptLabel() {
+                attemptLabel.textContent = gameOver ? "Round over" : `Guess ${currentRow + 1} of ${ROWS}`;
+            }
+
+            function handleKey(key) {
+                if (gameOver) return;
+                if (key === 'ENTER') {
+                    submitGuess();
+                } else if (key === 'BACKSPACE') {
+                    currentGuess = currentGuess.slice(0, -1);
+                    renderCurrentRow();
+                } else if (/^[A-Z]$/.test(key) && currentGuess.length < COLS) {
+                    currentGuess += key;
+                    renderCurrentRow();
+                }
+            }
+
+            function renderCurrentRow() {
+                const tiles = grid[currentRow];
+                for (let c = 0; c < COLS; c++) {
+                    const letter = currentGuess[c] || "";
+                    tiles[c].textContent = letter;
+                    tiles[c].classList.toggle('filled', !!letter);
+                }
+            }
+
+            function shakeRow() {
+                const rowEl = boardEl.children[currentRow];
+                rowEl.classList.add('shake');
+                setTimeout(() => rowEl.classList.remove('shake'), 400);
+            }
+
+            function submitGuess() {
+                if (currentGuess.length < COLS) {
+                    setMessage("Not enough letters", 1200);
+                    shakeRow();
+                    return;
+                }
+                if (!VALID_EXTRA.has(currentGuess)) {
+                    setMessage("Not in word list", 1200);
+                    shakeRow();
+                    return;
+                }
+
+                const result = scoreGuess(currentGuess, answer);
+                const tiles = grid[currentRow];
+
+                result.forEach((state, i) => {
+                    setTimeout(() => {
+                        tiles[i].classList.add('flip');
+                        setTimeout(() => {
+                            tiles[i].classList.add(state);
+                        }, 270);
+                    }, i * 280);
+                });
+
+                const totalDelay = COLS * 280 + 300;
+
+                setTimeout(() => {
+                    updateKeyboardState(currentGuess, result);
+                    if (currentGuess === answer) {
+                        gameOver = true;
+                        updateAttemptLabel();
+                        showResult(true);
+                    } else if (currentRow === ROWS - 1) {
+                        gameOver = true;
+                        updateAttemptLabel();
+                        showResult(false);
+                    } else {
+                        currentRow++;
+                        currentGuess = "";
+                        updateAttemptLabel();
+                    }
+                }, totalDelay);
+            }
+
+            function scoreGuess(guess, answer) {
+                const result = new Array(COLS).fill('absent');
+                const answerLetters = answer.split("");
+                const used = new Array(COLS).fill(false);
+
+                for (let i = 0; i < COLS; i++) {
+                    if (guess[i] === answerLetters[i]) {
+                        result[i] = 'correct';
+                        used[i] = true;
+                    }
+                }
+                for (let i = 0; i < COLS; i++) {
+                    if (result[i] === 'correct') continue;
+                    const idx = answerLetters.findIndex((l, j) => l === guess[i] && !used[j]);
+                    if (idx !== -1) {
+                        result[i] = 'present';
+                        used[idx] = true;
+                    }
+                }
+                return result;
+            }
+
+            function updateKeyboardState(guess, result) {
+                const rank = { absent: 0, present: 1, correct: 2 };
+                for (let i = 0; i < COLS; i++) {
+                    const letter = guess[i];
+                    const state = result[i];
+                    if (!keyState[letter] || rank[state] > rank[keyState[letter]]) {
+                        keyState[letter] = state;
+                    }
+                }
+                document.querySelectorAll('.key').forEach(btn => {
+                    const k = btn.dataset.key;
+                    btn.classList.remove('correct', 'present', 'absent');
+                    if (keyState[k]) btn.classList.add(keyState[k]);
+                });
+            }
+
+            // 🔹 HINT SYSTEM
+            function generateHint() {
+                if (gameOver) {
+                    setHintMessage("Game is over — start a new word!");
+                    return;
+                }
+                if (currentGuess.length > 0) {
+                    setHintMessage("Finish or clear your current guess first", 1500);
+                    return;
+                }
+
+                hintCount++;
+                const hintLevel = hintCount % 3; // cycles 0,1,2 → different hint types
+                const answerLetters = answer.split("");
+
+                let hintText = "";
+
+                if (hintLevel === 0) {
+                    // Reveal a random position's letter
+                    const pos = Math.floor(Math.random() * COLS);
+                    hintText = `💡 Letter ${pos + 1} is "${answer[pos]}"`;
+                } else if (hintLevel === 1) {
+                    // Reveal a letter that's not yet correctly used elsewhere — but simple: first two letters
+                    hintText = `📚 Starts with "${answer[0]}${answer[1]}..."`;
+                } else {
+                    // Give a clue about pattern: vowels
+                    const vowels = ['A', 'E', 'I', 'O', 'U'];
+                    const vowelCount = answerLetters.filter(l => vowels.includes(l)).length;
+                    hintText = `🔤 Contains ${vowelCount} vowel${vowelCount !== 1 ? 's' : ''} (${answerLetters.filter(l => vowels.includes(l)).join(', ') || 'none'})`;
+                }
+
+                setHintMessage(hintText, 4000);
+            }
+
+            function showResult(won) {
+                resultTitle.textContent = won ? "You got it" : "So close";
+                resultBody.innerHTML = won
+                    ? `Solved in ${currentRow + 1} of ${ROWS} guesses`
+                    : `The word was <span class="word" id="resultWord">${answer}</span>`;
+                overlay.classList.add('show');
+            }
+
+            function newGame() {
+                answer = pickAnswer();
+                currentRow = 0;
+                currentGuess = "";
+                gameOver = false;
+                hintCount = 0;
+                messageEl.textContent = "";
+                hintMessageEl.textContent = "";
+                overlay.classList.remove('show');
+                buildBoard();
+                buildKeyboard();
+                updateAttemptLabel();
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (overlay.classList.contains('show')) return;
+                const key = e.key.toUpperCase();
+                if (key === 'ENTER') handleKey('ENTER');
+                else if (key === 'BACKSPACE') handleKey('BACKSPACE');
+                else if (/^[A-Z]$/.test(key)) handleKey(key);
+            });
+
+            hintBtn.addEventListener('click', generateHint);
+            newGameBtn.addEventListener('click', newGame);
+            playAgainBtn.addEventListener('click', newGame);
+
+            newGame();
+        })();
+    </script>
+</body>
+
+</html>

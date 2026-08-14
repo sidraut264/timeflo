@@ -743,6 +743,27 @@
       text-overflow: ellipsis;
     }
 
+    /* Category headers inside sidebar */
+    .sidebar-category-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 4px 4px;
+      margin-top: 8px;
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--cat-color, var(--gold));
+      border-bottom: 1px solid var(--cat-color, var(--gold));
+      filter: drop-shadow(0 0 4px var(--cat-color, var(--gold)));
+      opacity: 0.9;
+    }
+
+    .sidebar-category-header:first-child {
+      margin-top: 0;
+    }
+
     /* === RESPONSIVE === */
     @media (max-width: 650px) {
       .sidebar-toggle-btn {
@@ -858,18 +879,29 @@
 
   <script>
     const GAMES = [
-      { name: 'The Backrooms',    url: 'games/backrooms-arena.html',   icon: '👁️', desc: 'Arena survival maze' },
-      { name: 'Kong Climber',     url: 'games/kong-climber.html',      icon: '🦍', desc: 'Platforms & rolling barrels' },
-      { name: 'Sling Siege',      url: 'games/sling-siege.html',       icon: '🏹', desc: 'Physics fortress shots' },
-      { name: 'Crossing',         url: 'games/crossing-frogger.html',  icon: '🐸', desc: 'Frogger-style lane crossing' },
-      { name: 'Neon Pong',        url: 'games/neon-pong.html',         icon: '🏓', desc: 'Arcade pong power-ups' },
-      { name: 'Void Siege',       url: 'games/void-siege.html',        icon: '🚀', desc: 'Space arcade defense' },
-      { name: 'Flappy Clone',     url: 'games/flappy-clone.html',      icon: '🐦', desc: 'Tap to flap through pipes' },
-      { name: 'Pixel Plumber',    url: 'games/pixel-plumber.html',     icon: '🔧', desc: 'Side-scrolling platformer' },
-      { name: 'Snake',            url: 'games/snake.html',             icon: '🐍', desc: 'Classic grid chase' },
-      { name: 'Pac-Man',          url: 'games/pac-man.html',           icon: '🟡', desc: 'Maze dots and ghosts' },
-      { name: 'Dino Runner',      url: 'games/dino-runner.html',       icon: '🦕', desc: 'Endless desert runner' },
-      { name: 'Smash Grid',       url: 'games/smash-grid.html',        icon: '💥', desc: 'Brick breaker grid' },
+      // === ARCADE ===
+      { name: 'The Backrooms',  url: 'games/backrooms-arena.html',      icon: '👁️', desc: 'Arena survival maze',         category: 'Arcade' },
+      { name: 'Kong Climber',   url: 'games/kong-climber.html',         icon: '🦍', desc: 'Platforms & rolling barrels', category: 'Arcade' },
+      { name: 'Sling Siege',    url: 'games/sling-siege.html',          icon: '🏹', desc: 'Physics fortress shots',      category: 'Arcade' },
+      { name: 'Crossing',       url: 'games/crossing-frogger.html',     icon: '🐸', desc: 'Frogger-style lane crossing', category: 'Arcade' },
+      { name: 'Neon Pong',      url: 'games/neon-pong.html',            icon: '🏓', desc: 'Arcade pong power-ups',       category: 'Arcade' },
+      { name: 'Void Siege',     url: 'games/void-siege.html',           icon: '🚀', desc: 'Space arcade defense',        category: 'Arcade' },
+      { name: 'Flappy Clone',   url: 'games/flappy-clone.html',         icon: '🐦', desc: 'Tap to flap through pipes',   category: 'Arcade' },
+      { name: 'Pixel Plumber',  url: 'games/pixel-plumber.html',        icon: '🔧', desc: 'Side-scrolling platformer',   category: 'Arcade' },
+      { name: 'Snake',          url: 'games/snake.html',                icon: '🐍', desc: 'Classic grid chase',          category: 'Arcade' },
+      { name: 'Pac-Man',        url: 'games/pac-man.html',              icon: '🟡', desc: 'Maze dots and ghosts',        category: 'Arcade' },
+      { name: 'Dino Runner',    url: 'games/dino-runner.html',          icon: '🦕', desc: 'Endless desert runner',       category: 'Arcade' },
+      { name: 'Smash Grid',     url: 'games/smash-grid.html',           icon: '💥', desc: 'Brick breaker grid',          category: 'Arcade' },
+      // === PUZZLES ===
+      { name: 'Inkwell',        url: 'games/puzzles/crossword.html',    icon: '✏️', desc: 'Random crossword puzzle',     category: 'Puzzles' },
+      { name: 'Hangman',        url: 'games/puzzles/hangman.html',      icon: '📝', desc: 'Chalkboard word guessing',    category: 'Puzzles' },
+      { name: 'Mastermind',     url: 'games/puzzles/mastermind.html',   icon: '🔐', desc: 'Crack the secret code',       category: 'Puzzles' },
+      { name: 'Fivefold',       url: 'games/puzzles/fivefold.html',     icon: '🟩', desc: '5-letter word challenge',     category: 'Puzzles' },
+      { name: 'Sudoku',         url: 'games/puzzles/sudoku.html',       icon: '🔢', desc: 'Classic number grid',         category: 'Puzzles' },
+      { name: 'Minesweeper',    url: 'games/puzzles/minesweeper.html',  icon: '💣', desc: 'Classic minefield logic',     category: 'Puzzles' },
+      // === ZEN ===
+      { name: 'Zen Garden',     url: 'games/zen/zen-garden.html',       icon: '🪨', desc: 'Mindful sand garden',         category: 'Zen' },
+      { name: 'Mandala Maker',  url: 'games/zen/mandala-maker.html',    icon: '🌸', desc: 'Draw symmetrical mandalas',   category: 'Zen' },
     ];
 
     let spinning = false;
@@ -888,21 +920,42 @@
     const sidebarOverlay   = document.getElementById('sidebarOverlay');
     const sidebarGamesList = document.getElementById('sidebarGamesList');
 
-    // Populate Sidebar Games List
+    // Populate Sidebar Games List (grouped by category)
+    const CATEGORY_ICONS = { Arcade: '🕹️', Puzzles: '🧩', Zen: '🍃' };
+    const CATEGORY_COLORS = { Arcade: '#ff2d78', Puzzles: '#00d4ff', Zen: '#39ff14' };
+
     function populateSidebar() {
       sidebarGamesList.innerHTML = '';
+      // Group by category
+      const categories = {};
       GAMES.forEach(game => {
-        const a = document.createElement('a');
-        a.className = 'sidebar-game-card';
-        a.href = game.url;
-        a.innerHTML = `
-          <div class="sidebar-game-icon">${game.icon}</div>
-          <div class="sidebar-game-info">
-            <span class="sidebar-game-name">${game.name}</span>
-            <span class="sidebar-game-desc">${game.desc}</span>
-          </div>
-        `;
-        sidebarGamesList.appendChild(a);
+        const cat = game.category || 'Other';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(game);
+      });
+
+      Object.entries(categories).forEach(([cat, games]) => {
+        // Category header
+        const header = document.createElement('div');
+        header.className = 'sidebar-category-header';
+        header.style.setProperty('--cat-color', CATEGORY_COLORS[cat] || '#ffd700');
+        header.innerHTML = `<span>${CATEGORY_ICONS[cat] || '🎮'}</span> ${cat.toUpperCase()}`;
+        sidebarGamesList.appendChild(header);
+
+        // Game cards
+        games.forEach(game => {
+          const a = document.createElement('a');
+          a.className = 'sidebar-game-card';
+          a.href = game.url;
+          a.innerHTML = `
+            <div class="sidebar-game-icon">${game.icon}</div>
+            <div class="sidebar-game-info">
+              <span class="sidebar-game-name">${game.name}</span>
+              <span class="sidebar-game-desc">${game.desc}</span>
+            </div>
+          `;
+          sidebarGamesList.appendChild(a);
+        });
       });
     }
 
