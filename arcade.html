@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Timeflo Arcade – Game Library</title>
+  <meta name="description" content="Browse all Timeflo Arcade games. Pick from Arcade, Puzzles, and Zen categories.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:       #ffd700;
+      --gold-dark:  #b8860b;
+      --pink:       #ff2d78;
+      --cyan:       #00d4ff;
+      --green:      #39ff14;
+      --purple:     #bc5aff;
+      --bg-deep:    #05000d;
+      --bg-card:    rgba(255,255,255,0.04);
+      --bg-card-h:  rgba(255,255,255,0.08);
+      --border:     rgba(255,255,255,0.08);
+      --border-h:   rgba(255,255,255,0.18);
+      --text:       #f0f0f0;
+      --text-muted: rgba(240,240,240,0.5);
+      --arcade-color: #ff2d78;
+      --puzzle-color: #00d4ff;
+      --zen-color:    #39ff14;
+    }
+
+    html { height: 100%; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 0%,   rgba(188,90,255,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%,  rgba(0,212,255,.10) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 50% 50%,   rgba(255,45,120,.06) 0%, transparent 70%);
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+      height: 64px;
+      background: rgba(5,0,13,.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
+    .slot-link {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 18px;
+      border-radius: 40px;
+      border: 1px solid var(--gold-dark);
+      background: rgba(255,215,0,.07);
+      color: var(--gold);
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-decoration: none;
+      transition: all .25s;
+    }
+    .slot-link:hover {
+      background: rgba(255,215,0,.18);
+      border-color: var(--gold);
+      box-shadow: 0 0 16px rgba(255,215,0,.3);
+    }
+
+    .random-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 18px;
+      border-radius: 40px;
+      border: none;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all .25s;
+      box-shadow: 0 4px 18px rgba(255,45,120,.35);
+    }
+    .random-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(255,45,120,.5);
+    }
+    .random-btn:active { transform: scale(.96); }
+
+    main {
+      position: relative; z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,215,0,.3);
+      background: rgba(255,215,0,.08);
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(26px, 5vw, 48px);
+      font-weight: 900;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,.55) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 460px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .stats-bar {
+      display: flex; gap: 24px; justify-content: center;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .stat-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--gold);
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .stat-divider { width: 1px; background: var(--border); }
+
+    .search-wrap {
+      position: relative;
+      max-width: 480px;
+      margin: 0 auto 28px;
+    }
+
+    .search-icon {
+      position: absolute; left: 16px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      opacity: .5;
+      pointer-events: none;
+    }
+
+    #searchInput {
+      width: 100%;
+      padding: 14px 20px 14px 46px;
+      border-radius: 40px;
+      border: 1px solid var(--border-h);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: all .25s;
+    }
+    #searchInput::placeholder { color: var(--text-muted); }
+    #searchInput:focus {
+      border-color: var(--pink);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 0 0 3px rgba(255,45,120,.15);
+    }
+
+    .tabs {
+      display: flex; gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+    }
+
+    .tab-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 22px;
+      border-radius: 40px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .22s;
+    }
+    .tab-btn:hover {
+      border-color: var(--border-h);
+      color: var(--text);
+      background: var(--bg-card-h);
+    }
+    .tab-btn.active {
+      background: var(--tab-color, var(--pink));
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    }
+    .tab-btn .count {
+      background: rgba(0,0,0,.25);
+      border-radius: 12px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    #gamesGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .section-label {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 16px;
+      margin-bottom: 4px;
+    }
+    .section-label-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--cat-clr, var(--gold));
+      text-shadow: 0 0 10px var(--cat-clr, var(--gold));
+      white-space: nowrap;
+    }
+    .section-label-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--cat-clr, var(--gold)), transparent);
+      opacity: .4;
+    }
+
+    .game-card {
+      position: relative;
+      display: flex; flex-direction: column;
+      padding: 24px 20px 20px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      text-decoration: none;
+      color: var(--text);
+      overflow: hidden;
+      transition: transform .22s, border-color .22s, background .22s, box-shadow .22s;
+      cursor: pointer;
+    }
+    .game-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 30% 30%, var(--card-glow, rgba(255,45,120,.1)), transparent 65%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .game-card:hover {
+      transform: translateY(-5px) scale(1.01);
+      border-color: var(--card-border, rgba(255,45,120,.5));
+      background: var(--bg-card-h);
+      box-shadow: 0 12px 40px var(--card-shadow, rgba(255,45,120,.2));
+    }
+    .game-card:hover::before { opacity: 1; }
+
+    .card-icon {
+      font-size: 40px;
+      line-height: 1;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 0 10px rgba(255,255,255,.3));
+      transition: transform .3s;
+    }
+    .game-card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+
+    .card-category-badge {
+      position: absolute; top: 14px; right: 14px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: rgba(255,255,255,.08);
+      color: var(--badge-color, var(--text-muted));
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .card-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card-arrow {
+      margin-top: auto;
+      padding-top: 14px;
+      font-size: 18px;
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity .25s, transform .25s;
+      color: var(--card-border, var(--pink));
+    }
+    .game-card:hover .card-arrow { opacity: 1; transform: translateX(0); }
+
+    .no-results {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .no-results .nr-icon { font-size: 48px; margin-bottom: 16px; }
+    .no-results p { font-size: 15px; }
+
+    footer {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    @keyframes ripple { to { transform: scale(40); opacity: 0; } }
+
+    @media (max-width: 600px) {
+      header { padding: 0 16px; }
+      .logo { font-size: 15px; letter-spacing: 2px; }
+      .slot-link span { display: none; }
+      main { padding: 28px 16px 60px; }
+      #gamesGrid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; }
+      .game-card { padding: 18px 14px 14px; }
+      .card-icon { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg"></div>
+  <div class="bg-grid"></div>
+
+  <header>
+    <div class="logo">TIMEFLO</div>
+    <div class="header-right">
+      <a class="slot-link" href="index.html">🎰 <span>SLOT MACHINE</span></a>
+      <button class="random-btn" id="randomBtn">🎲 RANDOM</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="hero-tag">🕹️ GAME LIBRARY</div>
+      <h1>Choose Your Game</h1>
+      <p>20 games across Arcade, Puzzles, and Zen. Pick one, or let fate decide.</p>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat">
+        <span class="stat-num" id="arcadeCount">12</span>
+        <span class="stat-label">Arcade</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-num" id="puzzleCount">6</span>
+        <span class="stat-label">Puzzles</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-num" id="zenCount">2</span>
+        <span class="stat-label">Zen</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-num" id="totalCount">20</span>
+        <span class="stat-label">Total</span>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search games…" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-cat="all"     style="--tab-color:#ffd700;">🎮 All <span class="count" id="tabCountAll">20</span></button>
+      <button class="tab-btn"        data-cat="Arcade"  style="--tab-color:#ff2d78;">🕹️ Arcade <span class="count" id="tabCountArcade">12</span></button>
+      <button class="tab-btn"        data-cat="Puzzles" style="--tab-color:#00d4ff;">🧩 Puzzles <span class="count" id="tabCountPuzzles">6</span></button>
+      <button class="tab-btn"        data-cat="Zen"     style="--tab-color:#39ff14;">🍃 Zen <span class="count" id="tabCountZen">2</span></button>
+    </div>
+
+    <div id="gamesGrid"></div>
+  </main>
+
+  <footer>TIMEFLO ARCADE © 2026 · GAME LIBRARY</footer>
+
+  <script>
+    const GAMES = [
+      { name: 'The Backrooms',  url: 'games/backrooms-arena.html',     icon: '👁️', desc: 'Arena survival maze',         category: 'Arcade' },
+      { name: 'Kong Climber',   url: 'games/kong-climber.html',        icon: '🦍', desc: 'Platforms & rolling barrels', category: 'Arcade' },
+      { name: 'Sling Siege',    url: 'games/sling-siege.html',         icon: '🏹', desc: 'Physics fortress shots',      category: 'Arcade' },
+      { name: 'Crossing',       url: 'games/crossing-frogger.html',    icon: '🐸', desc: 'Frogger-style lane crossing', category: 'Arcade' },
+      { name: 'Neon Pong',      url: 'games/neon-pong.html',           icon: '🏓', desc: 'Arcade pong power-ups',       category: 'Arcade' },
+      { name: 'Void Siege',     url: 'games/void-siege.html',          icon: '🚀', desc: 'Space arcade defense',        category: 'Arcade' },
+      { name: 'Flappy Clone',   url: 'games/flappy-clone.html',        icon: '🐦', desc: 'Tap to flap through pipes',   category: 'Arcade' },
+      { name: 'Pixel Plumber',  url: 'games/pixel-plumber.html',       icon: '🔧', desc: 'Side-scrolling platformer',   category: 'Arcade' },
+      { name: 'Snake',          url: 'games/snake.html',               icon: '🐍', desc: 'Classic grid chase',          category: 'Arcade' },
+      { name: 'Pac-Man',        url: 'games/pac-man.html',             icon: '🟡', desc: 'Maze dots and ghosts',        category: 'Arcade' },
+      { name: 'Dino Runner',    url: 'games/dino-runner.html',         icon: '🦕', desc: 'Endless desert runner',       category: 'Arcade' },
+      { name: 'Smash Grid',     url: 'games/smash-grid.html',          icon: '💥', desc: 'Brick breaker grid',          category: 'Arcade' },
+      { name: 'Inkwell',        url: 'games/puzzles/crossword.html',   icon: '✏️', desc: 'Random crossword puzzle',     category: 'Puzzles' },
+      { name: 'Hangman',        url: 'games/puzzles/hangman.html',     icon: '📝', desc: 'Chalkboard word guessing',    category: 'Puzzles' },
+      { name: 'Mastermind',     url: 'games/puzzles/mastermind.html',  icon: '🔐', desc: 'Crack the secret code',       category: 'Puzzles' },
+      { name: 'Fivefold',       url: 'games/puzzles/fivefold.html',    icon: '🟩', desc: '5-letter word challenge',     category: 'Puzzles' },
+      { name: 'Sudoku',         url: 'games/puzzles/sudoku.html',      icon: '🔢', desc: 'Classic number grid',         category: 'Puzzles' },
+      { name: 'Minesweeper',    url: 'games/puzzles/minesweeper.html', icon: '💣', desc: 'Classic minefield logic',     category: 'Puzzles' },
+      { name: 'Zen Garden',     url: 'games/zen/zen-garden.html',      icon: '🪨', desc: 'Mindful sand garden',         category: 'Zen' },
+      { name: 'Mandala Maker',  url: 'games/zen/mandala-maker.html',   icon: '🌸', desc: 'Draw symmetrical mandalas',   category: 'Zen' },
+    ];
+
+    const CFG = {
+      Arcade:  { color:'#ff2d78', glow:'rgba(255,45,120,.15)',  shadow:'rgba(255,45,120,.25)' },
+      Puzzles: { color:'#00d4ff', glow:'rgba(0,212,255,.15)',   shadow:'rgba(0,212,255,.25)'  },
+      Zen:     { color:'#39ff14', glow:'rgba(57,255,20,.12)',   shadow:'rgba(57,255,20,.2)'   },
+    };
+
+    let activeCategory = 'all';
+    let searchQuery    = '';
+
+    const grid        = document.getElementById('gamesGrid');
+    const searchInput = document.getElementById('searchInput');
+    const tabs        = document.querySelectorAll('.tab-btn');
+
+    function updateCounts() {
+      const byCategory = {};
+      GAMES.forEach(g => { byCategory[g.category] = (byCategory[g.category] || 0) + 1; });
+      document.getElementById('arcadeCount').textContent     = byCategory.Arcade  || 0;
+      document.getElementById('puzzleCount').textContent     = byCategory.Puzzles || 0;
+      document.getElementById('zenCount').textContent        = byCategory.Zen     || 0;
+      document.getElementById('totalCount').textContent      = GAMES.length;
+      document.getElementById('tabCountAll').textContent     = GAMES.length;
+      document.getElementById('tabCountArcade').textContent  = byCategory.Arcade  || 0;
+      document.getElementById('tabCountPuzzles').textContent = byCategory.Puzzles || 0;
+      document.getElementById('tabCountZen').textContent     = byCategory.Zen     || 0;
+    }
+
+    function render() {
+      const q = searchQuery.trim().toLowerCase();
+      const filtered = GAMES.filter(g => {
+        const matchCat    = activeCategory === 'all' || g.category === activeCategory;
+        const matchSearch = !q || g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q) || g.category.toLowerCase().includes(q);
+        return matchCat && matchSearch;
+      });
+
+      grid.innerHTML = '';
+
+      if (!filtered.length) {
+        grid.innerHTML = `<div class="no-results"><div class="nr-icon">🔍</div><p>No games found for "<strong>${q}</strong>"</p></div>`;
+        return;
+      }
+
+      const showSections = activeCategory === 'all' && !q;
+      if (showSections) {
+        ['Arcade','Puzzles','Zen'].forEach(cat => {
+          const games = filtered.filter(g => g.category === cat);
+          if (!games.length) return;
+          const label = document.createElement('div');
+          label.className = 'section-label';
+          label.style.setProperty('--cat-clr', CFG[cat]?.color || '#ffd700');
+          label.innerHTML = `<span class="section-label-text">${cat.toUpperCase()}</span><div class="section-label-line"></div>`;
+          grid.appendChild(label);
+          games.forEach(g => grid.appendChild(makeCard(g)));
+        });
+      } else {
+        filtered.forEach(g => grid.appendChild(makeCard(g)));
+      }
+    }
+
+    function makeCard(g) {
+      const cfg = CFG[g.category] || {};
+      const a = document.createElement('a');
+      a.className = 'game-card';
+      a.href = g.url;
+      a.style.setProperty('--card-glow',   cfg.glow   || 'rgba(255,45,120,.1)');
+      a.style.setProperty('--card-border', cfg.color  || '#ff2d78');
+      a.style.setProperty('--card-shadow', cfg.shadow || 'rgba(255,45,120,.2)');
+      a.style.setProperty('--badge-color', cfg.color  || '#aaa');
+      a.innerHTML = `
+        <span class="card-category-badge">${g.category}</span>
+        <div class="card-icon">${g.icon}</div>
+        <div class="card-name">${g.name}</div>
+        <div class="card-desc">${g.desc}</div>
+        <div class="card-arrow">→</div>
+      `;
+      a.addEventListener('click', e => {
+        const r = document.createElement('span');
+        r.style.cssText = `position:absolute;border-radius:50%;width:8px;height:8px;background:rgba(255,255,255,.35);transform:scale(0);animation:ripple .5s linear;left:${e.offsetX-4}px;top:${e.offsetY-4}px;pointer-events:none;`;
+        a.appendChild(r);
+        setTimeout(() => r.remove(), 500);
+      });
+      return a;
+    }
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCategory = btn.dataset.cat;
+        render();
+      });
+    });
+
+    searchInput.addEventListener('input', () => {
+      searchQuery = searchInput.value;
+      if (searchQuery.trim()) {
+        tabs.forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-cat="all"]').classList.add('active');
+        activeCategory = 'all';
+      }
+      render();
+    });
+
+    document.getElementById('randomBtn').addEventListener('click', () => {
+      const g = GAMES[Math.floor(Math.random() * GAMES.length)];
+      const btn = document.getElementById('randomBtn');
+      btn.style.transform = 'scale(.92)';
+      setTimeout(() => { btn.style.transform = ''; window.location.href = g.url; }, 180);
+    });
+
+    updateCounts();
+    render();
+  </script>
+</body>
+</html>
