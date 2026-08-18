@@ -121,7 +121,10 @@ canvas:active { cursor: grabbing; }
 
 <div id="hud">
   <div id="topbar">
-    <div class="brand glass"><div class="brand-orb"></div><div class="brand-text"><div class="title">SLIME EXPLORER</div><div class="subtitle">OPEN WORLD</div></div></div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a href="../../index.html" class="back-btn glass" style="pointer-events:auto; text-decoration:none; color:var(--text); padding:9px 13px; border-radius:14px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:5px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='var(--glass)'">← ARCADE</a>
+      <div class="brand glass"><div class="brand-orb"></div><div class="brand-text"><div class="title">SLIME EXPLORER</div><div class="subtitle">OPEN WORLD</div></div></div>
+    </div>
     <div class="stats">
       <div class="stat glass"><div class="stat-val" id="uiFps">60</div><div class="stat-lbl">FPS</div></div>
       <div class="stat glass"><div class="stat-val" id="uiBiome">Meadow</div><div class="stat-lbl">BIOME</div></div>
