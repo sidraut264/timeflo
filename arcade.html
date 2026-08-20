@@ -404,7 +404,7 @@
     <div class="hero">
       <div class="hero-tag">🕹️ GAME LIBRARY</div>
       <h1>Choose Your Game</h1>
-      <p>23 games across Arcade, Puzzles, and Zen. Pick one, or let fate decide.</p>
+      <p>24 games across Arcade, Puzzles, Zen, and Story. Pick one, or let fate decide.</p>
     </div>
 
     <div class="stats-bar">
@@ -419,12 +419,17 @@
       </div>
       <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-num" id="zenCount">2</span>
+        <span class="stat-num" id="zenCount">5</span>
         <span class="stat-label">Zen</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-num" id="totalCount">20</span>
+        <span class="stat-num" id="storyCount">1</span>
+        <span class="stat-label">Story</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-num" id="totalCount">24</span>
         <span class="stat-label">Total</span>
       </div>
     </div>
@@ -435,10 +440,11 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-cat="all"     style="--tab-color:#ffd700;">🎮 All <span class="count" id="tabCountAll">20</span></button>
+      <button class="tab-btn active" data-cat="all"     style="--tab-color:#ffd700;">🎮 All <span class="count" id="tabCountAll">24</span></button>
       <button class="tab-btn"        data-cat="Arcade"  style="--tab-color:#ff2d78;">🕹️ Arcade <span class="count" id="tabCountArcade">12</span></button>
       <button class="tab-btn"        data-cat="Puzzles" style="--tab-color:#00d4ff;">🧩 Puzzles <span class="count" id="tabCountPuzzles">6</span></button>
-      <button class="tab-btn"        data-cat="Zen"     style="--tab-color:#39ff14;">🍃 Zen <span class="count" id="tabCountZen">2</span></button>
+      <button class="tab-btn"        data-cat="Zen"     style="--tab-color:#39ff14;">🍃 Zen <span class="count" id="tabCountZen">5</span></button>
+      <button class="tab-btn"        data-cat="Story"   style="--tab-color:#bc5aff;">📜 Story <span class="count" id="tabCountStory">1</span></button>
     </div>
 
     <div id="gamesGrid"></div>
@@ -471,12 +477,14 @@
       { name: 'Slime Explorer', url: 'games/zen/slime-explorer.html',  icon: '🟢', desc: 'Classic 8-biome 3D open world', category: 'Zen' },
       { name: 'Slime World',    url: 'games/zen/slime-world.html',     icon: '🌍', desc: 'Expanded 12-biome 3D universe', category: 'Zen' },
       { name: 'Frostbound',     url: 'games/zen/frostbound.html',      icon: '❄️', desc: 'Arctic wilderness 3D survival', category: 'Zen' },
+      { name: 'Ruins & Ghost',  url: 'games/story/ruins-wandering-ghost/index.html', icon: '👻', desc: 'Atmospheric 3D story RPG', category: 'Story' },
     ];
 
     const CFG = {
       Arcade:  { color:'#ff2d78', glow:'rgba(255,45,120,.15)',  shadow:'rgba(255,45,120,.25)' },
       Puzzles: { color:'#00d4ff', glow:'rgba(0,212,255,.15)',   shadow:'rgba(0,212,255,.25)'  },
       Zen:     { color:'#39ff14', glow:'rgba(57,255,20,.12)',   shadow:'rgba(57,255,20,.2)'   },
+      Story:   { color:'#bc5aff', glow:'rgba(188,90,255,.15)',  shadow:'rgba(188,90,255,.25)' },
     };
 
     let activeCategory = 'all';
@@ -492,11 +500,13 @@
       document.getElementById('arcadeCount').textContent     = byCategory.Arcade  || 0;
       document.getElementById('puzzleCount').textContent     = byCategory.Puzzles || 0;
       document.getElementById('zenCount').textContent        = byCategory.Zen     || 0;
+      if (document.getElementById('storyCount')) document.getElementById('storyCount').textContent = byCategory.Story || 0;
       document.getElementById('totalCount').textContent      = GAMES.length;
       document.getElementById('tabCountAll').textContent     = GAMES.length;
       document.getElementById('tabCountArcade').textContent  = byCategory.Arcade  || 0;
       document.getElementById('tabCountPuzzles').textContent = byCategory.Puzzles || 0;
       document.getElementById('tabCountZen').textContent     = byCategory.Zen     || 0;
+      if (document.getElementById('tabCountStory')) document.getElementById('tabCountStory').textContent = byCategory.Story || 0;
     }
 
     function render() {
@@ -516,7 +526,7 @@
 
       const showSections = activeCategory === 'all' && !q;
       if (showSections) {
-        ['Arcade','Puzzles','Zen'].forEach(cat => {
+        ['Arcade','Puzzles','Zen','Story'].forEach(cat => {
           const games = filtered.filter(g => g.category === cat);
           if (!games.length) return;
           const label = document.createElement('div');

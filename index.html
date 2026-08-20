@@ -946,6 +946,8 @@
       { name: 'Slime Explorer', url: 'games/zen/slime-explorer.html',   icon: '🟢', desc: 'Classic 8-biome 3D open world', category: 'Zen' },
       { name: 'Slime World',    url: 'games/zen/slime-world.html',      icon: '🌍', desc: 'Expanded 12-biome 3D universe', category: 'Zen' },
       { name: 'Frostbound',     url: 'games/zen/frostbound.html',       icon: '❄️', desc: 'Arctic wilderness 3D survival', category: 'Zen' },
+      // === STORY ===
+      { name: 'Ruins & Ghost',  url: 'games/story/ruins-wandering-ghost/index.html', icon: '👻', desc: 'Atmospheric 3D story RPG', category: 'Story' },
     ];
 
     let spinning = false;
@@ -965,8 +967,8 @@
     const sidebarGamesList = document.getElementById('sidebarGamesList');
 
     // Populate Sidebar Games List (grouped by category)
-    const CATEGORY_ICONS = { Arcade: '🕹️', Puzzles: '🧩', Zen: '🍃' };
-    const CATEGORY_COLORS = { Arcade: '#ff2d78', Puzzles: '#00d4ff', Zen: '#39ff14' };
+    const CATEGORY_ICONS = { Arcade: '🕹️', Puzzles: '🧩', Zen: '🍃', Story: '📜' };
+    const CATEGORY_COLORS = { Arcade: '#ff2d78', Puzzles: '#00d4ff', Zen: '#39ff14', Story: '#bc5aff' };
 
     function populateSidebar() {
       sidebarGamesList.innerHTML = '';
