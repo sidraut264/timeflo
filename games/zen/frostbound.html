@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Frostbound — Arctic Explorer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Rajdhani:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --glass: rgba(15, 25, 40, 0.75);
+            --glass-border: rgba(180, 220, 255, 0.25);
+            --text: rgba(240, 248, 255, 0.95);
+            --muted: rgba(180, 210, 240, 0.6);
+            --accent: #4db8ff;
+            --accent-dim: rgba(77, 184, 255, 0.15);
+            --accent-warm: #ffaa33;
+            --font-main: 'Inter', sans-serif;
+            --font-sub: 'Rajdhani', sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0a1220;
+            font-family: var(--font-main);
+            color: var(--text);
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #c {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+
+        #minimapCanvas {
+            position: static;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 4;
+            background: radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(5, 10, 20, 0.7) 100%);
+        }
+
+        #loading,
+        #intro {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease;
+            z-index: 200;
+        }
+
+        #loading {
+            z-index: 100;
+            background: radial-gradient(ellipse at 50% 40%, #122035 0%, #0a1220 100%);
+        }
+
+        #loading.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #intro {
+            z-index: 90;
+            background: rgba(10, 18, 32, 0.85);
+            backdrop-filter: blur(16px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #intro.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .load-orb {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin-bottom: 32px;
+            background: radial-gradient(circle at 30% 25%, #ffffff 0%, #ffcc66 30%, #ff8800 70%, #4a2200 100%);
+            box-shadow: 0 0 50px rgba(255, 170, 50, 0.4), inset -8px -10px 14px rgba(0, 0, 0, 0.3);
+            animation: pulse-orb 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-orb {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 50px rgba(255, 170, 50, 0.4);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 80px rgba(255, 170, 50, 0.6);
+            }
+        }
+
+        .load-title,
+        #intro .intro-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 6px;
+            margin-bottom: 8px;
+        }
+
+        #intro .intro-title {
+            font-size: 42px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #4db8ff 50%, #ffaa33 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .load-sub,
+        #intro .intro-tagline {
+            font-size: 14px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            margin-bottom: 32px;
+            font-family: var(--font-sub);
+            font-weight: 600;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        #intro .intro-tagline {
+            font-size: 15px;
+            margin-bottom: 48px;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        .load-bar-wrap {
+            width: 240px;
+            height: 3px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .load-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--accent), #ffffff);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .load-status {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            min-height: 18px;
+            font-family: var(--font-sub);
+            font-weight: 600;
+        }
+
+        #enterBtn {
+            padding: 16px 48px;
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            background: var(--accent-dim);
+            color: var(--text);
+            font-family: var(--font-sub);
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(12px);
+        }
+
+        #enterBtn:hover {
+            background: rgba(77, 184, 255, 0.25);
+            transform: scale(1.04);
+            box-shadow: 0 0 30px rgba(77, 184, 255, 0.2);
+        }
+
+        #hud {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        #hud.visible {
+            opacity: 1;
+        }
+
+        .glass {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(24px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        #topbar {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        #topbar>* {
+            pointer-events: auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        .brand-orb {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 25%, #ffffff 0%, #ffcc66 30%, #ff8800 70%, #4a2200 100%);
+            box-shadow: 0 0 15px rgba(255, 170, 50, 0.4);
+        }
+
+        .brand-text .title {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .brand-text .subtitle {
+            font-size: 8px;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-top: 2px;
+            font-family: var(--font-sub);
+            font-weight: 600;
+        }
+
+        .stats {
+            display: flex;
+            gap: 6px;
+        }
+
+        .stat {
+            min-width: 65px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .stat-lbl {
+            margin-top: 2px;
+            font-size: 7px;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-family: var(--font-sub);
+            font-weight: 700;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--glass-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            pointer-events: auto;
+        }
+
+        #minimapCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #bottombar {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: none;
+        }
+
+        #bottombar>* {
+            pointer-events: auto;
+        }
+
+        #controls {
+            padding: 12px 16px;
+            border-radius: 10px;
+        }
+
+        .ctrl-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            color: rgba(240, 248, 255, 0.8);
+            font-family: var(--font-sub);
+            font-weight: 600;
+        }
+
+        .key {
+            min-width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        #location {
+            min-width: 180px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-align: right;
+        }
+
+        .loc-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            font-family: var(--font-sub);
+            font-weight: 700;
+        }
+
+        .loc-name {
+            margin-top: 3px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        #settingsBtn {
+            position: absolute;
+            top: 15px;
+            right: 145px;
+            z-index: 12;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: var(--muted);
+            font-size: 18px;
+            cursor: pointer;
+            pointer-events: auto;
+            backdrop-filter: blur(24px);
+            transition: all 0.2s;
+        }
+
+        #settingsBtn:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        #settingsPanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 80;
+            padding: 24px 28px;
+            border-radius: 14px;
+            min-width: 260px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #settingsPanel.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #settingsPanel h3 {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 18px;
+            text-align: center;
+            color: var(--accent);
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 12px;
+            font-family: var(--font-sub);
+            font-weight: 600;
+        }
+
+        .setting-row select {
+            pointer-events: auto;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-family: var(--font-sub);
+        }
+
+        #closeSettings {
+            margin-top: 10px;
+            width: 100%;
+            padding: 9px;
+            border-radius: 7px;
+            background: rgba(77, 184, 255, 0.1);
+            border: 1px solid rgba(77, 184, 255, 0.3);
+            color: var(--accent);
+            cursor: pointer;
+            font-family: var(--font-sub);
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        #closeSettings:hover {
+            background: rgba(77, 184, 255, 0.2);
+        }
+
+        #discovery {
+            position: fixed;
+            top: 170px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            z-index: 20;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #discovery.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .disc-tag {
+            font-size: 8px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: var(--font-sub);
+        }
+
+        .disc-name {
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        #lorePopup {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            max-width: 420px;
+            width: 90%;
+            padding: 24px 28px;
+            border-radius: 14px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 30;
+            border: 1px solid var(--accent-warm);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 170, 50, 0.1);
+        }
+
+        #lorePopup.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+
+        .lore-tag {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: var(--accent-warm);
+            margin-bottom: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-family: var(--font-sub);
+        }
+
+        .lore-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text);
+            font-family: var(--font-sub);
+            font-weight: 600;
+            font-style: italic;
+        }
+
+        /* Mobile Controls */
+        #mobileControls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            z-index: 50;
+            pointer-events: auto;
+            touch-action: none;
+        }
+
+        #joystick {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        #joystickKnob {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(77, 184, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s;
+        }
+
+        #mobileControls.active #joystickKnob {
+            background: rgba(77, 184, 255, 0.9);
+        }
+
+        #lookZone {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            z-index: 50;
+            pointer-events: auto;
+            touch-action: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        #lookZone::after {
+            content: '👁';
+            font-size: 35px;
+            opacity: 0.3;
+        }
+
+        #debug {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 50;
+            padding: 10px 14px;
+            border-radius: 7px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--accent);
+            font-family: monospace;
+            color: var(--accent);
+            font-size: 10px;
+            display: none;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            #minimap {
+                width: 100px;
+                height: 100px;
+                right: 10px;
+                top: 10px;
+            }
+
+            #settingsBtn {
+                right: 115px;
+                top: 10px;
+                width: 34px;
+                height: 34px;
+            }
+
+            #mobileControls {
+                width: 100px;
+                height: 100px;
+                bottom: 15px;
+                left: 15px;
+            }
+
+            #joystick {
+                width: 100px;
+                height: 100px;
+            }
+
+            #joystickKnob {
+                width: 40px;
+                height: 40px;
+            }
+
+            #lookZone {
+                width: 85px;
+                height: 85px;
+                bottom: 15px;
+                right: 15px;
+            }
+
+            #lookZone::after {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading">
+        <div class="load-orb"></div>
+        <div class="load-title">FROSTBOUND</div>
+        <div class="load-sub">Arctic Explorer</div>
+        <div class="load-bar-wrap">
+            <div class="load-bar" id="loadBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Calibrating instruments…</div>
+    </div>
+
+    <div id="intro">
+        <div class="intro-title">FROSTBOUND</div>
+        <div class="intro-tagline">Journey through a breathtaking arctic wilderness. Towering snow-capped peaks, ancient
+            spruce forests, frozen waterfalls, and alpine meadows await. Discover the lost journal of a forgotten
+            expedition.</div>
+        <button id="enterBtn">BEGIN EXPEDITION</button>
+    </div>
+
+    <canvas id="c"></canvas>
+    <div id="vignette"></div>
+
+    <div id="hud">
+        <div id="topbar">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <a href="../../index.html" class="back-btn glass"
+                    style="pointer-events:auto; text-decoration:none; color:var(--text); padding:8px 12px; border-radius:8px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:5px; transition:all 0.2s;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.15)'"
+                    onmouseout="this.style.background='var(--glass)'">← ARCADE</a>
+                <div class="brand glass">
+                    <div class="brand-orb"></div>
+                    <div class="brand-text">
+                        <div class="title">FROSTBOUND</div>
+                        <div class="subtitle">ARCTIC VALLEY</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stats">
+                <div class="stat glass">
+                    <div class="stat-val" id="uiFps">60</div>
+                    <div class="stat-lbl">FPS</div>
+                </div>
+                <div class="stat glass">
+                    <div class="stat-val" id="uiBiome">Tundra</div>
+                    <div class="stat-lbl">REGION</div>
+                </div>
+                <div class="stat glass">
+                    <div class="stat-val" id="uiTime"></div>
+                    <div class="stat-lbl">CYCLE</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="minimap">
+            <canvas id="minimapCanvas"></canvas>
+        </div>
+
+        <div id="bottombar">
+            <div id="controls" class="glass">
+                <div class="ctrl-line"><span class="key">W</span><span class="key">A</span><span
+                        class="key">S</span><span class="key">D</span> <span>Move</span> <span
+                        style="opacity:.35">•</span> <span>Drag to look</span></div>
+            </div>
+            <div id="location" class="glass">
+                <div class="loc-label">Current Region</div>
+                <div class="loc-name" id="uiLoc">Howling Tundra</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="discovery" class="glass">
+        <div class="disc-tag">NEW REGION</div>
+        <div class="disc-name" id="discName"></div>
+    </div>
+    <div id="lorePopup" class="glass">
+        <div class="lore-tag">Expedition Journal</div>
+        <div class="lore-text" id="loreText"></div>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div id="mobileControls">
+        <div id="joystick">
+            <div id="joystickKnob"></div>
+        </div>
+    </div>
+    <div id="lookZone"></div>
+
+    <button id="settingsBtn">⚙</button>
+    <div id="settingsPanel" class="glass">
+        <h3>EXPEDITION CONFIG</h3>
+        <div class="setting-row"><span>Render Quality</span><select id="qualSelect">
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH" selected>High</option>
+                <option value="ULTRA">Ultra</option>
+            </select></div>
+        <button id="closeSettings">CLOSE</button>
+    </div>
+    <div id="debug"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js"></script>
+    <script>
+        (async function () {
+            'use strict';
+
+            const $ = id => document.getElementById(id);
+            const canvas = $('c');
+            function setLoading(msg, pct) { $('loadStatus').textContent = msg; $('loadBar').style.width = (pct * 100) + '%'; }
+            function yieldFrame() { return new Promise(r => requestAnimationFrame(r)); }
+
+            const CFG = { worldSize: 700, seaLevel: 0.20, moveSpeed: 20.0, dayLength: 300, noiseScale: 0.008 };
+
+            // 6-zone biome system (index matches BIOME_INFO order)
+            const BIOME = { FROZEN_LAKE: 0, CONIFER_FOREST: 1, ALPINE_MEADOW: 2, ROCKY_SLOPE: 3, MOUNTAIN_PEAK: 4, GLACIAL_ICE: 5 };
+            const BIOME_INFO = [
+                { name: 'Frozen Lake',    locs: ['Mirror Lake', 'The Glass Expanse', 'Stillwater', 'Blue Ice Basin'],          fog: 0xc8dce8, light: 0x88aacc, color: 0x88bbdd },
+                { name: 'Conifer Forest', locs: ['Ancient Spruce Grove', 'Whispering Pines', 'Shadow Wood', 'Larch Hollow'],   fog: 0xc0d0dc, light: 0x99aabb, color: 0x2a4a3a },
+                { name: 'Alpine Meadow', locs: ['Snowdrop Plateau', 'Wildflower Basin', 'The Quiet Slopes', 'Tundra Flats'],   fog: 0xd0dce6, light: 0xaabbcc, color: 0x8a9a7a },
+                { name: 'Rocky Slope',   locs: ['Granite Ascent', 'The Scree Fields', 'Boulder Pass', 'Talus Ridge'],          fog: 0xb8c4d0, light: 0x8899aa, color: 0x6a6a7a },
+                { name: 'Mountain Peak', locs: ['Summit Ridge', "Eagle's Perch", 'The Crown', 'Windswept Heights'],            fog: 0xa8b8c8, light: 0x7799bb, color: 0xe0e8f0 },
+                { name: 'Glacial Ice',   locs: ['Icefall Canyon', 'The Frozen Pinnacle', "Glacier's Edge", 'Crevasse Field'],  fog: 0xa0b4c8, light: 0x6688aa, color: 0xd0e8f0 }
+            ];
+
+            const QUALITY_PRESETS = {
+                LOW:   { trees: 800,  rocks: 400,  shrubs: 800,  terrRes: 256, shadow: 1024 },
+                MEDIUM:{ trees: 2000, rocks: 800,  shrubs: 2000, terrRes: 384, shadow: 2048 },
+                HIGH:  { trees: 4000, rocks: 1500, shrubs: 4000, terrRes: 512, shadow: 2048 },
+                ULTRA: { trees: 8000, rocks: 3000, shrubs: 8000, terrRes: 768, shadow: 4096 }
+            };
+            let qualityLevel = localStorage.getItem('frost_quality') || 'HIGH';
+            $('qualSelect').value = qualityLevel;
+            const Q = QUALITY_PRESETS[qualityLevel];
+
+            function createRNG(seed) { let s = seed | 0; return () => { s = (s * 1664525 + 1013904223) | 0; return (s >>> 0) / 4294967296; }; }
+            const rng = createRNG(42);
+            function smoothstep(t) { return t * t * (3 - 2 * t); }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function hash(x, y) { const v = Math.sin(x * 127.1 + y * 311.7) * 43758.5453123; return v - Math.floor(v); }
+            function valueNoise(x, y) {
+                const ix = Math.floor(x), iy = Math.floor(y);
+                const fx = smoothstep(x - ix), fy = smoothstep(y - iy);
+                return lerp(lerp(hash(ix, iy), hash(ix + 1, iy), fx), lerp(hash(ix, iy + 1), hash(ix + 1, iy + 1), fx), fy);
+            }
+            function fbm(x, y, oct) {
+                let val = 0, amp = 0.5, freq = 1;
+                for (let i = 0; i < (oct || 4); i++) { val += valueNoise(x * freq, y * freq) * amp; amp *= 0.5; freq *= 2; }
+                return val;
+            }
+
+            function getTerrainVal(x, z) {
+                const nx = x * CFG.noiseScale, nz = z * CFG.noiseScale;
+                // Base continental shape — large rolling landmass
+                const continental = fbm(nx * 0.4 + 50, nz * 0.4 + 80, 5);
+                // Elevation noise — mid-scale hills
+                const elevation   = fbm(nx * 1.2 + 10, nz * 1.2 + 20, 4);
+                // Ridge noise — sharp mountain ridges
+                const ridgeRaw    = fbm(nx * 2.0 + 30, nz * 2.0 + 40, 4);
+                const ridge       = Math.pow(1.0 - Math.abs(ridgeRaw * 2.0 - 1.0), 2.5);
+                // Fine detail
+                const detail      = fbm(nx * 5.0 + 5, nz * 5.0 + 5, 3) * 0.10;
+                // Central mountain range — rises from edges toward center-X
+                const centerDist  = Math.max(0, Math.min(1, Math.abs(x) / (CFG.worldSize * 0.45)));
+                const centralBump = (1.0 - centerDist * centerDist) * 0.35;
+
+                let h = continental * 0.35 + elevation * 0.25 + ridge * 0.28 + detail + centralBump;
+                return Math.max(0, Math.min(1, h));
+            }
+
+            function classifyBiome(x, z) {
+                const h     = getTerrainVal(x, z);
+                const slope = Math.abs(fbm(x * 0.015 + 100, z * 0.015 + 100, 2) - 0.5) * 2;
+                if (h < 0.20)                        return BIOME.FROZEN_LAKE;     // Valley floors, glacial lakes
+                if (h < 0.35)                        return BIOME.CONIFER_FOREST;  // Lower slopes, dense spruce
+                if (h < 0.50)                        return BIOME.ALPINE_MEADOW;   // Mid-slopes, meadow & tundra
+                if (h < 0.65 || slope > 0.40)        return BIOME.ROCKY_SLOPE;     // Upper slopes, scree fields
+                if (h < 0.80)                        return BIOME.MOUNTAIN_PEAK;   // High peaks, sparse snow
+                return BIOME.GLACIAL_ICE;                                           // Summit, permanent glacial ice
+            }
+
+            let heightData;
+            function getHeight(x, z) {
+                const hx = (x + CFG.worldSize / 2) / CFG.worldSize * (Q.terrRes - 1);
+                const hz = (z + CFG.worldSize / 2) / CFG.worldSize * (Q.terrRes - 1);
+                if (hx < 0 || hz < 0 || hx >= Q.terrRes - 1 || hz >= Q.terrRes - 1) return 0;
+                const ix = Math.floor(hx), iz = Math.floor(hz);
+                const fx = hx - ix, fz = hz - iz;
+                const h00 = heightData[iz * Q.terrRes + ix];
+                const h10 = heightData[iz * Q.terrRes + (ix + 1)];
+                const h01 = heightData[(iz + 1) * Q.terrRes + ix];
+                const h11 = heightData[(iz + 1) * Q.terrRes + (ix + 1)];
+                return lerp(lerp(h00, h10, fx), lerp(h01, h11, fx), fz);
+            }
+
+            function getNormal(x, z, outVec) {
+                const eps = 1.0;
+                outVec.set(getHeight(x - eps, z) - getHeight(x + eps, z), 2.0 * eps, getHeight(x, z - eps) - getHeight(x, z + eps)).normalize();
+            }
+
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            if (THREE.SRGBColorSpace !== undefined) renderer.outputColorSpace = THREE.SRGBColorSpace;
+            else renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.4;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0xd8e2eb, 0.003);
+            const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 800);
+            camera.position.set(0, 30, 20);
+
+            async function generateTerrainTextures() {
+                const res = Q.terrRes;
+                heightData = new Float32Array(res * res);
+                const cCv = document.createElement('canvas'); cCv.width = res; cCv.height = res;
+                const cCtx = cCv.getContext('2d'); const cImg = cCtx.createImageData(res, res); const cPx = cImg.data;
+                const rCv = document.createElement('canvas'); rCv.width = res; rCv.height = res;
+                const rCtx = rCv.getContext('2d'); const rImg = rCtx.createImageData(res, res); const rPx = rImg.data;
+
+                const CHUNK = 32;
+                for (let sy = 0; sy < res; sy += CHUNK) {
+                    const ey = Math.min(sy + CHUNK, res);
+                    for (let y = sy; y < ey; y++) {
+                        for (let x = 0; x < res; x++) {
+                            const wx = (x / (res - 1) - 0.5) * CFG.worldSize;
+                            const wz = (y / (res - 1) - 0.5) * CFG.worldSize;
+                            const h = getTerrainVal(wx, wz);
+                            const biome = classifyBiome(wx, wz);
+                            const slope = Math.abs(fbm(wx * 0.01 + 100, wz * 0.01 + 100, 2) - 0.5) * 2;
+
+                            // --- Elevation mapping (0 → 80 game units) ---
+                            // Zones: <0.20=valley(0–5), 0.20–0.35=forest(5–20), 0.35–0.50=meadow(20–35),
+                            //         0.50–0.65=rocky(35–50), 0.65–0.80=peak(50–65), >0.80=glacial(65–80)
+                            let height = 0;
+                            if (h >= 0.20) {
+                                const normH = (h - 0.20) / 0.80;  // 0→1 across land zones
+                                height = Math.pow(normH, 1.3) * 75;
+                            } else {
+                                height = (h - 0.20) * 20;  // Slight negative dip for lakes
+                            }
+                            heightData[y * res + x] = height;
+
+                            // --- Colour palette matched to spec hex values ---
+                            const snowCover = fbm(wx * 0.025 + 50, wz * 0.025 + 50, 4);  // 0–1 snow coverage
+                            const patch     = fbm(wx * 0.07  + 10, wz * 0.07  + 10, 3);  // 0–1 texture variation
+                            const rockPatch = fbm(wx * 0.12  + 70, wz * 0.12  + 70, 2);  // fine rock detail
+                            let r, g, b, rough;
+
+                            if (biome === BIOME.FROZEN_LAKE) {
+                                // Ice: #D0E8F0 → #88BBDD  (translucent blue-white)
+                                const iceVar = patch * 0.5;
+                                r = (0x88 + (0xD0 - 0x88) * iceVar) | 0;   // 136→208
+                                g = (0xBB + (0xE8 - 0xBB) * iceVar) | 0;   // 187→232
+                                b = (0xDD + (0xF0 - 0xDD) * iceVar) | 0;   // 221→240
+                                rough = 0.05 + patch * 0.12;
+
+                            } else if (biome === BIOME.CONIFER_FOREST) {
+                                if (snowCover < 0.50) {
+                                    // Needle ground: #1A3A2A → #2D5A3A
+                                    r = (0x1A + patch * (0x2D - 0x1A)) | 0;  // 26→45
+                                    g = (0x3A + patch * (0x5A - 0x3A)) | 0;  // 58→90
+                                    b = (0x2A + patch * (0x3A - 0x2A)) | 0;  // 42→58
+                                    rough = 0.82 + patch * 0.08;
+                                } else {
+                                    // Snow-dusted forest floor: pale blue-white
+                                    r = (200 + patch * 30) | 0;
+                                    g = (215 + patch * 25) | 0;
+                                    b = (230 + patch * 15) | 0;
+                                    rough = 0.72;
+                                }
+
+                            } else if (biome === BIOME.ALPINE_MEADOW) {
+                                if (snowCover < 0.60) {
+                                    // Meadow grass: #8A9A7A → #B0C0A0 (desaturated, cold)
+                                    r = (0x8A + patch * (0xB0 - 0x8A)) | 0;  // 138→176
+                                    g = (0x9A + patch * (0xC0 - 0x9A)) | 0;  // 154→192
+                                    b = (0x7A + patch * (0xA0 - 0x7A)) | 0;  // 122→160
+                                    rough = 0.80 + patch * 0.06;
+                                } else {
+                                    // Snow-covered meadow: #E8EEF5 → #F5FAFF
+                                    r = (0xE8 + patch * (0xF5 - 0xE8)) | 0;
+                                    g = (0xEE + patch * (0xFA - 0xEE)) | 0;
+                                    b = (0xF5 + patch * (0xFF - 0xF5)) | 0;
+                                    rough = 0.68;
+                                }
+
+                            } else if (biome === BIOME.ROCKY_SLOPE) {
+                                if (snowCover < 0.38) {
+                                    // Bare rock: #5A6070 → #8A8A9A
+                                    r = (0x5A + rockPatch * (0x8A - 0x5A)) | 0;  // 90→138
+                                    g = (0x60 + rockPatch * (0x8A - 0x60)) | 0;  // 96→138
+                                    b = (0x70 + rockPatch * (0x9A - 0x70)) | 0;  // 112→154
+                                    rough = 0.90 + rockPatch * 0.07;
+                                } else {
+                                    // Patchy snow on rock
+                                    const blend = (snowCover - 0.38) / 0.62;
+                                    r = lerp(0x6A, 0xF0, blend * patch) | 0;
+                                    g = lerp(0x72, 0xF5, blend * patch) | 0;
+                                    b = lerp(0x80, 0xFF, blend * patch) | 0;
+                                    rough = 0.85 - blend * 0.15;
+                                }
+
+                            } else if (biome === BIOME.MOUNTAIN_PEAK) {
+                                if (slope > 0.45) {
+                                    // Exposed cliff face: dark grey-blue rock
+                                    r = (0x4A + rockPatch * 0x30) | 0;
+                                    g = (0x50 + rockPatch * 0x30) | 0;
+                                    b = (0x60 + rockPatch * 0x3A) | 0;
+                                    rough = 0.95;
+                                } else {
+                                    // Deep snow cap: #F0F5FF with slight shadows
+                                    r = (0xE0 + patch * (0xF5 - 0xE0)) | 0;
+                                    g = (0xE8 + patch * (0xFA - 0xE8)) | 0;
+                                    b = (0xF0 + patch * (0xFF - 0xF0)) | 0;
+                                    rough = 0.65 + patch * 0.08;
+                                }
+
+                            } else { // GLACIAL_ICE
+                                // Glacial blue-white: #D0E8F0 → #88BBDD with crevasse dark patches
+                                const crevasse = fbm(wx * 0.15 + 90, wz * 0.15 + 90, 2);
+                                r = (0x88 + patch * (0xD0 - 0x88) - crevasse * 30) | 0;
+                                g = (0xBB + patch * (0xE8 - 0xBB) - crevasse * 20) | 0;
+                                b = (0xDD + patch * (0xF0 - 0xDD) - crevasse * 10) | 0;
+                                rough = 0.10 + crevasse * 0.30;
+                            }
+
+                            r = Math.max(0, Math.min(255, r));
+                            g = Math.max(0, Math.min(255, g));
+                            b = Math.max(0, Math.min(255, b));
+
+                            const pi = (y * res + x) * 4;
+                            cPx[pi] = r | 0; cPx[pi + 1] = g | 0; cPx[pi + 2] = b | 0; cPx[pi + 3] = 255;
+                            rPx[pi] = rPx[pi + 1] = rPx[pi + 2] = (rough * 255) | 0; rPx[pi + 3] = 255;
+                        }
+                    }
+                    setLoading('Mapping the valley…', 0.1 + (sy / res) * 0.4);
+                    await yieldFrame();
+                }
+                cCtx.putImageData(cImg, 0, 0); rCtx.putImageData(rImg, 0, 0);
+                const cTex = new THREE.CanvasTexture(cCv);
+                if (THREE.SRGBColorSpace !== undefined) cTex.colorSpace = THREE.SRGBColorSpace;
+                else cTex.encoding = THREE.sRGBEncoding;
+                cTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                cTex.generateMipmaps = true;
+                cTex.minFilter = THREE.LinearMipmapLinearFilter;
+                cTex.magFilter = THREE.LinearFilter;
+
+                const rTex = new THREE.CanvasTexture(rCv);
+                rTex.generateMipmaps = true;
+                rTex.minFilter = THREE.LinearMipmapLinearFilter;
+                rTex.magFilter = THREE.LinearFilter;
+
+                return { map: cTex, roughnessMap: rTex };
+            }
+
+            setLoading('Mapping the valley…', 0.05);
+            const maps = await generateTerrainTextures();
+
+            const terrGeo = new THREE.PlaneGeometry(CFG.worldSize, CFG.worldSize, Q.terrRes - 1, Q.terrRes - 1);
+            terrGeo.rotateX(-Math.PI / 2);
+            const pos = terrGeo.attributes.position;
+            for (let i = 0; i < pos.count; i++) pos.setY(i, heightData[i]);
+            terrGeo.computeVertexNormals();
+
+            const terrain = new THREE.Mesh(terrGeo, new THREE.MeshStandardMaterial({ map: maps.map, roughnessMap: maps.roughnessMap, roughness: 0.8, metalness: 0.05 }));
+            terrain.receiveShadow = true;
+            scene.add(terrain);
+
+            const hemiLight = new THREE.HemisphereLight(0xaaccee, 0x445566, 0.9);
+            scene.add(hemiLight);
+            const sun = new THREE.DirectionalLight(0xfff0dd, 2.2);
+            sun.position.set(100, 150, 50);
+            sun.castShadow = true;
+            sun.shadow.mapSize.width = Q.shadow; sun.shadow.mapSize.height = Q.shadow;
+            sun.shadow.camera.near = 10; sun.shadow.camera.far = 500;
+            const d = 120;
+            sun.shadow.camera.left = -d; sun.shadow.camera.right = d; sun.shadow.camera.top = d; sun.shadow.camera.bottom = -d;
+            sun.shadow.bias = -0.001;
+            scene.add(sun);
+
+            const skyUniforms = { topColor: { value: new THREE.Color(0x2a4060) }, bottomColor: { value: new THREE.Color(0xd8e2eb) }, time: { value: 0 } };
+            const skyMat = new THREE.ShaderMaterial({
+                uniforms: skyUniforms,
+                vertexShader: `varying vec3 vWorldPos; void main(){ vec4 wp = modelMatrix * vec4(position,1.0); vWorldPos = wp.xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+                fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; uniform float time; varying vec3 vWorldPos; void main(){ vec3 dir = normalize(vWorldPos); float h = max(dir.y, 0.0); vec3 col = mix(bottomColor, topColor, pow(h, 0.5)); float auroraY = smoothstep(0.2, 0.7, h); float wave1 = sin(dir.x * 3.0 + time * 0.1) * cos(dir.z * 2.5 + time * 0.08); float wave2 = sin(dir.x * 1.5 - time * 0.08) * cos(dir.z * 4.0 + time * 0.12); float band = smoothstep(0.5, 1.0, wave1 + h * 2.5) + smoothstep(0.6, 1.0, wave2 + h * 2.0) * 0.4; vec3 auroraCol1 = vec3(0.2, 0.95, 0.5); vec3 auroraCol2 = vec3(0.6, 0.2, 0.9); vec3 aurora = mix(auroraCol1, auroraCol2, wave1 * 0.5 + 0.5) * band * auroraY * 0.5; col += aurora; gl_FragColor = vec4(col, 1.0); }`,
+                side: THREE.BackSide, depthWrite: false
+            });
+            scene.add(new THREE.Mesh(new THREE.SphereGeometry(CFG.worldSize * 0.8, 64, 32), skyMat));
+
+            const iceMat = new THREE.ShaderMaterial({
+                uniforms: { time: { value: 0 }, color1: { value: new THREE.Color(0xd8e6f0) }, color2: { value: new THREE.Color(0x88aacc) } },
+                vertexShader: `uniform float time; varying vec3 vNormal; void main(){ vec3 p = position; p.y += sin(p.x*0.05+time*0.2)*cos(p.z*0.04+time*0.15)*0.2; vNormal = normalize(vec3(-cos(p.x*0.05+time*0.2)*0.015, 1.0, -sin(p.z*0.04+time*0.15)*0.015)); gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.0); }`,
+                fragmentShader: `uniform vec3 color1; uniform vec3 color2; varying vec3 vNormal; void main(){ vec3 n = normalize(vNormal); vec3 v = normalize(-n); float fresnel = pow(1.0-max(dot(n,v),0.0), 3.0); vec3 col = mix(color2, color1, 0.5 + fresnel*0.5); col += vec3(1.0) * pow(max(dot(n, normalize(vec3(0.5, 0.7, 0.3))),0.0), 64.0) * 0.2; gl_FragColor = vec4(col, 0.95); }`,
+                transparent: true, depthWrite: true, side: THREE.DoubleSide
+            });
+            const ocean = new THREE.Mesh(new THREE.PlaneGeometry(CFG.worldSize * 1.5, CFG.worldSize * 1.5, 60, 60), iceMat);
+            ocean.rotation.x = -Math.PI / 2; ocean.position.y = -0.3; ocean.receiveShadow = true;
+            scene.add(ocean);
+
+            setLoading('Planting the forest…', 0.5);
+            await yieldFrame();
+
+            // --- Tree geometry: separate trunk and canopy for InstancedMesh compatibility ---
+            const treeTrunkGeo = new THREE.CylinderGeometry(0.15, 0.25, 3, 6);
+            treeTrunkGeo.translate(0, 1.5, 0);
+            const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.95 });
+
+            // Merge all 4 cone levels into one geometry for canopy (manual merge, no addon needed)
+            const canopyParts = [];
+            for (let i = 0; i < 4; i++) {
+                const height = 2.5 + i * 1.2;
+                const radius = 1.5 - i * 0.3;
+                const g = new THREE.ConeGeometry(radius, 1.5, 7);
+                g.translate(0, height, 0);
+                canopyParts.push(g);
+            }
+            (function mergeCanopy() {
+                // Manually merge all canopy part geometries into one BufferGeometry
+                const merged = new THREE.BufferGeometry();
+                let posArr = [], normArr = [], uvArr = [], idxArr = [];
+                let baseIdx = 0;
+                for (const g of canopyParts) {
+                    const pos = g.attributes.position.array;
+                    const norm = g.attributes.normal ? g.attributes.normal.array : new Float32Array(pos.length);
+                    const uv = g.attributes.uv ? g.attributes.uv.array : new Float32Array((pos.length / 3) * 2);
+                    posArr.push(...pos); normArr.push(...norm); uvArr.push(...uv);
+                    if (g.index) {
+                        for (const i of g.index.array) idxArr.push(i + baseIdx);
+                    } else {
+                        for (let i = 0; i < pos.length / 3; i++) idxArr.push(i + baseIdx);
+                    }
+                    baseIdx += pos.length / 3;
+                }
+                merged.setAttribute('position', new THREE.BufferAttribute(new Float32Array(posArr), 3));
+                merged.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normArr), 3));
+                merged.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvArr), 2));
+                merged.setIndex(idxArr);
+                Object.defineProperty(window, '_treeCanopyGeo', { value: merged, writable: true });
+            })();
+            const treeCanopyGeo = window._treeCanopyGeo;
+            const treeCanopyMat = new THREE.MeshStandardMaterial({ color: 0x1a3a2a, roughness: 0.9 });
+
+            function createRockOutcrop() {
+                const geo = new THREE.DodecahedronGeometry(1.5, 0);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x5a6070, roughness: 0.95 });
+                return new THREE.Mesh(geo, mat);
+            }
+
+            function createShrub() {
+                const geo = new THREE.SphereGeometry(0.8, 6, 4);
+                geo.scale(1.5, 0.5, 1.5);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x4a5a4a, roughness: 0.9 });
+                return new THREE.Mesh(geo, mat);
+            }
+
+            const rockOutcrop = createRockOutcrop();
+            const shrub = createShrub();
+
+            const maxTrees = Q.trees;
+            const maxRocks = Q.rocks;
+            const maxShrubs = Q.shrubs;
+
+            const treeTrunkMesh = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, maxTrees * 6);
+            const treeCanopyMesh = new THREE.InstancedMesh(treeCanopyGeo, treeCanopyMat, maxTrees * 6);
+            const rockMesh = new THREE.InstancedMesh(rockOutcrop.geometry, rockOutcrop.material, maxRocks);
+            const shrubMesh = new THREE.InstancedMesh(shrub.geometry, shrub.material, maxShrubs);
+
+            [treeTrunkMesh, treeCanopyMesh, rockMesh, shrubMesh].forEach(m => { m.castShadow = true; m.receiveShadow = true; });
+
+            const propGrid = new Set();
+            let treeCount = 0, rockCount = 0, shrubCount = 0;
+            const _mat4 = new THREE.Matrix4(), _pos = new THREE.Vector3(), _scale = new THREE.Vector3(), _quat = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0), _norm = new THREE.Vector3();
+
+            // --- Trees: dense conifer forest on lower slopes, scattered stunted trees in meadow ---
+            for (let attempt = 0; attempt < maxTrees * 20 && treeCount < maxTrees; attempt++) {
+                const x = (rng() - 0.5) * (CFG.worldSize - 100);
+                const z = (rng() - 0.5) * (CFG.worldSize - 100);
+                const gx = Math.floor(x / 4), gz = Math.floor(z / 4);
+                if (propGrid.has(`${gx},${gz}`)) continue;
+                const biome = classifyBiome(x, z);
+                const y = getHeight(x, z);
+                if (y < 1.0) continue;  // Must be above water/ice
+                getNormal(x, z, _norm);
+                if (_norm.y < 0.75) continue;  // Skip very steep slopes
+
+                let place = false, sMin = 0.6, sMax = 2.0;
+                if (biome === BIOME.CONIFER_FOREST) {
+                    // Dense spruce/pine forest — tall trees, tight packing
+                    place = true; sMin = 0.9; sMax = 2.0;
+                } else if (biome === BIOME.ALPINE_MEADOW && rng() > 0.72) {
+                    // Scattered stunted trees on meadow fringes
+                    place = true; sMin = 0.5; sMax = 1.0;
+                }
+                if (!place) continue;
+
+                propGrid.add(`${gx},${gz}`);
+                const s = sMin + rng() * (sMax - sMin);
+                _pos.set(x, y, z);
+                _quat.setFromUnitVectors(_up, _norm);
+                _scale.set(s, s * (0.9 + rng() * 0.3), s);  // Slight height variance
+                _mat4.compose(_pos, _quat, _scale);
+                treeTrunkMesh.setMatrixAt(treeCount, _mat4);
+                treeCanopyMesh.setMatrixAt(treeCount, _mat4);
+                treeCount++;
+            }
+
+            // --- Rocks: granite outcrops on rocky slopes, boulders near peaks, small rubble in forest ---
+            for (let attempt = 0; attempt < maxRocks * 12 && rockCount < maxRocks; attempt++) {
+                const x = (rng() - 0.5) * (CFG.worldSize - 80);
+                const z = (rng() - 0.5) * (CFG.worldSize - 80);
+                const gx = Math.floor(x / 6), gz = Math.floor(z / 6);
+                if (propGrid.has(`${gx},${gz}`)) continue;
+                const biome = classifyBiome(x, z);
+                const y = getHeight(x, z);
+                if (y < 0.5) continue;
+
+                let place = false;
+                let rockH = 0.8 + rng() * 1.2, rockW = 1.0 + rng() * 2.5;
+                let hue = 0.60, sat = 0.10, lit = 0.30 + rng() * 0.20;
+                if (biome === BIOME.ROCKY_SLOPE) {
+                    // Scree talus — many medium rocks
+                    place = true; rockH = 0.5 + rng() * 1.5; rockW = 0.8 + rng() * 2.0;
+                    hue = 0.62; sat = 0.08; lit = 0.32 + rng() * 0.18;
+                } else if (biome === BIOME.MOUNTAIN_PEAK || biome === BIOME.GLACIAL_ICE) {
+                    // Large boulders / cliff fragments
+                    place = true; rockH = 1.2 + rng() * 2.0; rockW = 1.5 + rng() * 3.0;
+                    hue = 0.60; sat = 0.06; lit = 0.28 + rng() * 0.15;
+                } else if (biome === BIOME.CONIFER_FOREST && rng() > 0.65) {
+                    // Occasional rubble in forest
+                    place = true; rockH = 0.3 + rng() * 0.7; rockW = 0.5 + rng() * 1.0;
+                    hue = 0.63; sat = 0.10; lit = 0.35 + rng() * 0.15;
+                }
+                if (!place) continue;
+
+                propGrid.add(`${gx},${gz}`);
+                getNormal(x, z, _norm);
+                _pos.set(x, y, z);
+                _quat.setFromAxisAngle(_up, rng() * Math.PI * 2);
+                _scale.set(rockW, rockH, rockW * (0.7 + rng() * 0.6));
+                _mat4.compose(_pos, _quat, _scale);
+                rockMesh.setMatrixAt(rockCount, _mat4);
+                rockMesh.setColorAt(rockCount, new THREE.Color().setHSL(hue, sat, lit));
+                rockCount++;
+            }
+
+            // --- Shrubs: juniper/heather on meadows & forest floors, cushion plants on rocky edges ---
+            for (let attempt = 0; attempt < maxShrubs * 8 && shrubCount < maxShrubs; attempt++) {
+                const x = (rng() - 0.5) * (CFG.worldSize - 80);
+                const z = (rng() - 0.5) * (CFG.worldSize - 80);
+                const gx = Math.floor(x / 3), gz = Math.floor(z / 3);
+                if (propGrid.has(`${gx},${gz}`)) continue;
+                const biome = classifyBiome(x, z);
+                const y = getHeight(x, z);
+                if (y < 0.5) continue;
+
+                let place = false;
+                let shrubH = 0.4 + rng() * 0.5;
+                let shrubHue = 0.28, shrubSat = 0.28, shrubLit = 0.28 + rng() * 0.12;
+                if (biome === BIOME.ALPINE_MEADOW) {
+                    // Heather, bilberry — mid green, bushy
+                    place = true;
+                    shrubHue = 0.27 + rng() * 0.06; shrubSat = 0.30; shrubLit = 0.25 + rng() * 0.15;
+                } else if (biome === BIOME.CONIFER_FOREST && rng() > 0.55) {
+                    // Juniper, undergrowth — dark olive
+                    place = true;
+                    shrubHue = 0.24 + rng() * 0.05; shrubSat = 0.22; shrubLit = 0.20 + rng() * 0.10;
+                } else if (biome === BIOME.ROCKY_SLOPE && rng() > 0.70) {
+                    // Cushion plants, lichen — lichen yellow-green
+                    place = true; shrubH = 0.15 + rng() * 0.2;
+                    shrubHue = 0.18 + rng() * 0.08; shrubSat = 0.38; shrubLit = 0.30 + rng() * 0.18;
+                }
+                if (!place) continue;
+
+                propGrid.add(`${gx},${gz}`);
+                getNormal(x, z, _norm);
+                _pos.set(x, y, z);
+                _quat.setFromUnitVectors(_up, _norm);
+                const sw = 0.6 + rng() * 0.9;
+                _scale.set(sw, shrubH, sw * (0.8 + rng() * 0.4));
+                _mat4.compose(_pos, _quat, _scale);
+                shrubMesh.setMatrixAt(shrubCount, _mat4);
+                shrubMesh.setColorAt(shrubCount, new THREE.Color().setHSL(shrubHue, shrubSat, shrubLit));
+                shrubCount++;
+            }
+
+            treeTrunkMesh.count = treeCount;
+            treeCanopyMesh.count = treeCount;
+            rockMesh.count = rockCount;
+            shrubMesh.count = shrubCount;
+            [treeTrunkMesh, treeCanopyMesh, rockMesh, shrubMesh].forEach(m => {
+                m.instanceMatrix.needsUpdate = true;
+                if (m.instanceColor) m.instanceColor.needsUpdate = true;
+            });
+            scene.add(treeTrunkMesh, treeCanopyMesh, rockMesh, shrubMesh);
+
+            setLoading('Awakening the Ember…', 0.85);
+            await yieldFrame();
+
+            const slime = new THREE.Group();
+            const slimeMat = new THREE.MeshStandardMaterial({ color: 0xffaa33, roughness: 0.2, metalness: 0.1, emissive: 0xff5500, emissiveIntensity: 0.6 });
+            const slimeBody = new THREE.Mesh(new THREE.SphereGeometry(1.2, 48, 48), slimeMat);
+            slimeBody.castShadow = true; slimeBody.position.y = 0.8; slime.add(slimeBody);
+            const slimeLight = new THREE.PointLight(0xff8800, 2.0, 15); slimeLight.position.set(0, 1.0, 0); slime.add(slimeLight);
+
+            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.0 });
+            const pupilMat = new THREE.MeshStandardMaterial({ color: 0x221100 });
+            [-0.4, 0.4].forEach(x => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.25, 20, 20), eyeMat); eye.position.set(x, 1.3, 1.1); slime.add(eye);
+                const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), pupilMat); pupil.position.set(x, 1.3, 1.3); slime.add(pupil);
+            });
+            const smile = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.05, 8, 20, Math.PI), new THREE.MeshStandardMaterial({ color: 0x441100 }));
+            smile.position.set(0, 0.9, 1.25); smile.rotation.x = Math.PI / 2; smile.rotation.z = Math.PI; slime.add(smile);
+            scene.add(slime);
+
+            const LORE = [
+                "Day 47: The spruce trees grow taller as we descend. Their branches bow under the weight of snow, like sentinels guarding this frozen realm.",
+                "Day 52: Found a frozen lake today, so clear we could see fish suspended beneath the ice, preserved in time.",
+                "Day 61: The mountain peaks pierce the clouds. We must be careful on the rocky slopes—the scree shifts beneath our boots.",
+                "Day 68: Discovered patches of hardy moss and lichen clinging to the rocks. Life persists, even here.",
+                "Day 73: The aurora danced above us last night. Green and purple ribbons painting the sky. We felt small beneath such beauty.",
+                "Day 79: The glacial valley is silent except for the occasional crack of shifting ice. A cathedral of frozen time.",
+                "Day 84: We are running low on supplies. The summit is close, but the cold is relentless.",
+                "Day 87: If anyone finds this journal, know that we saw wonders beyond imagination. The arctic is not hostile—it is indifferent, beautiful, and eternal."
+            ];
+
+            const journals = [];
+            const journalGeo = new THREE.BoxGeometry(0.6, 0.8, 0.1);
+            const journalMat = new THREE.MeshStandardMaterial({ color: 0x8b7355, roughness: 0.9, emissive: 0xffaa33, emissiveIntensity: 0.3 });
+            for (let i = 0; i < 15; i++) {
+                let jx, jz, jy, attempts = 0;
+                do { jx = (Math.random() - 0.5) * (CFG.worldSize - 100); jz = (Math.random() - 0.5) * (CFG.worldSize - 100); jy = getHeight(jx, jz); attempts++; }
+                while ((jy <= 1.0 || classifyBiome(jx, jz) === BIOME.FROZEN_LAKE) && attempts < 150);
+                if (jy > 1.0) {
+                    const journal = new THREE.Mesh(journalGeo, journalMat.clone());
+                    journal.position.set(jx, jy + 0.4, jz);
+                    journal.rotation.y = Math.random() * Math.PI;
+                    journal.rotation.z = (Math.random() - 0.5) * 0.3;
+                    const light = new THREE.PointLight(0xffaa33, 0.8, 8); light.position.set(0, 0.3, 0); journal.add(light);
+                    scene.add(journal);
+                    journals.push({ mesh: journal, discovered: false, text: LORE[i % LORE.length] });
+                }
+            }
+
+            const snowCount = 800;
+            const snowGeo = new THREE.BufferGeometry();
+            const snowPos = new Float32Array(snowCount * 3);
+            const snowSpeed = new Float32Array(snowCount);
+            const snowDrift = new Float32Array(snowCount);
+            for (let i = 0; i < snowCount; i++) {
+                snowPos[i * 3] = (Math.random() - 0.5) * 150;
+                snowPos[i * 3 + 1] = Math.random() * 50;
+                snowPos[i * 3 + 2] = (Math.random() - 0.5) * 150;
+                snowSpeed[i] = 1.5 + Math.random() * 3.0;
+                snowDrift[i] = Math.random() * Math.PI * 2;
+            }
+            snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+            const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.2, transparent: true, opacity: 0.7, depthWrite: false });
+            const snowSystem = new THREE.Points(snowGeo, snowMat);
+            scene.add(snowSystem);
+
+            const trailCount = 100;
+            const trailGeo = new THREE.BufferGeometry();
+            const trailPos = new Float32Array(trailCount * 3);
+            const trailLife = new Float32Array(trailCount).fill(-1);
+            trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
+            const trailMat = new THREE.PointsMaterial({ color: 0xff6600, size: 0.4, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+            const trailSystem = new THREE.Points(trailGeo, trailMat);
+            scene.add(trailSystem);
+
+            // MINIMAP - Fixed
+            const minimapCanvas = $('minimapCanvas');
+            const minimapCtx = minimapCanvas.getContext('2d');
+
+            function resizeMinimap() {
+                const rect = $('minimap').getBoundingClientRect();
+                minimapCanvas.width = rect.width;
+                minimapCanvas.height = rect.height;
+            }
+            resizeMinimap();
+            window.addEventListener('resize', resizeMinimap);
+
+            function updateMinimap() {
+                const width = minimapCanvas.width;
+                const height = minimapCanvas.height;
+                const scale = width / CFG.worldSize;
+                const centerX = width / 2;
+                const centerY = height / 2;
+
+                minimapCtx.fillStyle = 'rgba(10, 18, 32, 0.95)';
+                minimapCtx.fillRect(0, 0, width, height);
+
+                const resolution = 3;
+                for (let x = 0; x < width; x += resolution) {
+                    for (let y = 0; y < height; y += resolution) {
+                        const wx = (x - centerX) / scale;
+                        const wz = (y - centerY) / scale;
+                        const biome = classifyBiome(wx, wz);
+                        minimapCtx.fillStyle = '#' + BIOME_INFO[biome].color.toString(16).padStart(6, '0');
+                        minimapCtx.fillRect(x, y, resolution, resolution);
+                    }
+                }
+
+                const playerX = centerX + slimeX * scale;
+                const playerZ = centerY + slimeZ * scale;
+
+                minimapCtx.fillStyle = '#ffaa33';
+                minimapCtx.beginPath();
+                minimapCtx.arc(playerX, playerZ, 3, 0, Math.PI * 2);
+                minimapCtx.fill();
+
+                minimapCtx.strokeStyle = '#ffaa33';
+                minimapCtx.lineWidth = 2;
+                minimapCtx.beginPath();
+                minimapCtx.moveTo(playerX, playerZ);
+                minimapCtx.lineTo(playerX + Math.sin(slimeYaw) * 6, playerZ + Math.cos(slimeYaw) * 6);
+                minimapCtx.stroke();
+
+                minimapCtx.strokeStyle = 'rgba(180, 220, 255, 0.5)';
+                minimapCtx.lineWidth = 2;
+                minimapCtx.strokeRect(0, 0, width, height);
+            }
+
+            let gameStarted = false, dayTime = 0.25, currentBiomeIdx = -1;
+            let slimeX = 0, slimeZ = 0, slimeYaw = 0, targetYaw = 0, camYaw = 0, camPitch = 0.3;
+            const keys = { forward: false, backward: false, left: false, right: false };
+            let prevTime = performance.now();
+
+            window.addEventListener('keydown', e => {
+                if (['w', 'W', 'ArrowUp'].includes(e.key)) keys.forward = true;
+                if (['s', 'S', 'ArrowDown'].includes(e.key)) keys.backward = true;
+                if (['a', 'A', 'ArrowLeft'].includes(e.key)) keys.left = true;
+                if (['d', 'D', 'ArrowRight'].includes(e.key)) keys.right = true;
+                if (e.key === 'F3') $('debug').style.display = $('debug').style.display === 'block' ? 'none' : 'block';
+            });
+            window.addEventListener('keyup', e => {
+                if (['w', 'W', 'ArrowUp'].includes(e.key)) keys.forward = false;
+                if (['s', 'S', 'ArrowDown'].includes(e.key)) keys.backward = false;
+                if (['a', 'A', 'ArrowLeft'].includes(e.key)) keys.left = false;
+                if (['d', 'D', 'ArrowRight'].includes(e.key)) keys.right = false;
+            });
+
+            let dragging = false, lx = 0, ly = 0;
+            let joystickActive = false, joystickStartX = 0, joystickStartY = 0;
+            let lookActive = false, lookStartX = 0, lookStartY = 0;
+
+            const joystick = $('joystick');
+            const joystickKnob = $('joystickKnob');
+            const mobileControls = $('mobileControls');
+            const lookZone = $('lookZone');
+
+            mobileControls.addEventListener('touchstart', e => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = mobileControls.getBoundingClientRect();
+                joystickStartX = rect.left + rect.width / 2;
+                joystickStartY = rect.top + rect.height / 2;
+                joystickActive = true;
+                mobileControls.classList.add('active');
+                updateJoystick(touch.clientX, touch.clientY);
+            }, { passive: false });
+
+            mobileControls.addEventListener('touchmove', e => {
+                e.preventDefault();
+                if (!joystickActive) return;
+                const touch = e.touches[0];
+                updateJoystick(touch.clientX, touch.clientY);
+            }, { passive: false });
+
+            const endJoystick = (e) => {
+                e.preventDefault();
+                joystickActive = false;
+                mobileControls.classList.remove('active');
+                joystickKnob.style.transform = `translate(-50%, -50%)`;
+                keys.forward = keys.backward = keys.left = keys.right = false;
+            };
+
+            mobileControls.addEventListener('touchend', endJoystick);
+            mobileControls.addEventListener('touchcancel', endJoystick);
+
+            function updateJoystick(clientX, clientY) {
+                const maxDist = 35;
+                let dx = clientX - joystickStartX;
+                let dy = clientY - joystickStartY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > maxDist) {
+                    dx = (dx / dist) * maxDist;
+                    dy = (dy / dist) * maxDist;
+                }
+
+                joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+                const threshold = 8;
+                if (dist > threshold) {
+                    const normalizedX = dx / maxDist;
+                    const normalizedY = dy / maxDist;
+                    keys.forward = normalizedY < -0.3;
+                    keys.backward = normalizedY > 0.3;
+                    keys.left = normalizedX < -0.3;
+                    keys.right = normalizedX > 0.3;
+                } else {
+                    keys.forward = keys.backward = keys.left = keys.right = false;
+                }
+            }
+
+            lookZone.addEventListener('touchstart', e => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                lookStartX = touch.clientX;
+                lookStartY = touch.clientY;
+                lookActive = true;
+            }, { passive: false });
+
+            lookZone.addEventListener('touchmove', e => {
+                e.preventDefault();
+                if (!lookActive) return;
+                const touch = e.touches[0];
+                const dx = touch.clientX - lookStartX;
+                const dy = touch.clientY - lookStartY;
+                camYaw -= dx * 0.005;
+                camPitch = THREE.MathUtils.clamp(camPitch - dy * 0.005, 0.2, 1.4);
+                lookStartX = touch.clientX;
+                lookStartY = touch.clientY;
+            }, { passive: false });
+
+            const endLook = (e) => {
+                e.preventDefault();
+                lookActive = false;
+            };
+
+            lookZone.addEventListener('touchend', endLook);
+            lookZone.addEventListener('touchcancel', endLook);
+
+            canvas.addEventListener('pointerdown', e => {
+                if (e.target === canvas) {
+                    canvas.setPointerCapture(e.pointerId);
+                    dragging = true;
+                    lx = e.clientX;
+                    ly = e.clientY;
+                }
+            });
+
+            canvas.addEventListener('pointermove', e => {
+                if (!dragging) return;
+                camYaw -= (e.clientX - lx) * 0.005;
+                camPitch = THREE.MathUtils.clamp(camPitch - (e.clientY - ly) * 0.005, 0.2, 1.4);
+                lx = e.clientX;
+                ly = e.clientY;
+            });
+
+            const endTouch = () => { dragging = false; };
+            canvas.addEventListener('pointerup', endTouch);
+            canvas.addEventListener('pointercancel', endTouch);
+
+            const _camPos = new THREE.Vector3(), _lookAt = new THREE.Vector3();
+            let frameCount = 0, fpsTimer = 0, displayFps = 60, loreTimeout;
+
+            function showLore(text) {
+                $('loreText').textContent = text;
+                const popup = $('lorePopup');
+                popup.classList.add('visible'); popup.style.opacity = '1'; popup.style.transform = 'translateX(-50%) translateY(0)';
+                if (loreTimeout) clearTimeout(loreTimeout);
+                loreTimeout = setTimeout(() => {
+                    popup.style.opacity = '0'; popup.style.transform = 'translateX(-50%) translateY(20px)';
+                    setTimeout(() => popup.classList.remove('visible'), 600);
+                }, 8000);
+            }
+
+            function animate(time) {
+                requestAnimationFrame(animate);
+                const dt = Math.min(0.05, (time - prevTime) / 1000);
+                prevTime = time;
+
+                if (gameStarted) {
+                    let moveX = 0, moveZ = 0;
+                    if (keys.forward) { moveZ -= Math.cos(camYaw); moveX -= Math.sin(camYaw); }
+                    if (keys.backward) { moveZ += Math.cos(camYaw); moveX += Math.sin(camYaw); }
+                    if (keys.left) { moveX -= Math.cos(camYaw); moveZ += Math.sin(camYaw); }
+                    if (keys.right) { moveX += Math.cos(camYaw); moveZ -= Math.sin(camYaw); }
+
+                    const moving = moveX !== 0 || moveZ !== 0;
+                    if (moving) {
+                        const len = Math.sqrt(moveX * moveX + moveZ * moveZ);
+                        moveX /= len; moveZ /= len;
+                        targetYaw = Math.atan2(moveX, moveZ);
+                        slimeX += moveX * CFG.moveSpeed * dt;
+                        slimeZ += moveZ * CFG.moveSpeed * dt;
+
+                        for (let i = 0; i < trailCount; i++) {
+                            if (trailLife[i] <= 0) {
+                                trailLife[i] = 1.0;
+                                trailPos[i * 3] = slimeX + (Math.random() - 0.5) * 0.5;
+                                trailPos[i * 3 + 1] = getHeight(slimeX, slimeZ) + 0.3;
+                                trailPos[i * 3 + 2] = slimeZ + (Math.random() - 0.5) * 0.5;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                let diff = targetYaw - slimeYaw;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                slimeYaw += diff * 12 * dt;
+
+                const y = getHeight(slimeX, slimeZ);
+                slime.position.set(slimeX, Math.max(y, 0), slimeZ);
+                getNormal(slimeX, slimeZ, _norm);
+                _quat.setFromUnitVectors(_up, _norm);
+                slime.quaternion.slerp(_quat.multiply(new THREE.Quaternion().setFromAxisAngle(_up, slimeYaw)), 12 * dt);
+
+                const moving = keys.forward || keys.backward || keys.left || keys.right;
+                const bounce = Math.sin(time * (moving ? 0.012 : 0.004)) * (moving ? 0.12 : 0.04);
+                slime.scale.set(1 + bounce, 1 - bounce * 0.7, 1 + bounce);
+
+                const camDist = 18.0;
+                _camPos.set(
+                    slimeX + Math.sin(camYaw) * Math.cos(camPitch) * camDist,
+                    Math.max(slime.position.y + Math.sin(camPitch) * camDist, getHeight(slimeX + Math.sin(camYaw) * Math.cos(camPitch) * camDist, slimeZ + Math.cos(camYaw) * Math.cos(camPitch) * camDist) + 2.0),
+                    slimeZ + Math.cos(camYaw) * Math.cos(camPitch) * camDist
+                );
+                camera.position.lerp(_camPos, 1 - Math.exp(-6 * dt));
+                _lookAt.copy(slime.position).y += 1.8;
+                camera.lookAt(_lookAt);
+
+                iceMat.uniforms.time.value = time * 0.001;
+                skyMat.uniforms.time.value = time * 0.001;
+
+                dayTime += dt / CFG.dayLength; if (dayTime > 1) dayTime -= 1;
+                const sunAngle = dayTime * Math.PI * 2;
+                sun.position.set(Math.cos(sunAngle) * 200, Math.sin(sunAngle) * 200, 80);
+                const dayness = Math.max(0, Math.sin(sunAngle));
+                sun.intensity = 1.6 * dayness + 0.3;
+                hemiLight.intensity = 0.4 + dayness * 0.6;
+
+                const dayTop = new THREE.Color(0x4a70a0);
+                const nightTop = new THREE.Color(0x1a2535);
+                const dayBot = new THREE.Color(0xd8e2eb);
+                const nightBot = new THREE.Color(0x2a3545);
+
+                skyMat.uniforms.topColor.value.lerp(dayness > 0.1 ? dayTop : nightTop, dt * 0.5);
+                skyMat.uniforms.bottomColor.value.lerp(dayness > 0.1 ? dayBot : nightBot, dt * 0.5);
+
+                const targetFog = new THREE.Color(dayness > 0.1 ? 0xd8e2eb : 0x2a3545);
+                scene.fog.color.lerp(targetFog, dt * 0.5);
+
+                const sPos = snowSystem.geometry.attributes.position.array;
+                for (let i = 0; i < snowCount; i++) {
+                    sPos[i * 3 + 1] -= snowSpeed[i] * dt;
+                    sPos[i * 3] += Math.sin(time * 0.001 + snowDrift[i]) * dt * 1.0;
+                    sPos[i * 3 + 2] += Math.cos(time * 0.001 + snowDrift[i]) * dt * 0.8;
+                    if (sPos[i * 3 + 1] < 0 || Math.abs(sPos[i * 3] - slimeX) > 80 || Math.abs(sPos[i * 3 + 2] - slimeZ) > 80) {
+                        sPos[i * 3] = slimeX + (Math.random() - 0.5) * 150;
+                        sPos[i * 3 + 1] = 30 + Math.random() * 20;
+                        sPos[i * 3 + 2] = slimeZ + (Math.random() - 0.5) * 150;
+                    }
+                }
+                snowSystem.geometry.attributes.position.needsUpdate = true;
+
+                for (let i = 0; i < trailCount; i++) {
+                    if (trailLife[i] > 0) {
+                        trailLife[i] -= dt * 0.6;
+                        trailPos[i * 3 + 1] += dt * 1.0;
+                    } else {
+                        trailPos[i * 3 + 1] = -100;
+                    }
+                }
+                trailGeo.attributes.position.needsUpdate = true;
+
+                journals.forEach((journal, idx) => {
+                    if (!journal.discovered) {
+                        journal.mesh.material.emissiveIntensity = 0.2 + Math.sin(time * 0.002 + idx) * 0.15;
+                        if (Math.hypot(slimeX - journal.mesh.position.x, slimeZ - journal.mesh.position.z) < 6) {
+                            journal.discovered = true;
+                            showLore(journal.text);
+                            journal.mesh.material.emissiveIntensity = 1.0;
+                            journal.mesh.material.emissive.setHex(0xffffff);
+                        }
+                    }
+                });
+
+                frameCount++; fpsTimer += dt;
+                if (fpsTimer >= 0.5) {
+                    displayFps = Math.round(frameCount / fpsTimer);
+                    $('uiFps').textContent = displayFps;
+                    frameCount = 0; fpsTimer = 0;
+                    if (gameStarted) {
+                        $('uiTime').textContent = dayness > 0.3 ? '☀️' : (dayness > 0 ? '🌅' : '🌙');
+                        const biome = classifyBiome(slimeX, slimeZ);
+                        if (biome !== currentBiomeIdx) {
+                            currentBiomeIdx = biome;
+                            const info = BIOME_INFO[biome];
+                            $('uiBiome').textContent = info.name;
+                            $('uiLoc').textContent = info.locs[(Math.abs(Math.floor(slimeX)) + Math.abs(Math.floor(slimeZ))) % info.locs.length];
+                            $('discName').textContent = $('uiLoc').textContent;
+                            $('discovery').classList.add('visible');
+                            setTimeout(() => $('discovery').classList.remove('visible'), 4000);
+                        }
+                        if ($('debug').style.display === 'block') $('debug').textContent = `FPS: ${displayFps} | Journals: ${journals.filter(r => r.discovered).length}/${journals.length}`;
+                    }
+                }
+
+                if (gameStarted && frameCount % 5 === 0) {
+                    updateMinimap();
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            window.addEventListener('resize', () => {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+                resizeMinimap();
+            });
+
+            $('settingsBtn').addEventListener('click', () => $('settingsPanel').classList.add('visible'));
+            $('closeSettings').addEventListener('click', () => $('settingsPanel').classList.remove('visible'));
+            $('qualSelect').addEventListener('change', () => { localStorage.setItem('frost_quality', $('qualSelect').value); window.location.reload(); });
+
+            setLoading('Expedition Ready', 1.0);
+            await new Promise(r => setTimeout(r, 600));
+            $('loading').classList.add('fade-out');
+            setTimeout(() => $('intro').classList.add('visible'), 800);
+            requestAnimationFrame(animate);
+
+            $('enterBtn').addEventListener('click', () => {
+                $('intro').classList.remove('visible');
+                $('hud').classList.add('visible');
+                gameStarted = true;
+            });
+
+        })();
+    </script>
+</body>
+
+</html>
