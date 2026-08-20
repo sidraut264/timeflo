@@ -803,18 +803,18 @@
             // 6-zone biome system (index matches BIOME_INFO order)
             const BIOME = { FROZEN_LAKE: 0, CONIFER_FOREST: 1, ALPINE_MEADOW: 2, ROCKY_SLOPE: 3, MOUNTAIN_PEAK: 4, GLACIAL_ICE: 5 };
             const BIOME_INFO = [
-                { name: 'Frozen Lake',    locs: ['Mirror Lake', 'The Glass Expanse', 'Stillwater', 'Blue Ice Basin'],          fog: 0xc8dce8, light: 0x88aacc, color: 0x88bbdd },
-                { name: 'Conifer Forest', locs: ['Ancient Spruce Grove', 'Whispering Pines', 'Shadow Wood', 'Larch Hollow'],   fog: 0xc0d0dc, light: 0x99aabb, color: 0x2a4a3a },
-                { name: 'Alpine Meadow', locs: ['Snowdrop Plateau', 'Wildflower Basin', 'The Quiet Slopes', 'Tundra Flats'],   fog: 0xd0dce6, light: 0xaabbcc, color: 0x8a9a7a },
-                { name: 'Rocky Slope',   locs: ['Granite Ascent', 'The Scree Fields', 'Boulder Pass', 'Talus Ridge'],          fog: 0xb8c4d0, light: 0x8899aa, color: 0x6a6a7a },
-                { name: 'Mountain Peak', locs: ['Summit Ridge', "Eagle's Perch", 'The Crown', 'Windswept Heights'],            fog: 0xa8b8c8, light: 0x7799bb, color: 0xe0e8f0 },
-                { name: 'Glacial Ice',   locs: ['Icefall Canyon', 'The Frozen Pinnacle', "Glacier's Edge", 'Crevasse Field'],  fog: 0xa0b4c8, light: 0x6688aa, color: 0xd0e8f0 }
+                { name: 'Frozen Lake', locs: ['Mirror Lake', 'The Glass Expanse', 'Stillwater', 'Blue Ice Basin'], fog: 0xc8dce8, light: 0x88aacc, color: 0x88bbdd },
+                { name: 'Conifer Forest', locs: ['Ancient Spruce Grove', 'Whispering Pines', 'Shadow Wood', 'Larch Hollow'], fog: 0xc0d0dc, light: 0x99aabb, color: 0x2a4a3a },
+                { name: 'Alpine Meadow', locs: ['Snowdrop Plateau', 'Wildflower Basin', 'The Quiet Slopes', 'Tundra Flats'], fog: 0xd0dce6, light: 0xaabbcc, color: 0x8a9a7a },
+                { name: 'Rocky Slope', locs: ['Granite Ascent', 'The Scree Fields', 'Boulder Pass', 'Talus Ridge'], fog: 0xb8c4d0, light: 0x8899aa, color: 0x6a6a7a },
+                { name: 'Mountain Peak', locs: ['Summit Ridge', "Eagle's Perch", 'The Crown', 'Windswept Heights'], fog: 0xa8b8c8, light: 0x7799bb, color: 0xe0e8f0 },
+                { name: 'Glacial Ice', locs: ['Icefall Canyon', 'The Frozen Pinnacle', "Glacier's Edge", 'Crevasse Field'], fog: 0xa0b4c8, light: 0x6688aa, color: 0xd0e8f0 }
             ];
 
             const QUALITY_PRESETS = {
-                LOW:   { trees: 800,  rocks: 400,  shrubs: 800,  terrRes: 256, shadow: 1024 },
-                MEDIUM:{ trees: 2000, rocks: 800,  shrubs: 2000, terrRes: 384, shadow: 2048 },
-                HIGH:  { trees: 4000, rocks: 1500, shrubs: 4000, terrRes: 512, shadow: 2048 },
+                LOW: { trees: 800, rocks: 400, shrubs: 800, terrRes: 256, shadow: 1024 },
+                MEDIUM: { trees: 2000, rocks: 800, shrubs: 2000, terrRes: 384, shadow: 2048 },
+                HIGH: { trees: 4000, rocks: 1500, shrubs: 4000, terrRes: 512, shadow: 2048 },
                 ULTRA: { trees: 8000, rocks: 3000, shrubs: 8000, terrRes: 768, shadow: 4096 }
             };
             let qualityLevel = localStorage.getItem('frost_quality') || 'HIGH';
@@ -842,14 +842,14 @@
                 // Base continental shape — large rolling landmass
                 const continental = fbm(nx * 0.4 + 50, nz * 0.4 + 80, 5);
                 // Elevation noise — mid-scale hills
-                const elevation   = fbm(nx * 1.2 + 10, nz * 1.2 + 20, 4);
+                const elevation = fbm(nx * 1.2 + 10, nz * 1.2 + 20, 4);
                 // Ridge noise — sharp mountain ridges
-                const ridgeRaw    = fbm(nx * 2.0 + 30, nz * 2.0 + 40, 4);
-                const ridge       = Math.pow(1.0 - Math.abs(ridgeRaw * 2.0 - 1.0), 2.5);
+                const ridgeRaw = fbm(nx * 2.0 + 30, nz * 2.0 + 40, 4);
+                const ridge = Math.pow(1.0 - Math.abs(ridgeRaw * 2.0 - 1.0), 2.5);
                 // Fine detail
-                const detail      = fbm(nx * 5.0 + 5, nz * 5.0 + 5, 3) * 0.10;
+                const detail = fbm(nx * 5.0 + 5, nz * 5.0 + 5, 3) * 0.10;
                 // Central mountain range — rises from edges toward center-X
-                const centerDist  = Math.max(0, Math.min(1, Math.abs(x) / (CFG.worldSize * 0.45)));
+                const centerDist = Math.max(0, Math.min(1, Math.abs(x) / (CFG.worldSize * 0.45)));
                 const centralBump = (1.0 - centerDist * centerDist) * 0.35;
 
                 let h = continental * 0.35 + elevation * 0.25 + ridge * 0.28 + detail + centralBump;
@@ -857,13 +857,13 @@
             }
 
             function classifyBiome(x, z) {
-                const h     = getTerrainVal(x, z);
+                const h = getTerrainVal(x, z);
                 const slope = Math.abs(fbm(x * 0.015 + 100, z * 0.015 + 100, 2) - 0.5) * 2;
-                if (h < 0.20)                        return BIOME.FROZEN_LAKE;     // Valley floors, glacial lakes
-                if (h < 0.35)                        return BIOME.CONIFER_FOREST;  // Lower slopes, dense spruce
-                if (h < 0.50)                        return BIOME.ALPINE_MEADOW;   // Mid-slopes, meadow & tundra
-                if (h < 0.65 || slope > 0.40)        return BIOME.ROCKY_SLOPE;     // Upper slopes, scree fields
-                if (h < 0.80)                        return BIOME.MOUNTAIN_PEAK;   // High peaks, sparse snow
+                if (h < 0.20) return BIOME.FROZEN_LAKE;     // Valley floors, glacial lakes
+                if (h < 0.35) return BIOME.CONIFER_FOREST;  // Lower slopes, dense spruce
+                if (h < 0.50) return BIOME.ALPINE_MEADOW;   // Mid-slopes, meadow & tundra
+                if (h < 0.65 || slope > 0.40) return BIOME.ROCKY_SLOPE;     // Upper slopes, scree fields
+                if (h < 0.80) return BIOME.MOUNTAIN_PEAK;   // High peaks, sparse snow
                 return BIOME.GLACIAL_ICE;                                           // Summit, permanent glacial ice
             }
 
@@ -921,21 +921,26 @@
                             const slope = Math.abs(fbm(wx * 0.01 + 100, wz * 0.01 + 100, 2) - 0.5) * 2;
 
                             // --- Elevation mapping (0 → 80 game units) ---
-                            // Zones: <0.20=valley(0–5), 0.20–0.35=forest(5–20), 0.35–0.50=meadow(20–35),
-                            //         0.50–0.65=rocky(35–50), 0.65–0.80=peak(50–65), >0.80=glacial(65–80)
+                            // Lowlands (<0.38 landH): Vast, expansive plain / valley floor with gentle rolling terrain (0–12m)
+                            // Highlands (>=0.38 landH): Smooth rise into high alpine mountain ridges (12–75m)
                             let height = 0;
                             if (h >= 0.20) {
-                                const normH = (h - 0.20) / 0.80;  // 0→1 across land zones
-                                height = Math.pow(normH, 1.3) * 75;
+                                const landH = (h - 0.20) / 0.80;  // 0→1 across land zones
+                                if (landH < 0.38) {
+                                    height = (landH / 0.38) * 12.0 + Math.sin(wx * 0.015) * Math.cos(wz * 0.015) * 1.5;
+                                } else {
+                                    const mountainH = (landH - 0.38) / 0.62;
+                                    height = 12.0 + Math.pow(mountainH, 1.7) * 63.0;
+                                }
                             } else {
-                                height = (h - 0.20) * 20;  // Slight negative dip for lakes
+                                height = (h - 0.20) * 18.0;  // Slight negative dip for lakes
                             }
                             heightData[y * res + x] = height;
 
                             // --- Colour palette matched to spec hex values ---
                             const snowCover = fbm(wx * 0.025 + 50, wz * 0.025 + 50, 4);  // 0–1 snow coverage
-                            const patch     = fbm(wx * 0.07  + 10, wz * 0.07  + 10, 3);  // 0–1 texture variation
-                            const rockPatch = fbm(wx * 0.12  + 70, wz * 0.12  + 70, 2);  // fine rock detail
+                            const patch = fbm(wx * 0.07 + 10, wz * 0.07 + 10, 3);  // 0–1 texture variation
+                            const rockPatch = fbm(wx * 0.12 + 70, wz * 0.12 + 70, 2);  // fine rock detail
                             let r, g, b, rough;
 
                             if (biome === BIOME.FROZEN_LAKE) {
@@ -1095,7 +1100,7 @@
             // --- Tree geometry: separate trunk and canopy for InstancedMesh compatibility ---
             const treeTrunkGeo = new THREE.CylinderGeometry(0.15, 0.25, 3, 6);
             treeTrunkGeo.translate(0, 1.5, 0);
-            const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.95 });
+            const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x3a2818, roughness: 0.95 });
 
             // Merge all 4 cone levels into one geometry for canopy (manual merge, no addon needed)
             const canopyParts = [];
@@ -1107,7 +1112,6 @@
                 canopyParts.push(g);
             }
             (function mergeCanopy() {
-                // Manually merge all canopy part geometries into one BufferGeometry
                 const merged = new THREE.BufferGeometry();
                 let posArr = [], normArr = [], uvArr = [], idxArr = [];
                 let baseIdx = 0;
@@ -1130,7 +1134,7 @@
                 Object.defineProperty(window, '_treeCanopyGeo', { value: merged, writable: true });
             })();
             const treeCanopyGeo = window._treeCanopyGeo;
-            const treeCanopyMat = new THREE.MeshStandardMaterial({ color: 0x1a3a2a, roughness: 0.9 });
+            const treeCanopyMat = new THREE.MeshStandardMaterial({ color: 0x1e4a38, roughness: 0.85 });
 
             function createRockOutcrop() {
                 const geo = new THREE.DodecahedronGeometry(1.5, 0);
@@ -1617,6 +1621,9 @@
 
                 iceMat.uniforms.time.value = time * 0.001;
                 skyMat.uniforms.time.value = time * 0.001;
+                if (typeof leafMat !== 'undefined' && leafMat.uniforms) {
+                    leafMat.uniforms.time.value = time * 0.001;
+                }
 
                 dayTime += dt / CFG.dayLength; if (dayTime > 1) dayTime -= 1;
                 const sunAngle = dayTime * Math.PI * 2;
