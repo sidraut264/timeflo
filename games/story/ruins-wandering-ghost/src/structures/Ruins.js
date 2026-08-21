@@ -90,40 +90,181 @@ export function rubblePile(scene, x, z, radius, count, matSet) {
 export function brokenColumn(scene, x, z, height, rot, matSet) {
     const g = new THREE.Group();
 
-    const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.85, 0.35, 8), matSet.stoneDark);
-    plinth.position.y = 0.17;
-    g.add(plinth);
+    // PLINTH BASE - stepped base for architectural authenticity
+    const plinthBottom = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 0.9, 0.15, 8),
+        matSet.stoneDark
+    );
+    plinthBottom.position.y = 0.075;
+    g.add(plinthBottom);
 
-    const drumCount = Math.max(2, Math.round(height));
-    let y = 0.35;
-    const baseR = 0.55;
+    const plinthTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.7, 0.8, 0.25, 8),
+        matSet.stoneWeathered || matSet.stone
+    );
+    plinthTop.position.y = 0.275;
+    g.add(plinthTop);
+
+    // TORUS MOLDING - decorative ring at base of column
+    const torusBase = new THREE.Mesh(
+        new THREE.TorusGeometry(0.58, 0.06, 6, 8),
+        matSet.stone
+    );
+    torusBase.rotation.x = Math.PI / 2;
+    torusBase.position.y = 0.42;
+    g.add(torusBase);
+
+    // COLUMN DRUMS - main shaft
+    const drumCount = Math.max(3, Math.round(height * 1.2));
+    let y = 0.5;
+    const baseR = 0.5;
+    const drums = [];
+
     for (let i = 0; i < drumCount; i++) {
-        const wear = 1 - i * 0.015;
-        const r = baseR * wear * rand(0.94, 1.03);
-        const hDrum = rand(0.8, 1.0);
-        const geo = new THREE.CylinderGeometry(r, r * 1.02, hDrum, 8);
-        const mesh = new THREE.Mesh(geo, i % 3 === 0 ? matSet.moss : matSet.stone);
-        mesh.position.set((Math.random() - 0.5) * 0.1, y + hDrum / 2, (Math.random() - 0.5) * 0.1);
-        mesh.rotation.y = Math.random() * Math.PI;
-        // slight per-drum lean so the stack doesn't read as a perfect cylinder
-        mesh.rotation.x = (Math.random() - 0.5) * 0.03;
-        mesh.rotation.z = (Math.random() - 0.5) * 0.03;
-        g.add(mesh);
+        // Gradual taper toward top
+        const wear = 1 - i * 0.02;
+        const r = baseR * wear * rand(0.95, 1.02);
+        const hDrum = rand(0.7, 0.95);
 
-        // fracture line between drums, occasionally
-        if (Math.random() < 0.35 && i < drumCount - 1) {
-            const crack = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.04, r * 1.04, 0.04, 8), matSet.stoneDark);
-            crack.position.set(mesh.position.x, y + hDrum, mesh.position.z);
+        // Add slight entasis (bulge) in middle drums
+        const midSection = Math.sin((i / drumCount) * Math.PI);
+        const rAdjusted = r * (1 + midSection * 0.03);
+
+        const geo = new THREE.CylinderGeometry(rAdjusted, rAdjusted * 1.03, hDrum, 8);
+
+        // Material variation based on height and condition
+        let material;
+        if (i % 4 === 0) {
+            material = matSet.moss; // Mossy drums
+        } else if (i % 3 === 0) {
+            material = matSet.stoneWeathered || matSet.stone; // Weathered drums
+        } else {
+            material = matSet.stone;
+        }
+
+        const mesh = new THREE.Mesh(geo, material);
+
+        // Position with slight misalignment for realistic stacking
+        const offsetX = (Math.random() - 0.5) * 0.08;
+        const offsetZ = (Math.random() - 0.5) * 0.08;
+        mesh.position.set(offsetX, y + hDrum / 2, offsetZ);
+
+        // Subtle rotation for organic feel
+        mesh.rotation.y = Math.random() * Math.PI;
+        mesh.rotation.x = (Math.random() - 0.5) * 0.04;
+        mesh.rotation.z = (Math.random() - 0.5) * 0.04;
+
+        g.add(mesh);
+        drums.push(mesh);
+
+        // FRACTURE LINES between drums
+        if (Math.random() < 0.4 && i < drumCount - 1) {
+            const crack = new THREE.Mesh(
+                new THREE.TorusGeometry(rAdjusted * 1.03, 0.02, 4, 8),
+                matSet.stoneDark
+            );
+            crack.rotation.x = Math.PI / 2;
+            crack.position.set(offsetX, y + hDrum, offsetZ);
             g.add(crack);
         }
 
-        y += hDrum * 0.96;
-        if (Math.random() < 0.18 && i < drumCount - 1) break;
+        // CHIPS AND DAMAGE on random drums
+        if (Math.random() < 0.3) {
+            const chip = new THREE.Mesh(
+                new THREE.BoxGeometry(rand(0.1, 0.25), rand(0.05, 0.15), rand(0.1, 0.2)),
+                matSet.stoneDark
+            );
+            const chipAngle = rand(0, Math.PI * 2);
+            chip.position.set(
+                offsetX + Math.cos(chipAngle) * rAdjusted * 0.7,
+                y + hDrum / 2,
+                offsetZ + Math.sin(chipAngle) * rAdjusted * 0.7
+            );
+            chip.rotation.set(rand(0, 0.5), chipAngle, rand(0, 0.5));
+            g.add(chip);
+        }
+
+        y += hDrum * 0.95;
+
+        // RANDOM BREAK - the column stops here
+        if (Math.random() < 0.15 && i < drumCount - 2) {
+            // Broken top drum with irregular geometry
+            const brokenTop = new THREE.Mesh(
+                jaggedBox(rAdjusted * 1.4, 0.3, rAdjusted * 1.4, { chipChance: 0.5 }),
+                matSet.stoneDark
+            );
+            brokenTop.position.set(offsetX, y, offsetZ);
+            brokenTop.rotation.y = Math.random() * Math.PI;
+            g.add(brokenTop);
+            break;
+        }
     }
+
+    // CAPITAL - only if column is tall enough
+    if (y > 2) {
+        const capitalBottom = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.48, 0.52, 0.2, 8),
+            matSet.stone
+        );
+        capitalBottom.position.y = y + 0.1;
+        g.add(capitalBottom);
+
+        const capitalTop = new THREE.Mesh(
+            new THREE.BoxGeometry(0.8, 0.15, 0.8),
+            matSet.stoneWeathered || matSet.stone
+        );
+        capitalTop.position.y = y + 0.275;
+        capitalTop.rotation.y = Math.PI / 8;
+        g.add(capitalTop);
+    }
+
+    // FALLEN DRUMS around the base
+    const fallenDrumCount = rand(1, 3);
+    for (let i = 0; i < fallenDrumCount; i++) {
+        const fallenDrum = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.5, 0.52, rand(0.6, 0.9), 8),
+            i % 2 === 0 ? matSet.stone : matSet.moss
+        );
+        const fallAngle = rand(0, Math.PI * 2);
+        const fallDist = rand(0.8, 1.8);
+        fallenDrum.position.set(
+            Math.cos(fallAngle) * fallDist,
+            0.3,
+            Math.sin(fallAngle) * fallDist
+        );
+        fallenDrum.rotation.x = Math.PI / 2 + rand(-0.3, 0.3);
+        fallenDrum.rotation.z = rand(0, Math.PI);
+        g.add(fallenDrum);
+
+        // Partial burial for some drums
+        if (Math.random() < 0.4) {
+            fallenDrum.position.y = 0.15;
+        }
+    }
+
+    // Position and rotate the entire column
     g.position.set(x, 0, z);
     g.rotation.y = rot;
     scene.add(g);
-    rubblePile(scene, x, z, 1.2, 4, matSet);
+
+    // Rubble pile with more appropriate scale
+    rubblePile(scene, x, z, rand(1.0, 1.5), rand(3, 6), matSet);
+
+    // Scattered stone chips
+    for (let i = 0; i < 6; i++) {
+        const chip = new THREE.Mesh(
+            new THREE.BoxGeometry(rand(0.08, 0.2), rand(0.05, 0.1), rand(0.08, 0.15)),
+            matSet.stoneDark
+        );
+        chip.position.set(
+            x + rand(-2, 2),
+            0.04,
+            z + rand(-2, 2)
+        );
+        chip.rotation.set(rand(0, Math.PI), rand(0, Math.PI), rand(0, Math.PI));
+        scene.add(chip);
+    }
+
     return g;
 }
 
@@ -269,9 +410,9 @@ export function ruinedWall(scene, x, z, w, h, rot, material, matSet) {
 }
 
 // ---------------------------------------------------------------------------
-// archway: now genuinely asymmetric. One pillar stands taller/cleaner, the
-// other is stubbed and cracked, and the lintel sags toward the broken side
-// instead of sitting perfectly level.
+// archway: A broken stone archway that shifts between ruin and memory.
+// The stones remember being stacked by living hands. The arch remembers
+// being complete, sunlight streaming through, people passing beneath.
 // ---------------------------------------------------------------------------
 export function archway(scene, pos, rot, matSet) {
     const g = new THREE.Group();
@@ -281,59 +422,55 @@ export function archway(scene, pos, rot, matSet) {
     const archThickness = 0.5;
 
     // -------------------------------------------------------------------
-    // 1. LEFT PILLAR (taller, more intact) - with detailed stonework
+    // 1. LEFT PILLAR - stands with quiet dignity, less damaged
     // -------------------------------------------------------------------
     const leftPillar = new THREE.Group();
 
-    // Base plinth with stepped layers
-    const plinthLayers = [
-        { radius: pillarRadius * 1.6, height: 0.15, y: 0.075 },
-        { radius: pillarRadius * 1.4, height: 0.15, y: 0.225 },
-        { radius: pillarRadius * 1.2, height: 0.1, y: 0.35 }
-    ];
-    plinthLayers.forEach(layer => {
-        const plinth = new THREE.Mesh(
-            new THREE.CylinderGeometry(layer.radius * 0.95, layer.radius, layer.height, 12),
-            matSet.stoneDark
-        );
-        plinth.position.y = layer.y;
-        plinth.rotation.x = (Math.random() - 0.5) * 0.02;
-        plinth.rotation.z = (Math.random() - 0.5) * 0.02;
-        leftPillar.add(plinth);
-    });
+    // Simple base - worn smooth by time
+    const baseL = new THREE.Mesh(
+        new THREE.CylinderGeometry(pillarRadius * 1.4, pillarRadius * 1.6, 0.3, 8),
+        matSet.stoneDark
+    );
+    baseL.position.y = 0.15;
+    // Rounded edges from centuries of wind
+    const baseLPos = baseL.geometry.attributes.position;
+    for (let j = 0; j < baseLPos.count; j++) {
+        const x = baseLPos.getX(j);
+        const y = baseLPos.getY(j);
+        const z = baseLPos.getZ(j);
+        const dist = Math.sqrt(x * x + z * z);
+        // Soften edges
+        if (y > 0.1 && dist > pillarRadius * 1.2) {
+            baseLPos.setY(j, y - 0.02);
+        }
+    }
+    baseLPos.needsUpdate = true;
+    baseL.geometry.computeVertexNormals();
+    leftPillar.add(baseL);
 
-    // Main shaft - built from individual drums with detailed edges
-    const drumCount = 5 + Math.floor(Math.random() * 2);
-    let yPos = 0.4;
+    // Smooth, worn drums - stacked by hands that are now dust
+    const drumCount = 6;
+    let yPos = 0.3;
+
     for (let i = 0; i < drumCount; i++) {
-        const drumHeight = 0.45 + Math.random() * 0.15;
-        const drumRadius = pillarRadius * (0.92 + Math.random() * 0.06);
+        const drumHeight = 0.5;
+        const drumRadius = pillarRadius * (1 - i * 0.02);
 
-        // Create drum with slight taper and beveled edges
-        const drumGeo = new THREE.CylinderGeometry(
-            drumRadius * 0.98,
-            drumRadius * 1.02,
-            drumHeight,
-            10 + Math.floor(Math.random() * 3)
-        );
+        // Smooth cylinder - these stones have been touched by rain and wind
+        const drumGeo = new THREE.CylinderGeometry(drumRadius, drumRadius * 1.01, drumHeight, 10);
 
-        // Add subtle variation to vertices for organic look
+        // Gentle weathering - no harsh breaks, just time's soft touch
         const positions = drumGeo.attributes.position;
         for (let j = 0; j < positions.count; j++) {
             const x = positions.getX(j);
             const y = positions.getY(j);
             const z = positions.getZ(j);
             const dist = Math.sqrt(x * x + z * z);
-            if (dist > 0.01) {
-                const noise = (Math.random() - 0.5) * 0.015;
-                const scale = 1 + noise;
-                positions.setX(j, x * scale);
-                positions.setZ(j, z * scale);
-            }
-            // Slight vertical variation at edges
-            if (Math.abs(Math.abs(y) - drumHeight / 2) < 0.01) {
-                const edgeNoise = (Math.random() - 0.5) * 0.025;
-                positions.setY(j, y + edgeNoise);
+            // Subtle erosion
+            if (dist > 0.3 && Math.random() < 0.1) {
+                const erosion = 0.98 + Math.random() * 0.01;
+                positions.setX(j, x * erosion);
+                positions.setZ(j, z * erosion);
             }
         }
         positions.needsUpdate = true;
@@ -341,277 +478,190 @@ export function archway(scene, pos, rot, matSet) {
 
         const drum = new THREE.Mesh(
             drumGeo,
-            i % 2 === 0 ? matSet.stone : matSet.stoneDark
+            i === 0 ? matSet.moss : matSet.stone  // moss only at base
         );
 
-        // Slight positional variation
         drum.position.set(
-            (Math.random() - 0.5) * 0.04,
+            0,
             yPos + drumHeight / 2,
-            (Math.random() - 0.5) * 0.04
+            0
         );
-        drum.rotation.y = Math.random() * Math.PI;
-        drum.rotation.x = (Math.random() - 0.5) * 0.02;
-        drum.rotation.z = (Math.random() - 0.5) * 0.02;
+        drum.rotation.y = (i * Math.PI) / 4; // subtle rotation pattern
         leftPillar.add(drum);
-        yPos += drumHeight * 0.96;
+        yPos += drumHeight * 0.98;
     }
 
-    // Capital with detailed molding
-    const capitalGroup = new THREE.Group();
-
-    // Lower band
-    const capitalBase = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 0.9, pillarRadius * 1.0, 0.12, 12),
-        matSet.stoneDark
-    );
-    capitalBase.position.y = 0.06;
-    capitalGroup.add(capitalBase);
-
-    // Main capital block with subtle curve
-    const capitalMain = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 1.2, pillarRadius * 0.95, 0.2, 12),
+    // Simple capital - almost worn away
+    const capitalL = new THREE.Mesh(
+        new THREE.CylinderGeometry(pillarRadius * 1.1, pillarRadius * 0.9, 0.15, 8),
         matSet.stone
     );
-    capitalMain.position.y = 0.22;
-    // Add slight sag to capital
-    const capPos = capitalMain.geometry.attributes.position;
-    for (let j = 0; j < capPos.count; j++) {
-        const x = capPos.getX(j);
-        const y = capPos.getY(j);
-        const z = capPos.getZ(j);
-        if (Math.abs(y) < 0.01) {
-            const angle = Math.atan2(z, x);
-            const sag = Math.sin(angle * 2) * 0.02;
-            capPos.setX(j, x + sag * Math.cos(angle));
-            capPos.setZ(j, z + sag * Math.sin(angle));
+    capitalL.position.y = yPos + 0.075;
+    // Rounded, weathered edges
+    const capLPos = capitalL.geometry.attributes.position;
+    for (let j = 0; j < capLPos.count; j++) {
+        const y = capLPos.getY(j);
+        if (Math.abs(y) > 0.05) {
+            capLPos.setY(j, y * 0.9);
         }
     }
-    capPos.needsUpdate = true;
-    capitalMain.geometry.computeVertexNormals();
-    capitalGroup.add(capitalMain);
-
-    // Top molding
-    const capitalTop = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 1.3, pillarRadius * 1.2, 0.08, 12),
-        matSet.stoneDark
-    );
-    capitalTop.position.y = 0.36;
-    capitalGroup.add(capitalTop);
-
-    capitalGroup.position.y = yPos;
-    capitalGroup.rotation.x = (Math.random() - 0.5) * 0.015;
-    capitalGroup.rotation.z = (Math.random() - 0.5) * 0.015;
-    leftPillar.add(capitalGroup);
+    capLPos.needsUpdate = true;
+    capitalL.geometry.computeVertexNormals();
+    leftPillar.add(capitalL);
 
     leftPillar.position.set(-width / 2, 0, 0);
     g.add(leftPillar);
 
     // -------------------------------------------------------------------
-    // 2. RIGHT PILLAR (damaged, partially collapsed)
+    // 2. RIGHT PILLAR - broken mid-height, as if time simply stopped
     // -------------------------------------------------------------------
     const rightPillar = new THREE.Group();
 
-    // Damaged base - weathered and missing pieces
-    const basePlinthR = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 1.3, pillarRadius * 1.5, 0.2, 10),
+    // Base - cracked but still standing
+    const baseR = new THREE.Mesh(
+        new THREE.CylinderGeometry(pillarRadius * 1.3, pillarRadius * 1.5, 0.25, 8),
         matSet.stoneDark
     );
-    // Add damage to base
-    const basePos = basePlinthR.geometry.attributes.position;
-    for (let j = 0; j < basePos.count; j++) {
-        const x = basePos.getX(j);
-        const y = basePos.getY(j);
-        const z = basePos.getZ(j);
-        const dist = Math.sqrt(x * x + z * z);
-        if (dist > pillarRadius * 0.8) {
-            const damage = (Math.random() - 0.5) * 0.08;
-            basePos.setX(j, x + damage * x / dist);
-            basePos.setZ(j, z + damage * z / dist);
-        }
-        if (y > 0.05 && Math.random() < 0.1) {
-            basePos.setY(j, y - (Math.random() * 0.05));
+    baseR.position.y = 0.125;
+    // A single significant crack
+    const baseRPos = baseR.geometry.attributes.position;
+    for (let j = 0; j < baseRPos.count; j++) {
+        const x = baseRPos.getX(j);
+        const z = baseRPos.getZ(j);
+        const angle = Math.atan2(z, x);
+        if (Math.abs(angle) < 0.3) {
+            baseRPos.setX(j, x * 0.85);
+            baseRPos.setZ(j, z * 0.85);
         }
     }
-    basePos.needsUpdate = true;
-    basePlinthR.geometry.computeVertexNormals();
-    basePlinthR.position.y = 0.1;
-    rightPillar.add(basePlinthR);
+    baseRPos.needsUpdate = true;
+    baseR.geometry.computeVertexNormals();
+    rightPillar.add(baseR);
 
-    // Shorter shaft - fewer drums, more damage
-    const drumCountR = 3 + Math.floor(Math.random() * 2);
-    yPos = 0.2;
+    // Three drums, then a clean break - like the memory cuts off
+    const drumCountR = 3;
+    yPos = 0.25;
+
     for (let i = 0; i < drumCountR; i++) {
-        const drumHeight = 0.35 + Math.random() * 0.2;
-        const drumRadius = pillarRadius * (0.85 + Math.random() * 0.1);
+        const drumHeight = 0.5;
+        const drumRadius = pillarRadius * (1 - i * 0.03);
 
-        const drumGeo = new THREE.CylinderGeometry(
-            drumRadius * 0.95,
-            drumRadius * 1.02,
-            drumHeight,
-            8 + Math.floor(Math.random() * 2)
-        );
+        const drumGeo = new THREE.CylinderGeometry(drumRadius, drumRadius * 1.02, drumHeight, 8);
 
-        // Add significant damage to right pillar drums
-        const pos = drumGeo.attributes.position;
-        for (let j = 0; j < pos.count; j++) {
-            const x = pos.getX(j);
-            const y = pos.getY(j);
-            const z = pos.getZ(j);
-            const dist = Math.sqrt(x * x + z * z);
-            if (dist > drumRadius * 0.5) {
-                const chip = (Math.random() - 0.5) * 0.06;
-                pos.setX(j, x + chip * x / dist);
-                pos.setZ(j, z + chip * z / dist);
-            }
-            // Random chunks missing from edges
+        // Light weathering
+        const positions = drumGeo.attributes.position;
+        for (let j = 0; j < positions.count; j++) {
+            const x = positions.getX(j);
+            const y = positions.getY(j);
+            const z = positions.getZ(j);
             if (Math.random() < 0.05) {
-                pos.setX(j, x * 0.7);
-                pos.setZ(j, z * 0.7);
+                positions.setX(j, x * 0.98);
+                positions.setZ(j, z * 0.98);
             }
         }
-        pos.needsUpdate = true;
+        positions.needsUpdate = true;
         drumGeo.computeVertexNormals();
 
         const drum = new THREE.Mesh(
             drumGeo,
-            i % 2 === 0 ? matSet.stone : matSet.stoneDark
+            i === 0 ? matSet.moss : matSet.stone
         );
 
-        // More offset on right pillar (damaged)
         drum.position.set(
-            (Math.random() - 0.5) * 0.08,
-            yPos + drumHeight / 2 + (Math.random() - 0.5) * 0.03,
-            (Math.random() - 0.5) * 0.08
+            0.02 * i, // slight lean
+            yPos + drumHeight / 2,
+            0.01 * i
         );
-        drum.rotation.y = Math.random() * Math.PI;
-        drum.rotation.x = (Math.random() - 0.5) * 0.05;
-        drum.rotation.z = (Math.random() - 0.5) * 0.05;
+        drum.rotation.y = (i * Math.PI) / 3;
         rightPillar.add(drum);
-        yPos += drumHeight * 0.95;
+        yPos += drumHeight * 0.97;
     }
 
-    // Damaged capital - cracked and tilted
-    const capitalR = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 0.8, pillarRadius * 0.7, 0.15, 8),
+    // Broken top - stones that once continued upward
+    const brokenTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(pillarRadius * 0.9, pillarRadius * 0.95, 0.15, 8),
         matSet.stoneDark
     );
-    // Crack the capital
-    const capPosR = capitalR.geometry.attributes.position;
-    for (let j = 0; j < capPosR.count; j++) {
-        const x = capPosR.getX(j);
-        const y = capPosR.getY(j);
-        const z = capPosR.getZ(j);
-        if (Math.random() < 0.15) {
-            capPosR.setX(j, x * 0.5);
-            capPosR.setZ(j, z * 0.5);
-        }
+    brokenTop.position.y = yPos + 0.075;
+    // Jagged break edge
+    const brokenPos = brokenTop.geometry.attributes.position;
+    for (let j = 0; j < brokenPos.count; j++) {
+        const y = brokenPos.getY(j);
         if (y > 0.05) {
-            capPosR.setY(j, y + (Math.random() - 0.5) * 0.04);
+            brokenPos.setY(j, y + (Math.random() - 0.5) * 0.04);
         }
     }
-    capPosR.needsUpdate = true;
-    capitalR.geometry.computeVertexNormals();
-    capitalR.position.y = yPos + 0.075;
-    capitalR.rotation.x = (Math.random() - 0.5) * 0.1;
-    capitalR.rotation.z = (Math.random() - 0.5) * 0.1;
-    rightPillar.add(capitalR);
+    brokenPos.needsUpdate = true;
+    brokenTop.geometry.computeVertexNormals();
+    rightPillar.add(brokenTop);
 
     rightPillar.position.set(width / 2, 0, 0);
     g.add(rightPillar);
 
     // -------------------------------------------------------------------
-    // 3. ARCH/LINTEL with detailed stonework and voussoirs
+    // 3. ARCH - incomplete, reaching toward what it once was
     // -------------------------------------------------------------------
     const archGroup = new THREE.Group();
 
-    // Main arch curve (true arch shape)
-    const archSegments = 20;
+    // Create a partial arch that starts from left pillar but fades out
+    const archSegments = 14;
     const archPoints = [];
     const archRadius = width / 2 + 0.3;
 
+    // Only create arch from left side, stopping before the center
     for (let i = 0; i <= archSegments; i++) {
         const t = i / archSegments;
-        const angle = -Math.PI / 2 + t * Math.PI;
+        const angle = -Math.PI / 2 + t * Math.PI * 0.7; // stops before keystone
         const x = Math.cos(angle) * archRadius * 0.5;
         const y = height - 0.2 + Math.sin(angle) * archRadius * 0.5;
         archPoints.push(new THREE.Vector3(x, y, 0));
     }
 
-    // Create curved arch profile
+    // Smooth, worn arch stone
     const archCurve = new THREE.CatmullRomCurve3(archPoints);
-    const archTube = new THREE.TubeGeometry(archCurve, 16, 0.35, 8, false);
+    const archTube = new THREE.TubeGeometry(archCurve, 14, 0.3, 8, false);
 
-    // Add damage to arch
+    // Gentle weathering, no harsh damage
     const archPos = archTube.attributes.position;
     for (let j = 0; j < archPos.count; j++) {
         const x = archPos.getX(j);
         const y = archPos.getY(j);
         const z = archPos.getZ(j);
-        // Damage near the top and right side
-        const damageWeight = 1 - (y / height) * 0.5 + (x / width) * 0.3;
-        const noise = (Math.random() - 0.5) * 0.04 * damageWeight;
-        archPos.setX(j, x + noise);
-        archPos.setY(j, y + noise * 1.5);
-        archPos.setZ(j, z + noise * 0.5);
-        // Occasional chunk missing
-        if (Math.random() < 0.02 * damageWeight) {
-            archPos.setX(j, x * 0.5);
-            archPos.setY(j, y * 0.5);
+        const dist = Math.sqrt(x * x + y * y);
+        if (dist > 0.2 && Math.random() < 0.08) {
+            archPos.setX(j, x * 0.99);
+            archPos.setY(j, y * 0.99);
         }
     }
     archPos.needsUpdate = true;
     archTube.computeVertexNormals();
 
     const archMesh = new THREE.Mesh(archTube, matSet.stone);
-    archMesh.position.x = 0.05;
-    archMesh.rotation.z = -0.02; // slight sag
     archGroup.add(archMesh);
 
-    // Individual voussoirs (arch stones) with detail
-    const voussoirCount = 7 + Math.floor(Math.random() * 4);
-    for (let i = 0; i < voussoirCount; i++) {
-        const t = i / (voussoirCount - 1);
-        const angle = -Math.PI / 2 + t * Math.PI;
+    // A few remaining voussoirs, like memories clinging on
+    for (let i = 0; i < 6; i++) {
+        const t = i / 5;
+        const angle = -Math.PI / 2 + t * Math.PI * 0.6;
         const x = Math.cos(angle) * archRadius * 0.55;
         const y = height + Math.sin(angle) * archRadius * 0.5 - 0.1;
 
-        // Skip some voussoirs (fallen out) - more on right side
-        const skipChance = 0.1 + (x / width) * 0.15;
-        if (Math.random() < skipChance) continue;
-
-        // Create wedge-shaped voussoir
-        const wedgeWidth = 0.25 + Math.random() * 0.1;
-        const wedgeHeight = 0.3 + Math.random() * 0.1;
-        const wedgeDepth = archThickness * 0.85;
-
         const voussoir = new THREE.Mesh(
-            new THREE.BoxGeometry(wedgeWidth, wedgeHeight, wedgeDepth),
-            Math.random() < 0.15 ? matSet.moss : matSet.stone
+            new THREE.BoxGeometry(0.25, 0.3, archThickness * 0.8),
+            i === 0 ? matSet.moss : matSet.stone
         );
 
-        // Position along arch curve
-        voussoir.position.set(
-            x + (Math.random() - 0.5) * 0.03,
-            y + (Math.random() - 0.5) * 0.03,
-            (Math.random() - 0.5) * 0.03
-        );
+        voussoir.position.set(x, y, 0);
+        voussoir.rotation.z = -angle * 0.8;
 
-        // Rotate to follow arch curve
-        const tangentAngle = -angle * 0.8;
-        voussoir.rotation.z = tangentAngle + (Math.random() - 0.5) * 0.04;
-        voussoir.rotation.x = (Math.random() - 0.5) * 0.04;
-
-        // Add slight wedge shape (tapered)
+        // Soft edges
         const vPos = voussoir.geometry.attributes.position;
         for (let j = 0; j < vPos.count; j++) {
             const vx = vPos.getX(j);
             const vy = vPos.getY(j);
-            const vz = vPos.getZ(j);
-            // Taper toward top
-            const taper = 1 - (vy / wedgeHeight + 0.5) * 0.15;
-            vPos.setX(j, vx * taper);
-            vPos.setZ(j, vz * taper);
+            if (Math.abs(vx) > 0.1) {
+                vPos.setX(j, vx * 0.95);
+            }
         }
         vPos.needsUpdate = true;
         voussoir.geometry.computeVertexNormals();
@@ -619,241 +669,97 @@ export function archway(scene, pos, rot, matSet) {
         archGroup.add(voussoir);
     }
 
-    // Keystone (center stone) - larger and decorated
-    const keystone = new THREE.Mesh(
-        new THREE.BoxGeometry(0.4, 0.5, archThickness * 1.1),
-        matSet.stoneDark
-    );
-    // Slight displacement (keystone is slipping)
-    keystone.position.set(0.08, height + 0.05, 0.02);
-    keystone.rotation.z = 0.03;
-    keystone.rotation.x = 0.02;
-    // Add detail to keystone
-    const kPos = keystone.geometry.attributes.position;
-    for (let j = 0; j < kPos.count; j++) {
-        const x = kPos.getX(j);
-        const y = kPos.getY(j);
-        const z = kPos.getZ(j);
-        if (Math.abs(x) < 0.1 && Math.abs(z) < 0.05) {
-            kPos.setX(j, x + (Math.random() - 0.5) * 0.02);
-            kPos.setZ(j, z + (Math.random() - 0.5) * 0.02);
-        }
-    }
-    kPos.needsUpdate = true;
-    keystone.geometry.computeVertexNormals();
-    archGroup.add(keystone);
-
     g.add(archGroup);
 
     // -------------------------------------------------------------------
-    // 4. WALL SECTIONS with detailed stonework
+    // 4. GHOST OF THE KEYSTONE - a faint impression where it should be
     // -------------------------------------------------------------------
-    // Left wall section (more intact) - using course wall style
-    const leftWallLength = 1.0 + Math.random() * 0.5;
-    const leftWallGroup = new THREE.Group();
-
-    // Build left wall from individual stones
-    const wallBlockH = 0.3;
-    const wallRows = Math.max(2, Math.round(height * 0.7 / wallBlockH));
-    for (let row = 0; row < wallRows; row++) {
-        const rowHeight = wallBlockH * (0.85 + Math.random() * 0.15);
-        const yPos = row * wallBlockH + rowHeight / 2;
-        let xPos = -leftWallLength / 2;
-        while (xPos < leftWallLength / 2) {
-            if (Math.random() < 0.05) { xPos += 0.1; continue; } // gap
-            const bw = 0.2 + Math.random() * 0.25;
-            const stone = new THREE.Mesh(
-                new THREE.BoxGeometry(bw, rowHeight, archThickness * 0.7),
-                Math.random() < 0.15 ? matSet.moss : matSet.stone
-            );
-            stone.position.set(
-                xPos + bw / 2 + (Math.random() - 0.5) * 0.02,
-                yPos + (Math.random() - 0.5) * 0.02,
-                (Math.random() - 0.5) * 0.03
-            );
-            stone.rotation.y = (Math.random() - 0.5) * 0.03;
-            stone.rotation.x = (Math.random() - 0.5) * 0.02;
-            leftWallGroup.add(stone);
-            xPos += bw + 0.02 + Math.random() * 0.02;
-        }
-    }
-    leftWallGroup.position.set(-width / 2 - leftWallLength / 2, 0, 0);
-    g.add(leftWallGroup);
-
-    // Right wall section (more damaged) - shorter and gappier
-    const rightWallLength = 0.8 + Math.random() * 0.4;
-    const rightWallGroup = new THREE.Group();
-    const rightRows = Math.max(1, Math.round(height * 0.4 / wallBlockH));
-    for (let row = 0; row < rightRows; row++) {
-        if (Math.random() < 0.2) continue; // missing row
-        const rowHeight = wallBlockH * (0.7 + Math.random() * 0.2);
-        const yPos = row * wallBlockH + rowHeight / 2 + (Math.random() - 0.5) * 0.05;
-        let xPos = -rightWallLength / 2;
-        while (xPos < rightWallLength / 2) {
-            if (Math.random() < 0.15) { xPos += 0.1; continue; } // more gaps
-            const bw = 0.15 + Math.random() * 0.2;
-            const stone = new THREE.Mesh(
-                new THREE.BoxGeometry(bw, rowHeight, archThickness * 0.6),
-                Math.random() < 0.2 ? matSet.moss : matSet.stoneDark
-            );
-            stone.position.set(
-                xPos + bw / 2 + (Math.random() - 0.5) * 0.04,
-                yPos + (Math.random() - 0.5) * 0.04,
-                (Math.random() - 0.5) * 0.05
-            );
-            stone.rotation.y = (Math.random() - 0.5) * 0.05;
-            stone.rotation.x = (Math.random() - 0.5) * 0.04;
-            rightWallGroup.add(stone);
-            xPos += bw + 0.02 + Math.random() * 0.03;
-        }
-    }
-    rightWallGroup.position.set(width / 2 + rightWallLength / 2, 0, 0);
-    g.add(rightWallGroup);
+    const keystoneGhost = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.15, 0.15, archThickness, 8),
+        matSet.stoneDark
+    );
+    keystoneGhost.position.set(0, height - 0.1, 0);
+    keystoneGhost.material = keystoneGhost.material.clone();
+    keystoneGhost.material.transparent = true;
+    keystoneGhost.material.opacity = 0.3;
+    keystoneGhost.rotation.x = Math.PI / 2;
+    g.add(keystoneGhost);
 
     // -------------------------------------------------------------------
-    // 5. DETAILED FALLEN STONES AND DEBRIS
+    // 5. FALLEN STONES - resting where they fell, not scattered
     // -------------------------------------------------------------------
-    const fallenCount = 8 + Math.floor(Math.random() * 6);
-    for (let i = 0; i < fallenCount; i++) {
-        const side = Math.random() < 0.6 ? 1 : -1; // more on right (damaged) side
-        const size = 0.1 + Math.random() * 0.3;
-        const depth = 0.1 + Math.random() * 0.2;
+    // Fallen arch stones near the right pillar
+    const fallenArch = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.35, 0.35, 0.3, 8),
+        matSet.stone
+    );
+    fallenArch.position.set(0.5, 0.15, 0);
+    fallenArch.rotation.x = Math.PI / 2;
+    fallenArch.rotation.z = 0.3;
+    g.add(fallenArch);
 
-        const fallen = new THREE.Mesh(
-            new THREE.BoxGeometry(
-                size * (0.6 + Math.random() * 0.4),
-                depth * (0.6 + Math.random() * 0.4),
-                size * (0.6 + Math.random() * 0.4)
-            ),
-            Math.random() < 0.2 ? matSet.moss : (Math.random() < 0.5 ? matSet.stone : matSet.stoneDark)
-        );
-
-        // Add damage to fallen stones
-        const fPos = fallen.geometry.attributes.position;
-        for (let j = 0; j < fPos.count; j++) {
-            const x = fPos.getX(j);
-            const y = fPos.getY(j);
-            const z = fPos.getZ(j);
-            fPos.setX(j, x + (Math.random() - 0.5) * 0.02);
-            fPos.setY(j, y + (Math.random() - 0.5) * 0.02);
-            fPos.setZ(j, z + (Math.random() - 0.5) * 0.02);
-        }
-        fPos.needsUpdate = true;
-        fallen.geometry.computeVertexNormals();
-
-        fallen.position.set(
-            (Math.random() - 0.5) * width * 0.8,
-            size * 0.1 + Math.random() * 0.05,
-            side * (0.3 + Math.random() * 0.6)
-        );
-        fallen.rotation.set(
-            Math.random() * 0.8,
-            Math.random() * Math.PI * 2,
-            Math.random() * 0.8
-        );
-        g.add(fallen);
-    }
+    // A stone near the broken top, where it fell
+    const fallenTop = new THREE.Mesh(
+        new THREE.BoxGeometry(0.4, 0.2, 0.4),
+        matSet.stoneDark
+    );
+    fallenTop.position.set(1.8, 0.1, -0.5);
+    fallenTop.rotation.y = Math.PI / 4;
+    fallenTop.rotation.x = 0.2;
+    g.add(fallenTop);
 
     // -------------------------------------------------------------------
-    // 6. IVY - more detailed, climbing both pillars
+    // 6. SUBTLE MOSS - growing where shadow lingers
     // -------------------------------------------------------------------
     if (matSet.moss) {
-        // Main ivy on left pillar
-        if (Math.random() < 0.7) {
-            const vineHeight = height * (0.6 + Math.random() * 0.3);
-            ivyVine(scene,
-                new THREE.Vector3(
-                    pos.x + (-width / 2 - 0.3) * Math.cos(rot) - 0.3 * Math.sin(rot),
-                    0.1,
-                    pos.z + (-width / 2 - 0.3) * Math.sin(rot) + 0.3 * Math.cos(rot)
-                ),
-                vineHeight,
-                matSet
-            );
-        }
-
-        // Secondary ivy on right pillar (damaged side)
-        if (Math.random() < 0.4) {
-            const vineHeight = height * (0.3 + Math.random() * 0.3);
-            ivyVine(scene,
-                new THREE.Vector3(
-                    pos.x + (width / 2 + 0.3) * Math.cos(rot) - 0.3 * Math.sin(rot),
-                    0.1,
-                    pos.z + (width / 2 + 0.3) * Math.sin(rot) + 0.3 * Math.cos(rot)
-                ),
-                vineHeight,
-                matSet
-            );
-        }
-
-        // Ivy growing through the arch
-        if (Math.random() < 0.3) {
-            ivyVine(scene,
-                new THREE.Vector3(
-                    pos.x + 0.2 * Math.cos(rot) - 0.2 * Math.sin(rot),
-                    height * 0.5,
-                    pos.z + 0.2 * Math.sin(rot) + 0.2 * Math.cos(rot)
-                ),
-                height * 0.4,
-                matSet
-            );
-        }
-    }
-
-    // -------------------------------------------------------------------
-    // 7. RUBBLE PILES (enhanced with more detail)
-    // -------------------------------------------------------------------
-    // Main rubble on damaged side
-    rubblePile(scene,
-        pos.x + Math.sin(rot) * (width * 0.4) + (Math.random() - 0.5) * 0.3,
-        pos.z + Math.cos(rot) * (width * 0.4) + (Math.random() - 0.5) * 0.3,
-        0.8 + Math.random() * 0.4,
-        8 + Math.floor(Math.random() * 6),
-        matSet
-    );
-
-    // Secondary rubble piles
-    if (Math.random() < 0.6) {
-        rubblePile(scene,
-            pos.x - Math.sin(rot) * (width * 0.2) + (Math.random() - 0.5) * 0.3,
-            pos.z - Math.cos(rot) * (width * 0.2) + (Math.random() - 0.5) * 0.3,
-            0.4 + Math.random() * 0.3,
-            4 + Math.floor(Math.random() * 4),
-            matSet
+        // Moss only at the very base, where moisture collects
+        const mossPatch = new THREE.Mesh(
+            new THREE.TorusGeometry(pillarRadius * 1.2, 0.05, 4, 8),
+            matSet.moss
         );
+        mossPatch.rotation.x = Math.PI / 2;
+        mossPatch.position.set(-width / 2, 0.05, 0);
+        g.add(mossPatch);
+
+        const mossPatchR = new THREE.Mesh(
+            new THREE.TorusGeometry(pillarRadius * 1.1, 0.04, 4, 8),
+            matSet.moss
+        );
+        mossPatchR.rotation.x = Math.PI / 2;
+        mossPatchR.position.set(width / 2, 0.04, 0);
+        g.add(mossPatchR);
     }
 
-    // Rubble between pillars (fallen arch stones)
-    rubblePile(scene,
-        pos.x + (Math.random() - 0.5) * 0.5,
-        pos.z + (Math.random() - 0.5) * 0.5,
-        0.5 + Math.random() * 0.3,
-        5 + Math.floor(Math.random() * 4),
-        matSet
-    );
-
-    // Small debris scattered around
-    for (let i = 0; i < 12; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 1.5 + Math.random() * 1.5;
-        const size = 0.03 + Math.random() * 0.06;
+    // -------------------------------------------------------------------
+    // 7. SUBTLE DEBRIS - light dusting, not heavy rubble
+    // -------------------------------------------------------------------
+    for (let i = 0; i < 5; i++) {
+        const size = 0.03 + Math.random() * 0.05;
         const debris = new THREE.Mesh(
             new THREE.DodecahedronGeometry(size),
             matSet.stoneDark
         );
         debris.position.set(
-            Math.cos(angle) * dist,
-            size * 0.3 + Math.random() * 0.02,
-            Math.sin(angle) * dist
+            (Math.random() - 0.5) * width,
+            size * 0.2,
+            (Math.random() - 0.5) * 1.5
         );
         debris.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
         g.add(debris);
     }
 
     // -------------------------------------------------------------------
-    // 8. FOUNDATION FOOTPRINT with detailed stones
+    // 8. FAINT FOUNDATION - barely visible, like a memory
     // -------------------------------------------------------------------
-    foundationFootprint(scene, pos.x, pos.z, width + 1.5, 1.8, rot, matSet);
+    const foundation = new THREE.Mesh(
+        new THREE.BoxGeometry(width + 1, 0.05, 1.5),
+        matSet.stoneDark
+    );
+    foundation.position.y = 0.025;
+    foundation.material = foundation.material.clone();
+    foundation.material.transparent = true;
+    foundation.material.opacity = 0.5;
+    g.add(foundation);
 
     g.position.copy(pos);
     g.rotation.y = rot;
