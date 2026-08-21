@@ -11,7 +11,7 @@ import { registerChapter1Quests } from "./story/Chapter1.js";
 import { initInteractionUI, updateInteractions } from "./systems/Interaction.js";
 import { initMemorySense } from "./systems/MemorySense.js";
 
-console.log("Ruins & the Wandering Ghost — booting modular engine...");
+console.log("Ruins & the Wandering Ghost — booting procedural engine...");
 
 // 1. Build Environment & Shared Systems
 buildEnvironment(scene);
@@ -25,15 +25,20 @@ const ghost = createGhost(scene);
 registerRuinsStructures(Game);
 registerChapter1Quests(Game, LOCATIONS);
 
-// 4. Build Registered Structures in Scene
-Game.structures.forEach(fn => fn(scene, M));
-startQuestRunner(Game);
+function bootGame() {
+    // 4. Build Registered Structures in Scene
+    Game.structures.forEach(fn => fn(scene, M));
+    startQuestRunner(Game);
 
-// Initialize Systems
-initInteractionUI();
-initMemorySense();
+    // Initialize Systems
+    initInteractionUI();
+    initMemorySense();
+    
+    // Start Game Loop
+    animate();
+}
 
-// 5. Main Game Loop
+// Main Game Loop
 const clock = new THREE.Clock();
 
 function animate() {
@@ -59,6 +64,10 @@ function animate() {
     ghost.update(dt, t, finalMove);
     updateInteractions(ghost.position);
     Game.updaters.forEach(fn => fn(dt, t));
+    
+    if (scene.userData.updateEnvironment) {
+        scene.userData.updateEnvironment(t);
+    }
 
     // Update Camera position to follow player
     updateCamera(camera, ghost.position);
@@ -66,5 +75,4 @@ function animate() {
     // Render Scene
     renderer.render(scene, camera);
 }
-
-animate();
+bootGame();

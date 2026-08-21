@@ -68,4 +68,104 @@ function buildGround(scene) {
         rubble.setMatrixAt(i, dummy.matrix);
     }
     scene.add(rubble);
+
+    // Procedural Grass using InstancedMesh
+    const grassCount = 10000;
+    const grassGeo = new THREE.PlaneGeometry(0.15, 0.6);
+    grassGeo.translate(0, 0.3, 0); // pivot at bottom
+    
+    // Custom shader for waving grass
+    const grassMat = new THREE.MeshStandardMaterial({ 
+        color: 0x3c4a2e,
+        side: THREE.DoubleSide,
+        roughness: 0.8
+    });
+    
+    grassMat.onBeforeCompile = (shader) => {
+        shader.uniforms.time = { value: 0 };
+        shader.vertexShader = `
+            uniform float time;
+            ${shader.vertexShader}
+        `.replace(
+            `#include <begin_vertex>`,
+            `
+            vec3 transformed = vec3( position );
+            // Wave based on height and world position
+            float wave = sin(time * 2.0 + instanceMatrix[3][0] * 0.5 + instanceMatrix[3][2] * 0.5) * 0.15;
+            transformed.x += wave * position.y;
+            `
+        );
+        grassMat.userData.shader = shader;
+    };
+
+    const grass = new THREE.InstancedMesh(grassGeo, grassMat, grassCount);
+    for (let i = 0; i < grassCount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.random() * 60;
+        const x = Math.cos(a) * r;
+        const z = Math.sin(a) * r;
+        // Don't place grass perfectly on paths
+        if (Math.abs(x) < 2 && z < 10 && z > -15) continue;
+        
+        dummy.position.set(x, 0, z);
+        dummy.rotation.set(0, Math.random() * Math.PI, 0);
+        const s = 0.5 + Math.random() * 0.8;
+        dummy.scale.set(s, s, s);
+        dummy.updateMatrix();
+        grass.setMatrixAt(i, dummy.matrix);
+    }
+    scene.add(grass);
+
+    // Fireflies
+    const fireflyCount = 150;
+    const fireflyGeo = new THREE.BufferGeometry();
+    const fireflyPos = new Float32Array(fireflyCount * 3);
+    const fireflyPhase = new Float32Array(fireflyCount);
+    
+    for(let i=0; i<fireflyCount; i++) {
+        fireflyPos[i*3] = (Math.random() - 0.5) * 80;
+        fireflyPos[i*3+1] = 0.5 + Math.random() * 3;
+        fireflyPos[i*3+2] = (Math.random() - 0.5) * 80;
+        fireflyPhase[i] = Math.random() * Math.PI * 2;
+    }
+    fireflyGeo.setAttribute('position', new THREE.BufferAttribute(fireflyPos, 3));
+    fireflyGeo.setAttribute('phase', new THREE.BufferAttribute(fireflyPhase, 1));
+    
+    const fireflyMat = new THREE.ShaderMaterial({
+        uniforms: { time: { value: 0 } },
+        vertexShader: `
+            attribute float phase;
+            varying float vPhase;
+            void main() {
+                vPhase = phase;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = 4.0 * (10.0 / -mvPosition.z);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            uniform float time;
+            varying float vPhase;
+            void main() {
+                float alpha = (sin(time * 1.5 + vPhase) + 1.0) * 0.5;
+                float dist = length(gl_PointCoord - vec2(0.5));
+                if (dist > 0.5) discard;
+                gl_FragColor = vec4(0.8, 1.0, 0.5, alpha * (1.0 - dist * 2.0));
+            }
+        `,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
+    
+    const fireflies = new THREE.Points(fireflyGeo, fireflyMat);
+    scene.add(fireflies);
+
+    // Expose update function for animated environment features
+    scene.userData.updateEnvironment = (t) => {
+        if (grassMat.userData.shader) {
+            grassMat.userData.shader.uniforms.time.value = t;
+        }
+        fireflies.material.uniforms.time.value = t;
+    };
 }
