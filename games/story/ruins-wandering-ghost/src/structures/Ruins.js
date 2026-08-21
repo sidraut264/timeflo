@@ -1111,31 +1111,195 @@ export function storageDebris(scene, x, z, matSet) {
 // ---------------------------------------------------------------------------
 export function cartWreck(scene, x, z, rot, matSet) {
     const g = new THREE.Group();
-    const bed = new THREE.Mesh(jaggedBox(1.6, 0.3, 0.9, { chipChance: 0.2 }), matSet.wood);
-    bed.position.set(0, 0.3, 0);
+
+    // CART BED - flat rectangular platform with side rails
+    const bedGeo = new THREE.BoxGeometry(1.8, 0.08, 1.2);
+    const bed = new THREE.Mesh(bedGeo, matSet.wood);
+    bed.position.set(0, 0.35, 0);
     bed.rotation.z = rand(-0.15, 0.15);
+    bed.rotation.x = rand(-0.05, 0.05);
     g.add(bed);
 
-    const wheelGeo = new THREE.TorusGeometry(0.45, 0.06, 6, 12);
-    const wheelStanding = new THREE.Mesh(wheelGeo, matSet.wood);
-    wheelStanding.position.set(-0.6, 0.45, 0.55);
-    wheelStanding.rotation.y = rand(-0.1, 0.1);
-    g.add(wheelStanding);
+    // Side rails (the raised edges of the cart)
+    const railGeo = new THREE.BoxGeometry(1.8, 0.2, 0.06);
 
+    const railLeft = new THREE.Mesh(railGeo, matSet.wood);
+    railLeft.position.set(0, 0.5, -0.57);
+    railLeft.rotation.z = bed.rotation.z;
+    g.add(railLeft);
+
+    const railRight = new THREE.Mesh(railGeo, matSet.wood);
+    railRight.position.set(0, 0.5, 0.57);
+    railRight.rotation.z = bed.rotation.z;
+    g.add(railRight);
+
+    // Front rail (broken)
+    const railFront = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 0.2, 1.1),
+        matSet.woodDry || matSet.wood
+    );
+    railFront.position.set(0.85, 0.5, 0);
+    railFront.rotation.x = rand(-0.3, -0.1);
+    g.add(railFront);
+
+    // Support beams under the bed
+    for (let i = -1; i <= 1; i += 2) {
+        const beam = new THREE.Mesh(
+            new THREE.BoxGeometry(1.6, 0.1, 0.15),
+            matSet.wood
+        );
+        beam.position.set(0, 0.28, i * 0.4);
+        beam.rotation.z = bed.rotation.z;
+        g.add(beam);
+    }
+
+    // AXLE - horizontal bar connecting wheels
+    const axle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.07, 0.07, 1.4, 8),
+        matSet.woodDry || matSet.wood
+    );
+    axle.rotation.x = Math.PI / 2;
+    axle.position.set(-0.2, 0.35, 0);
+    g.add(axle);
+
+    // WHEELS - large wooden wheels
+    const wheelGeo = new THREE.TorusGeometry(0.5, 0.07, 8, 16);
+
+    // Still attached wheel (left side)
+    const wheelAttached = new THREE.Mesh(wheelGeo, matSet.wood);
+    wheelAttached.position.set(-0.2, 0.35, -0.7);
+    wheelAttached.rotation.y = rand(-0.2, 0.2);
+    g.add(wheelAttached);
+
+    // Wheel spokes for attached wheel
+    for (let i = 0; i < 6; i++) {
+        const spoke = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.04, 0.9, 4),
+            matSet.wood
+        );
+        const angle = (i / 6) * Math.PI * 2;
+        spoke.position.set(-0.2, 0.35, -0.7);
+        spoke.rotation.x = Math.PI / 2;
+        spoke.rotation.z = angle;
+        spoke.translateY(Math.sin(angle) * 0.45);
+        spoke.translateZ(Math.cos(angle) * 0.45);
+        g.add(spoke);
+    }
+
+    // Hub for attached wheel
+    const hubAttached = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.1, 0.1, 0.15, 8),
+        matSet.woodDry || matSet.wood
+    );
+    hubAttached.rotation.x = Math.PI / 2;
+    hubAttached.position.set(-0.2, 0.35, -0.7);
+    g.add(hubAttached);
+
+    // Fallen wheel (right side) - lying on ground
     const wheelFallen = new THREE.Mesh(wheelGeo, matSet.wood);
-    wheelFallen.position.set(0.7, 0.06, -0.7);
+    wheelFallen.position.set(0.9, 0.08, 0.4);
     wheelFallen.rotation.x = Math.PI / 2;
+    wheelFallen.rotation.z = rand(-0.3, 0.3);
     g.add(wheelFallen);
 
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 1.8, 5), matSet.wood);
-    shaft.position.set(-1.1, 0.35, 0);
-    shaft.rotation.z = Math.PI / 2 - 0.2;
-    g.add(shaft);
+    // Broken spokes on fallen wheel
+    for (let i = 0; i < 3; i++) {
+        const brokenSpoke = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.03, 0.04, rand(0.2, 0.4), 4),
+            matSet.woodDry || matSet.wood
+        );
+        brokenSpoke.position.set(
+            0.9 + rand(-0.2, 0.2),
+            0.08,
+            0.4 + rand(-0.2, 0.2)
+        );
+        brokenSpoke.rotation.set(rand(0, Math.PI), rand(0, Math.PI), rand(0, Math.PI));
+        g.add(brokenSpoke);
+    }
 
+    // SHAFTS - the poles for pulling the cart
+    // Left shaft (upright, telling the story)
+    const shaftLeft = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.06, 0.07, 2.2, 6),
+        matSet.wood
+    );
+    shaftLeft.position.set(-1.3, 0.4, -0.4);
+    shaftLeft.rotation.z = Math.PI / 2 - 0.3;
+    shaftLeft.rotation.y = rand(-0.1, 0.1);
+    g.add(shaftLeft);
+
+    // Right shaft (broken, on ground)
+    const shaftRight = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.055, 0.065, 1.5, 6),
+        matSet.woodDry || matSet.wood
+    );
+    shaftRight.position.set(-0.8, 0.1, 0.4);
+    shaftRight.rotation.z = Math.PI / 2 + 0.2;
+    shaftRight.rotation.x = rand(-0.2, 0.2);
+    g.add(shaftRight);
+
+    // Crossbar between shafts (yoke)
+    const yoke = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.1, 0.08),
+        matSet.wood
+    );
+    yoke.position.set(-1.2, 0.5, 0);
+    yoke.rotation.y = rand(-0.15, 0.15);
+    g.add(yoke);
+
+    // Scattered cargo
+    const crate = new THREE.Mesh(
+        new THREE.BoxGeometry(0.4, 0.3, 0.35),
+        matSet.wood
+    );
+    crate.position.set(0.5, 0.2, -0.8);
+    crate.rotation.y = rand(0, Math.PI);
+    crate.rotation.z = rand(-0.1, 0.1);
+    g.add(crate);
+
+    const sack = new THREE.Mesh(
+        new THREE.SphereGeometry(0.25, 6, 5),
+        matSet.cloth || matSet.clothWorn
+    );
+    sack.position.set(0.7, 0.15, 0.6);
+    sack.scale.set(1.2, 0.7, 1);
+    sack.rotation.z = rand(-0.3, 0.3);
+    g.add(sack);
+
+    // Scattered items
+    const barrel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.22, 0.5, 8),
+        matSet.woodDry || matSet.wood
+    );
+    barrel.position.set(-0.4, 0.25, 1.0);
+    barrel.rotation.x = Math.PI / 2 + rand(-0.2, 0.2);
+    barrel.rotation.z = rand(0, Math.PI);
+    g.add(barrel);
+
+    // Position and rotate the entire wreck
     g.position.set(x, 0, z);
     g.rotation.y = rot;
     scene.add(g);
-    rubblePile(scene, x, z, 0.9, 3, matSet);
+
+    // Add surrounding debris
+    rubblePile(scene, x + rand(-0.5, 0.5), z + rand(-0.5, 0.5), rand(0.8, 1.2), rand(4, 6), matSet);
+
+    // Scattered planks and splinters
+    for (let i = 0; i < 5; i++) {
+        const plank = new THREE.Mesh(
+            new THREE.BoxGeometry(rand(0.3, 0.7), 0.04, rand(0.1, 0.2)),
+            matSet.woodDry || matSet.wood
+        );
+        plank.position.set(
+            x + rand(-2, 2),
+            0.03,
+            z + rand(-2, 2)
+        );
+        plank.rotation.y = rand(0, Math.PI * 2);
+        plank.rotation.x = rand(-0.1, 0.1);
+        scene.add(plank);
+    }
+
     return g;
 }
 
