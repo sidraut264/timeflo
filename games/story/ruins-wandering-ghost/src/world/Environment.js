@@ -49,7 +49,7 @@ function fbm(p, octaves = 5) {
 }
 
 // The ONE height function used everywhere
-function getTerrainHeight(x, z) {
+export function getTerrainHeight(x, z) {
     const p = new THREE.Vector3(x * 0.08, 0, z * 0.08);
     const h = fbm(p, 5) * 0.8 + 0.2 * Math.sin(x * 0.05) * Math.cos(z * 0.06);
     return (h - 0.4) * 1.2; // scale to reasonable meters
@@ -71,7 +71,9 @@ export function buildEnvironment(scene) {
     const moon = new THREE.DirectionalLight(0x9fb3ff, 1.2);
     moon.position.set(-30, 40, -20);
     scene.add(moon);
-    scene.add(new THREE.DirectionalLight(0x5577aa, 0.3).position.set(20, 10, 30));
+    const fillLight = new THREE.DirectionalLight(0x5577aa, 0.3);
+    fillLight.position.set(20, 10, 30);
+    scene.add(fillLight);
 
     // Moon mesh
     const moonMesh = new THREE.Mesh(

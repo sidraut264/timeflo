@@ -1,4 +1,5 @@
 import { THREE } from "../core/Renderer.js";
+import { getTerrainHeight } from "../world/Environment.js";
 
 export function createGhost(scene) {
     const group = new THREE.Group();
@@ -50,7 +51,7 @@ export function createGhost(scene) {
     }));
     group.add(motes);
 
-    group.position.set(0, 1.1, 6);
+    group.position.set(0, getTerrainHeight(0, 6) + 1.1, 6);
     scene.add(group);
 
     const velocity = new THREE.Vector3();
@@ -63,7 +64,8 @@ export function createGhost(scene) {
         velocity.lerp(targetVel, 1 - Math.pow(0.001, dt));
         group.position.x += velocity.x * dt;
         group.position.z += velocity.z * dt;
-        group.position.y = 1.1 + Math.sin(t * 1.3) * 0.15;
+        const groundY = getTerrainHeight(group.position.x, group.position.z);
+        group.position.y = groundY + 1.1 + Math.sin(t * 1.3) * 0.15;
 
         if (velocity.lengthSq() > 0.05) {
             heading.set(velocity.x, 0, velocity.z).normalize();

@@ -1,4 +1,7 @@
 import { THREE } from "../core/Renderer.js";
+import { getTerrainHeight } from "../world/Environment.js";
+
+export { getTerrainHeight };
 
 // ---------------------------------------------------------------------------
 // Small utility helpers
@@ -54,7 +57,10 @@ export function rubblePile(scene, x, z, radius, count, matSet) {
             jaggedBox(s, s * rand(0.5, 0.9), s, { chipChance: 0.3 }),
             Math.random() < 0.25 ? matSet.moss : (Math.random() < 0.5 ? matSet.stone : matSet.stoneDark)
         );
-        chunk.position.set(x + Math.cos(a) * r, s * 0.25, z + Math.sin(a) * r);
+        const cx = x + Math.cos(a) * r;
+        const cz = z + Math.sin(a) * r;
+        const cy = getTerrainHeight(cx, cz) + s * 0.25;
+        chunk.position.set(cx, cy, cz);
         chunk.rotation.set(Math.random() * 0.4, Math.random() * Math.PI, Math.random() * 0.4);
         g.add(chunk);
     }
@@ -205,7 +211,7 @@ export function brokenColumn(scene, x, z, height, rot, matSet) {
         }
     }
 
-    g.position.set(x, 0, z);
+    g.position.set(x, getTerrainHeight(x, z), z);
     g.rotation.y = rot;
     scene.add(g);
 
@@ -284,7 +290,7 @@ export function ruinedWall(scene, x, z, w, h, rot, material, matSet) {
         }
     });
 
-    group.position.set(x, 0, z);
+    group.position.set(x, getTerrainHeight(x, z), z);
     group.rotation.y = rot;
     scene.add(group);
 
@@ -640,7 +646,7 @@ export function archway(scene, pos, rot, matSet) {
     foundation.material.opacity = 0.5;
     g.add(foundation);
 
-    g.position.copy(pos);
+    g.position.set(pos.x, getTerrainHeight(pos.x, pos.z), pos.z);
     g.rotation.y = rot;
     scene.add(g);
     return g;
@@ -709,17 +715,19 @@ export function foundationFootprint(scene, x, z, w, d, rot, matSet) {
     for (let i = -w / 2; i <= w / 2; i += rand(0.5, 0.7)) { perimeter.push([i, -d / 2]); perimeter.push([i, d / 2]); }
     for (let j = -d / 2; j <= d / 2; j += rand(0.5, 0.7)) { perimeter.push([-w / 2, j]); perimeter.push([w / 2, j]); }
 
+    const cosR = Math.cos(rot), sinR = Math.sin(rot);
     perimeter.forEach(([px, pz]) => {
-        if (Math.random() < 0.2) return;
-        const s = rand(0.3, 0.55);
-        const stone = new THREE.Mesh(jaggedBox(s, s * 0.6, s, { chipChance: 0.1 }), matSet.stoneDark);
-        stone.position.set(px + rand(-0.1, 0.1), s * 0.15, pz + rand(-0.1, 0.1));
+        if (Math.random() < 0.25) return;
+        const s = rand(0.35, 0.65);
+        const stone = new THREE.Mesh(jaggedBox(s, s * rand(0.6, 1.0), s, { chipChance: 0.1 }), Math.random() < 0.3 ? matSet.moss : matSet.stoneDark);
+        const worldX = x + px * cosR - pz * sinR;
+        const worldZ = z + px * sinR + pz * cosR;
+        const worldY = getTerrainHeight(worldX, worldZ) + s * 0.15;
+        stone.position.set(worldX, worldY, worldZ);
         stone.rotation.y = Math.random() * Math.PI;
-        g.add(stone);
+        scene.add(stone);
     });
-    g.position.set(x, 0, z);
-    g.rotation.y = rot;
-    scene.add(g);
+
     return g;
 }
 
@@ -727,21 +735,22 @@ export function foundationFootprint(scene, x, z, w, d, rot, matSet) {
 // floorSlabs: cracked flagstone floor with gaps and uneven settling
 // ---------------------------------------------------------------------------
 export function floorSlabs(scene, x, z, w, d, rot, matSet) {
-    const g = new THREE.Group();
+    const cosR = Math.cos(rot), sinR = Math.sin(rot);
     for (let ix = -w / 2; ix < w / 2; ix += rand(0.7, 1.0)) {
         for (let iz = -d / 2; iz < d / 2; iz += rand(0.7, 1.0)) {
             if (Math.random() < 0.12) continue;
             const sw = rand(0.55, 0.85), sd = rand(0.55, 0.85);
             const slab = new THREE.Mesh(new THREE.BoxGeometry(sw, 0.08, sd), Math.random() < 0.15 ? matSet.moss : matSet.stone);
-            slab.position.set(ix + rand(-0.08, 0.08), rand(-0.05, 0.02), iz + rand(-0.08, 0.08));
-            slab.rotation.y = rand(-0.05, 0.05);
-            g.add(slab);
+            const lx = ix + rand(-0.08, 0.08);
+            const lz = iz + rand(-0.08, 0.08);
+            const wx = x + lx * cosR - lz * sinR;
+            const wz = z + lx * sinR + lz * cosR;
+            const wy = getTerrainHeight(wx, wz) + rand(-0.02, 0.01);
+            slab.position.set(wx, wy, wz);
+            slab.rotation.y = rot + rand(-0.05, 0.05);
+            scene.add(slab);
         }
     }
-    g.position.set(x, 0, z);
-    g.rotation.y = rot;
-    scene.add(g);
-    return g;
 }
 
 // ---------------------------------------------------------------------------
@@ -782,7 +791,8 @@ export function windingPath(scene, from, to, matSet, opts = {}) {
         if (Math.random() < 0.35) continue;
         const s = rand(0.35, 0.6);
         const stone = new THREE.Mesh(jaggedBox(s, 0.12, s, { chipChance: 0.1 }), Math.random() < 0.7 ? matSet.stone : matSet.moss);
-        stone.position.set(p.x, rand(-0.04, 0.01), p.z);
+        const yBase = getTerrainHeight(p.x, p.z);
+        stone.position.set(p.x, yBase + rand(-0.02, 0.01), p.z);
         stone.rotation.y = Math.random() * Math.PI;
         scene.add(stone);
     }
@@ -809,7 +819,9 @@ export function emptyPlot(scene, x, z, w, d, rot, matSet) {
     for (let i = 0; i < stubCount; i++) {
         const corner = pick([[-w / 2, -d / 2], [w / 2, -d / 2], [-w / 2, d / 2], [w / 2, d / 2]]);
         const stub = new THREE.Mesh(jaggedBox(0.6, rand(0.4, 1.1), 0.6, { chipChance: 0.2 }), matSet.stoneDark);
-        stub.position.set(x + corner[0], stub.geometry.parameters.height / 2, z + corner[1]);
+        const stubX = x + corner[0], stubZ = z + corner[1];
+        const stubH = stub.geometry.parameters.height;
+        stub.position.set(stubX, getTerrainHeight(stubX, stubZ) + stubH / 2, stubZ);
         stub.rotation.y = rot + rand(-0.2, 0.2);
         scene.add(stub);
     }
@@ -835,7 +847,7 @@ export function campfireRing(scene, x, z, matSet) {
     log.rotation.y = rand(0, Math.PI);
     log.position.y = 0.09;
     g.add(log);
-    g.position.set(x, 0, z);
+    g.position.set(x, getTerrainHeight(x, z), z);
     scene.add(g);
     return g;
 }
@@ -862,7 +874,7 @@ export function storageDebris(scene, x, z, matSet) {
             g.add(barrel);
         }
     }
-    g.position.set(0, 0, 0);
+    g.position.set(x, getTerrainHeight(x, z), z);
     scene.add(g);
     return g;
 }
@@ -1016,7 +1028,7 @@ export function cartWreck(scene, x, z, rot, matSet) {
     barrel.rotation.z = rand(0, Math.PI);
     g.add(barrel);
 
-    g.position.set(x, 0, z);
+    g.position.set(x, getTerrainHeight(x, z), z);
     g.rotation.y = rot;
     scene.add(g);
 
@@ -1066,7 +1078,7 @@ export function createTree(scene, pos, matSet) {
     const g = new THREE.Group();
     const lean = new THREE.Vector3(rand(-0.3, 0.3), 1, rand(-0.3, 0.3)).normalize();
     addBranch(g, matSet, new THREE.Vector3(0, 0, 0), lean, rand(3.2, 4.2), 0.35, 4);
-    g.position.copy(pos);
+    g.position.set(pos.x, getTerrainHeight(pos.x, pos.z), pos.z);
     scene.add(g);
     return g;
 }
