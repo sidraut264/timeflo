@@ -325,7 +325,20 @@ class Character {
 
     this.animTime += dt * freq;
     const t = this.animTime;
-    const swing = Math.sin(t);       // −1 → +1
+    const swing = Math.sin(t);
+
+    // ── Whole-model-only mode (elf with no mappable skeleton joints) ──
+    if (J._wholeModelOnly && J.root) {
+      const bob    = isMoving ? Math.abs(Math.sin(t * 2)) * 0.04 : 0;
+      const sway   = Math.sin(t * (isMoving ? 2 : 0.6)) * (isMoving ? 0.015 : 0.005);
+      const lean   = isMoving ? (isRun ? -0.08 : -0.04) : 0;
+      const breathe = !isMoving ? Math.sin(t * 0.9) * 0.012 : 0;
+
+      J.root.position.y    = (J.root._baseY || 0) + bob + breathe;
+      J.root.rotation.z    = sway;
+      J.root.rotation.x    = lean;
+      return;
+    }
 
     // ── Legs ──────────────────────────────────────────────
     if (J.lHip)  J.lHip.rotation.x  =  swing * legAmp;
@@ -369,6 +382,7 @@ class Character {
       J.head.rotation.x = isMoving ? -0.08 - Math.abs(swing) * 0.04 : Math.sin(t * 0.5) * 0.015;
     }
   }
+
 
   // Store base Y after building so bob has a reference
   _cacheBaseY(J) {
