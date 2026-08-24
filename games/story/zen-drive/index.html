@@ -28,19 +28,40 @@
       <div class="pill" id="biome-pill">Forest</div>
     </div>
 
-    <button id="cruise-btn">✦ Auto Cruise</button>
+    <button id="avatar-btn" class="top-btn" style="display:none;">👤 Soldier</button>
+    <button id="mode-btn" class="top-btn">🚗 Drive Mode</button>
+    <button id="cruise-btn" class="top-btn">✦ Auto Cruise</button>
+
+    <!-- Mobile Touch Overlay Controls -->
+    <div id="mobile-controls">
+      <div id="joystick-base">
+        <div id="joystick-knob"></div>
+      </div>
+      
+      <div id="touch-actions">
+        <button id="btn-touch-action" class="touch-btn">⚡ DRIFT / RUN</button>
+      </div>
+    </div>
 
     <div id="hints">
-      W / ↑ &nbsp;Accelerate<br>
-      S / ↓ &nbsp;Brake<br>
-      A / D &nbsp;Steer<br>
+      W / ↑ &nbsp;Accelerate / Walk<br>
+      S / ↓ &nbsp;Brake / Back<br>
+      A / D &nbsp;Steer / Turn<br>
+      SHIFT &nbsp;Run (On Foot)<br>
+      V &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Switch Mode (Car / Walk)<br>
+      X &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Switch Avatar (Soldier/Ratamahatta/Elf/Mannequin)<br>
       C &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cruise Control<br>
       SPACE &nbsp;Drift
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Three.js & Loaders -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MD2Loader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/misc/MD2Character.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
+  
   <!-- Simplex Noise for terrain -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
   
@@ -50,6 +71,7 @@
   <script src="src/core/Engine.js"></script>
   
   <script src="src/entities/Car.js"></script>
+  <script src="src/entities/Character.js"></script>
   
   <script src="src/world/BiomeManager.js"></script>
   <script src="src/world/TerrainGenerator.js"></script>

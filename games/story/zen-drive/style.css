@@ -1,5 +1,5 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { overflow: hidden; background: #000; font-family: 'Georgia', serif; }
+body { overflow: hidden; background: #000; font-family: 'Georgia', serif; user-select: none; -webkit-user-select: none; }
 canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 
 #vignette {
@@ -45,8 +45,8 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
   font-family: monospace;
 }
 
-#cruise-btn {
-  position: fixed; top: 28px; right: 28px;
+.top-btn {
+  position: fixed; top: 28px;
   background: rgba(0,0,0,0.3);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,0.25);
@@ -56,9 +56,72 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
   cursor: pointer; pointer-events: all;
   transition: all 0.3s; text-transform: uppercase;
   font-family: monospace;
+  z-index: 10;
 }
-#cruise-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-#cruise-btn.active { border-color: rgba(180,240,180,0.6); color: #b8ffb8; background: rgba(0,0,0,0.5); }
+.top-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.top-btn.active { border-color: rgba(180,240,180,0.6); color: #b8ffb8; background: rgba(0,0,0,0.5); }
+
+#cruise-btn { right: 28px; }
+#mode-btn { right: 210px; }
+#avatar-btn { right: 385px; }
+
+/* Mobile Touch Controls */
+#mobile-controls {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 15;
+}
+
+#joystick-base {
+  position: fixed;
+  bottom: 35px; left: 35px;
+  width: 120px; height: 120px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  pointer-events: all;
+  touch-action: none;
+}
+
+#joystick-knob {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px; height: 50px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+#touch-actions {
+  position: fixed;
+  bottom: 40px; right: 35px;
+  pointer-events: all;
+}
+
+.touch-btn {
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 40px;
+  padding: 14px 24px;
+  color: #fff;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  font-family: monospace;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.2s;
+}
+.touch-btn:active, .touch-btn.active {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(180, 240, 180, 0.8);
+  color: #b8ffb8;
+  transform: scale(0.95);
+}
 
 #hints {
   position: fixed; bottom: 28px; right: 28px;
@@ -66,6 +129,14 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
   line-height: 2; letter-spacing: 0.08em;
   text-align: right;
   font-family: monospace;
+}
+
+/* Hide desktop key text when touch control is active or on smaller screens */
+@media (max-width: 1024px), (pointer: coarse) {
+  #hints { display: none; }
+  #mode-btn { right: 150px; padding: 6px 14px; font-size: 0.68rem; }
+  #cruise-btn { right: 16px; padding: 6px 14px; font-size: 0.68rem; }
+  #avatar-btn { right: 280px; padding: 6px 14px; font-size: 0.68rem; }
 }
 
 #loading {

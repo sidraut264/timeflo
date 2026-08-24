@@ -22,6 +22,7 @@ class World {
     this.terrainGenerator.setColor(biome.ground);
     
     this.terrainGenerator.update(carPos.x, carPos.z, biome);
+    this.terrainGenerator.animate(performance.now() / 1000);
 
     // 2. Track Distance and Transition Biomes
     this.distanceTraveled += Math.abs(speed);
