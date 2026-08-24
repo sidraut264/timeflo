@@ -39,6 +39,36 @@ The world of *Ruins & the Wandering Ghost* is structured into discrete **Regions
 
 ---
 
+### District Composition (REG_001_FORGOTTEN_SETTLEMENT)
+
+To guide environmental generation without creating a new architecture, the settlement is conceptually divided into environmental districts. These do not change existing locations or IDs.
+
+1. **ENTRANCE DISTRICT** (`LOC_001`, `LOC_002`)
+   - **Characteristics**: Sparse ruins, overgrown entrance, gradually increasing settlement density, narrow/worn path, dead vegetation, scattered stone debris.
+   - **Purpose**: Player entering the remains of a forgotten settlement.
+
+2. **RESIDENTIAL DISTRICT** (`LOC_003`, `LOC_004`)
+   - **Characteristics**: Highest concentration of residential ruins, non-interactive house foundations, small courtyards, low stone walls, fences, household debris, storage areas, connecting paths.
+   - **Purpose**: Empty House is one surviving example of a larger residential area; Well is shared infrastructure.
+
+3. **COMMUNAL DISTRICT** (`LOC_005`, `LOC_006`)
+   - **Characteristics**: More open space, wider paths, organized stonework, benches, garden remnants, communal gathering space, lower density of ruined houses.
+   - **Purpose**: Stone Garden is the social heart; Statue is a civic/religious/commemorative landmark.
+
+4. **DEFENSIVE / WATCH DISTRICT** (`LOC_007`, `LOC_008`)
+   - **Characteristics**: Lower residential density, heavier stone debris, defensive remnants, elevated/open sightlines where terrain permits, warning/gathering infrastructure, more severe structural damage.
+   - **Purpose**: Broken Tower visually dominates; Silent Bell is related to the tower.
+
+5. **OUTSKIRTS / DEPARTURE DISTRICT** (`LOC_009`)
+   - **Characteristics**: Settlement density gradually decreases, fewer buildings, more natural vegetation, road becomes more prominent, abandoned carts/debris, transition toward wilderness.
+   - **Purpose**: The settlement ending.
+
+6. **MEMORIAL / GRAVE DISTRICT** (`LOC_010`)
+   - **Characteristics**: Isolated, quiet, low structure density, natural vegetation, minimal debris, deliberate empty space, stronger visual connection to surrounding landscape.
+   - **Purpose**: The Grave is not just another village landmark; player has left the settlement behind.
+
+---
+
 ## 2. Exhaustive Location Specifications
 
 ---

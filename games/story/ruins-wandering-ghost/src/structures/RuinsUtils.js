@@ -1082,3 +1082,27 @@ export function createTree(scene, pos, matSet) {
     scene.add(g);
     return g;
 }
+
+// ---------------------------------------------------------------------------
+// stoneBench: simple bench for communal areas
+// ---------------------------------------------------------------------------
+export function stoneBench(scene, x, z, rot, matSet) {
+    const g = new THREE.Group();
+    const slab = new THREE.Mesh(jaggedBox(1.8, 0.2, 0.6, { chipChance: 0.1 }), matSet.stone);
+    slab.position.y = 0.45;
+    g.add(slab);
+    
+    const leg1 = new THREE.Mesh(jaggedBox(0.4, 0.4, 0.5, { chipChance: 0.2 }), matSet.stoneDark);
+    leg1.position.set(-0.7, 0.2, 0);
+    g.add(leg1);
+    
+    const leg2 = new THREE.Mesh(jaggedBox(0.4, 0.4, 0.5, { chipChance: 0.2 }), matSet.stoneDark);
+    leg2.position.set(0.7, 0.2, 0);
+    g.add(leg2);
+
+    const wy = getTerrainHeight(x, z);
+    g.position.set(x, wy, z);
+    g.rotation.y = rot;
+    scene.add(g);
+    return g;
+}

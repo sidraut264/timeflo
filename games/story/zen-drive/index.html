@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zen Drive · A Peaceful Journey</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading">
+    <h1>ZEN DRIVE</h1>
+    <p>a peaceful journey through worlds</p>
+    <div id="load-track"><div id="load-bar"></div></div>
+  </div>
+
+  <!-- Ambient visual effects -->
+  <div id="vignette"></div>
+  <div id="biome-fade"></div>
+  
+  <!-- UI Layer -->
+  <div id="ui-layer">
+    <div id="biome-label">Pine Forest</div>
+    
+    <div id="hud">
+      <div class="pill" id="speed-pill">0 km/h</div>
+      <div class="pill" id="biome-pill">Forest</div>
+    </div>
+
+    <button id="cruise-btn">✦ Auto Cruise</button>
+
+    <div id="hints">
+      W / ↑ &nbsp;Accelerate<br>
+      S / ↓ &nbsp;Brake<br>
+      A / D &nbsp;Steer<br>
+      C &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cruise Control<br>
+      SPACE &nbsp;Drift
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Simplex Noise for terrain -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+  
+  <!-- Source files -->
+  <script src="src/core/Input.js"></script>
+  <script src="src/core/Audio.js"></script>
+  <script src="src/core/Engine.js"></script>
+  
+  <script src="src/entities/Car.js"></script>
+  
+  <script src="src/world/BiomeManager.js"></script>
+  <script src="src/world/TerrainGenerator.js"></script>
+  <script src="src/world/RoadGenerator.js"></script>
+  <script src="src/world/World.js"></script>
+  
+  <script src="src/ui/UIManager.js"></script>
+  
+  <script src="src/main.js"></script>
+</body>
+</html>
