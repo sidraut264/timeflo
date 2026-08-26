@@ -14,7 +14,7 @@ class World {
   update(carPos, speed, uiManager) {
     // 1. Update Subsystems
     this.biomeManager.update(carPos);
-    this.weatherSystem.update(carPos, speed);
+    this.weatherSystem.update(carPos);
     this.roadGenerator.update(carPos.z);
     
     const biome = this.biomeManager.current;
