@@ -10,6 +10,7 @@ import { registerRuinsStructures, LOCATIONS } from "./structures/Ruins.js";
 import { registerChapter1Quests } from "./story/Chapter1.js";
 import { initInteractionUI, updateInteractions } from "./systems/Interaction.js";
 import { initMemorySense } from "./systems/MemorySense.js";
+import { PerformanceManager } from "./systems/PerformanceManager.js";
 
 console.log("Ruins & the Wandering Ghost — booting procedural engine...");
 
@@ -33,6 +34,17 @@ function bootGame() {
     // Initialize Systems
     initInteractionUI();
     initMemorySense();
+    
+    // Initialize Performance Manager
+    const fpsUI = document.getElementById("fpsCounter");
+    const qualSelect = document.getElementById("qualitySelect");
+    const perfManager = new PerformanceManager(scene, fpsUI);
+    if (qualSelect) {
+        qualSelect.addEventListener("change", (e) => {
+            perfManager.setMode(e.target.value);
+        });
+    }
+    Game.perfManager = perfManager;
     
     // Start Game Loop
     animate();
@@ -64,6 +76,10 @@ function animate() {
     ghost.update(dt, t, finalMove);
     updateInteractions(ghost.position);
     Game.updaters.forEach(fn => fn(dt, t));
+    
+    if (Game.perfManager) {
+        Game.perfManager.update(dt);
+    }
     
     if (scene.userData.updateEnvironment) {
         scene.userData.updateEnvironment(t);

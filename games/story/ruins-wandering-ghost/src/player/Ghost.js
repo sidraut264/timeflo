@@ -1,5 +1,6 @@
 import { THREE } from "../core/Renderer.js";
 import { getTerrainHeight } from "../world/Environment.js";
+import { showToast } from "../ui/QuestUI.js";
 
 export function createGhost(scene) {
     const group = new THREE.Group();
@@ -13,6 +14,7 @@ export function createGhost(scene) {
 
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.65), mat);
     head.position.y = 0.9;
+    head.castShadow = true;
     group.add(head);
 
     const wisps = [];
@@ -56,6 +58,8 @@ export function createGhost(scene) {
 
     const velocity = new THREE.Vector3();
     const heading = new THREE.Vector3(0, 0, -1);
+    let lastBoundaryToast = 0;
+    const MAX_RADIUS = 65;
 
     function update(dt, t, moveVec) {
         const speed = 4.2;
@@ -64,6 +68,18 @@ export function createGhost(scene) {
         velocity.lerp(targetVel, 1 - Math.pow(0.001, dt));
         group.position.x += velocity.x * dt;
         group.position.z += velocity.z * dt;
+
+        const dist = Math.sqrt(group.position.x * group.position.x + group.position.z * group.position.z);
+        if (dist > MAX_RADIUS) {
+            const ratio = MAX_RADIUS / dist;
+            group.position.x *= ratio;
+            group.position.z *= ratio;
+            if (t - lastBoundaryToast > 5.0) {
+                showToast("The chains of the soul are bound to this land and cannot go beyond.");
+                lastBoundaryToast = t;
+            }
+        }
+
         const groundY = getTerrainHeight(group.position.x, group.position.z);
         group.position.y = groundY + 1.1 + Math.sin(t * 1.3) * 0.15;
 

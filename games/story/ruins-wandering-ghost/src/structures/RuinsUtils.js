@@ -3,6 +3,8 @@ import { getTerrainHeight } from "../world/Environment.js";
 
 export { getTerrainHeight };
 
+import { addInstancedRubble, addInstancedWallBlock, addInstancedFloorSlab } from "./InstancedMeshManager.js";
+
 // ---------------------------------------------------------------------------
 // Small utility helpers
 // ---------------------------------------------------------------------------
@@ -10,36 +12,166 @@ export function rand(min, max) { return min + Math.random() * (max - min); }
 export function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 // ---------------------------------------------------------------------------
-// jaggedBox: weathering biased toward top and edges/corners with deep chips
+// jaggedBox: Realistic weathering with coherent noise, edge/corner emphasis,
+// and deep localized chips.
 // ---------------------------------------------------------------------------
 export function jaggedBox(w, h, d, opts = {}) {
-    const { chipChance = 0.12, edgeBias = true } = opts;
-    const geo = new THREE.BoxGeometry(w, h, d, 3, 5, 3);
+    const segments = opts.segments || null;
+
+    // Auto compute segments based on box size if not specified
+    const segX = segments || Math.max(4, Math.floor(w * 3));
+    const segY = segments || Math.max(4, Math.floor(h * 3));
+    const segZ = segments || Math.max(4, Math.floor(d * 3));
+
+    const geo = new THREE.BoxGeometry(w, h, d, segX, segY, segZ);
+    return applyWeathering(geo, opts);
+}
+
+// ---------------------------------------------------------------------------
+// applyWeathering: Applies coherent noise weathering to any geometry
+// ---------------------------------------------------------------------------
+export function applyWeathering(geo, opts = {}) {
+    const {
+        intensity = 0.35,
+        edgeBias = 0.7,
+        chipChance = 0.15,
+        chipDepth = 0.25,
+        cleanBaseFraction = 0.15,
+        noiseScale = 1.5,
+        detailScale = 4.0,
+        seed = null,
+    } = opts;
+
+    let rand;
+    if (seed !== undefined && seed !== null) {
+        rand = mulberry32(seed);
+    } else {
+        rand = Math.random;
+    }
+
+    geo.computeBoundingBox();
+    const bb = geo.boundingBox;
+    const w = bb.max.x - bb.min.x;
+    const h = bb.max.y - bb.min.y;
+    const d = bb.max.z - bb.min.z;
+    
+    const halfW = w / 2;
+    const halfH = h / 2;
+    const halfD = d / 2;
+
+    const cleanHeight = h * cleanBaseFraction;
+    const edgeBoost = 1.0 + edgeBias * 2.0;
+
+    function noise3D(x, y, z) {
+        const xi = Math.floor(x);
+        const yi = Math.floor(y);
+        const zi = Math.floor(z);
+        const xf = x - xi;
+        const yf = y - yi;
+        const zf = z - zi;
+
+        const u = xf * xf * (3 - 2 * xf);
+        const v = yf * yf * (3 - 2 * yf);
+        const w = zf * zf * (3 - 2 * zf);
+
+        const c000 = hash(xi, yi, zi);
+        const c100 = hash(xi + 1, yi, zi);
+        const c010 = hash(xi, yi + 1, zi);
+        const c110 = hash(xi + 1, yi + 1, zi);
+        const c001 = hash(xi, yi, zi + 1);
+        const c101 = hash(xi + 1, yi, zi + 1);
+        const c011 = hash(xi, yi + 1, zi + 1);
+        const c111 = hash(xi + 1, yi + 1, zi + 1);
+
+        const x00 = lerp(c000, c100, u);
+        const x10 = lerp(c010, c110, u);
+        const x01 = lerp(c001, c101, u);
+        const x11 = lerp(c011, c111, u);
+        const y0 = lerp(x00, x10, v);
+        const y1 = lerp(x01, x11, v);
+        return lerp(y0, y1, w);
+    }
+
+    function hash(x, y, z) {
+        let n = x * 374761393 + y * 668265263 + z * 2147483647;
+        n = (n ^ (n >> 13)) * 1274126177;
+        n = n ^ (n >> 16);
+        return (n & 0x7fffffff) / 0x7fffffff;
+    }
+
+    function lerp(a, b, t) {
+        return a + t * (b - a);
+    }
+
+    function mulberry32(a) {
+        return function () {
+            a |= 0;
+            a = (a + 0x6D2B79F5) | 0;
+            let t = Math.imul(a ^ (a >>> 15), 1 | a);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+
     const pos = geo.attributes.position;
-    const halfW = w / 2, halfD = d / 2;
-
     for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        const heightT = (y / h) + 0.5; // 0 at bottom, 1 at top
-        if (heightT < 0.15) continue; // keep base clean/solid
+        const ox = pos.getX(i);
+        const oy = pos.getY(i);
+        const oz = pos.getZ(i);
 
-        const edgeFactor = edgeBias
-            ? (Math.abs(x) / halfW) * 0.5 + (Math.abs(z) / halfD) * 0.5 + 0.5
-            : 1;
+        const heightT = (oy - bb.min.y) / h;
+        if (oy < bb.min.y + cleanHeight) continue;
 
-        const weight = heightT * edgeFactor;
-        let dx = (Math.random() - 0.5) * 0.35 * weight;
-        let dy = (Math.random() - 0.55) * h * 0.3 * weight;
-        let dz = (Math.random() - 0.5) * 0.35 * weight;
+        const nx = Math.abs(ox) / (halfW || 1); // fallback to 1 to avoid NaN on planes
+        const nz = Math.abs(oz) / (halfD || 1);
+        const edgeDist = Math.max(nx, nz);
 
-        if (Math.random() < chipChance * weight) {
-            dx *= 2.4; dy -= h * 0.15; dz *= 2.4;
+        const edgeFactor = Math.pow(edgeDist, 1.5) * edgeBoost;
+        const cornerFactor = Math.max(0, nx - 0.5) * Math.max(0, nz - 0.5) * 4.0;
+
+        let weight = heightT * (1.0 + edgeFactor + cornerFactor);
+        weight = Math.min(weight, 3.0);
+
+        const nx1 = ox * noiseScale;
+        const ny1 = oy * noiseScale;
+        const nz1 = oz * noiseScale;
+        const nx2 = ox * detailScale;
+        const ny2 = oy * detailScale;
+        const nz2 = oz * detailScale;
+
+        const n1 = noise3D(nx1, ny1, nz1);
+        const n2 = noise3D(nx2, ny2, nz2);
+
+        const amp = intensity * weight;
+        const dx = (n1 - 0.5) * 0.8 * amp + (n2 - 0.5) * 0.2 * amp;
+        const dy = (noise3D(nx1 + 100, ny1, nz1) - 0.6) * 1.2 * amp;
+        const dz = (noise3D(nx1, ny1, nz1 + 100) - 0.5) * 0.8 * amp + (n2 - 0.5) * 0.2 * amp;
+
+        const chipNoise = noise3D(ox * 2.5, oy * 2.5, oz * 2.5);
+        if (chipNoise > 1.0 - chipChance) {
+            const chipStrength = (chipNoise - (1.0 - chipChance)) / chipChance;
+            const chipAmp = chipDepth * weight * chipStrength;
+            
+            const absX = nx;
+            const absY = Math.abs(oy - (bb.min.y + halfH)) / halfH;
+            const absZ = nz;
+
+            if (absY > absX && absY > absZ) {
+                pos.setY(i, oy - chipAmp * 2.0);
+            } else if (absX > absZ) {
+                const dir = ox > 0 ? 1 : -1;
+                pos.setX(i, ox - dir * chipAmp);
+            } else {
+                const dir = oz > 0 ? 1 : -1;
+                pos.setZ(i, oz - dir * chipAmp);
+            }
         }
 
-        pos.setX(i, x + dx);
-        pos.setY(i, y + dy);
-        pos.setZ(i, z + dz);
+        pos.setX(i, ox + dx);
+        pos.setY(i, oy + dy);
+        pos.setZ(i, oz + dz);
     }
+
     geo.computeVertexNormals();
     return geo;
 }
@@ -48,24 +180,26 @@ export function jaggedBox(w, h, d, opts = {}) {
 // rubblePile: scatters small broken chunks + debris around a point
 // ---------------------------------------------------------------------------
 export function rubblePile(scene, x, z, radius, count, matSet) {
-    const g = new THREE.Group();
     for (let i = 0; i < count; i++) {
         const a = Math.random() * Math.PI * 2;
         const r = Math.pow(Math.random(), 0.6) * radius;
         const s = rand(0.15, 0.55);
-        const chunk = new THREE.Mesh(
-            jaggedBox(s, s * rand(0.5, 0.9), s, { chipChance: 0.3 }),
-            Math.random() < 0.25 ? matSet.moss : (Math.random() < 0.5 ? matSet.stone : matSet.stoneDark)
-        );
+
+        let type = 'stone';
+        const randMat = Math.random();
+        if (randMat < 0.25) type = 'moss';
+        else if (randMat >= 0.5) type = 'dark';
+
         const cx = x + Math.cos(a) * r;
         const cz = z + Math.sin(a) * r;
         const cy = getTerrainHeight(cx, cz) + s * 0.25;
-        chunk.position.set(cx, cy, cz);
-        chunk.rotation.set(Math.random() * 0.4, Math.random() * Math.PI, Math.random() * 0.4);
-        g.add(chunk);
+
+        addInstancedRubble(
+            cx, cy, cz,
+            Math.random() * 0.4, Math.random() * Math.PI, Math.random() * 0.4,
+            s, type
+        );
     }
-    scene.add(g);
-    return g;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,24 +208,21 @@ export function rubblePile(scene, x, z, radius, count, matSet) {
 export function brokenColumn(scene, x, z, height, rot, matSet) {
     const g = new THREE.Group();
 
-    const plinthBottom = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.85, 0.9, 0.15, 8),
-        matSet.stoneDark
-    );
+    const plinthBottomGeo = new THREE.CylinderGeometry(0.85, 0.9, 0.15, 12, 4);
+    applyWeathering(plinthBottomGeo, { intensity: 0.15, chipChance: 0.1, edgeBias: 0.8, cleanBaseFraction: 0.0 });
+    const plinthBottom = new THREE.Mesh(plinthBottomGeo, matSet.stoneDark);
     plinthBottom.position.y = 0.075;
     g.add(plinthBottom);
 
-    const plinthTop = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.7, 0.8, 0.25, 8),
-        matSet.stoneWeathered || matSet.stone
-    );
+    const plinthTopGeo = new THREE.CylinderGeometry(0.7, 0.8, 0.25, 12, 4);
+    applyWeathering(plinthTopGeo, { intensity: 0.15, chipChance: 0.1, edgeBias: 0.8, cleanBaseFraction: 0.0 });
+    const plinthTop = new THREE.Mesh(plinthTopGeo, matSet.stoneWeathered || matSet.stone);
     plinthTop.position.y = 0.275;
     g.add(plinthTop);
 
-    const torusBase = new THREE.Mesh(
-        new THREE.TorusGeometry(0.58, 0.06, 6, 8),
-        matSet.stone
-    );
+    const torusBaseGeo = new THREE.TorusGeometry(0.58, 0.06, 8, 16);
+    applyWeathering(torusBaseGeo, { intensity: 0.1, chipChance: 0.05, cleanBaseFraction: 0.0 });
+    const torusBase = new THREE.Mesh(torusBaseGeo, matSet.stone);
     torusBase.rotation.x = Math.PI / 2;
     torusBase.position.y = 0.42;
     g.add(torusBase);
@@ -109,7 +240,8 @@ export function brokenColumn(scene, x, z, height, rot, matSet) {
         const midSection = Math.sin((i / drumCount) * Math.PI);
         const rAdjusted = r * (1 + midSection * 0.03);
 
-        const geo = new THREE.CylinderGeometry(rAdjusted, rAdjusted * 1.03, hDrum, 8);
+        const geo = new THREE.CylinderGeometry(rAdjusted, rAdjusted * 1.03, hDrum, 12, 6);
+        applyWeathering(geo, { intensity: 0.2, chipChance: 0.15, edgeBias: 0.9, cleanBaseFraction: 0.0 });
 
         let material;
         if (i % 4 === 0) {
@@ -234,7 +366,6 @@ export function brokenColumn(scene, x, z, height, rot, matSet) {
 // ruinedWall: course-based ruined wall construction
 // ---------------------------------------------------------------------------
 export function ruinedWall(scene, x, z, w, h, rot, material, matSet) {
-    const group = new THREE.Group();
     const thickness = 0.6;
     const blockH = 0.35;
     const rows = Math.max(2, Math.round(h / blockH));
@@ -252,6 +383,11 @@ export function ruinedWall(scene, x, z, w, h, rot, material, matSet) {
         cursor += bw + 0.03 + Math.random() * 0.04;
     }
 
+    // Group transformation logic mapped to individual blocks
+    const cx = x;
+    const cy = getTerrainHeight(x, z);
+    const cz = z;
+
     cols.forEach((col) => {
         const t = (col.start + w / 2) / w;
         const profileMul = collapseProfile(t);
@@ -267,32 +403,41 @@ export function ruinedWall(scene, x, z, w, h, rot, material, matSet) {
             const stagger = (r % 2 === 0) ? 0.15 : -0.15;
             const displaced = Math.random() < 0.03 + (r / colRows) * 0.02;
 
-            const block = new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    col.width * (0.9 + Math.random() * 0.1),
-                    bh,
-                    thickness * (0.85 + Math.random() * 0.15)
-                ),
-                material || (Math.random() < 0.15 ? matSet.moss : (Math.random() < 0.6 ? matSet.stone : matSet.stoneDark))
+            let type = 'stone';
+            if (!material && matSet) {
+                const randMat = Math.random();
+                if (randMat < 0.15) type = 'moss';
+                else if (randMat >= 0.75) type = 'dark';
+            } else if (material === matSet?.stoneDark) {
+                type = 'dark';
+            } else if (material === matSet?.moss) {
+                type = 'moss';
+            }
+
+            const bx = col.start + col.width / 2 + stagger * 0.1 + (Math.random() - 0.5) * 0.05;
+            const by = r * blockH + bh / 2 + (Math.random() - 0.5) * 0.02;
+            const bz = displaced ? 0.15 + Math.random() * 0.2 : (Math.random() - 0.5) * 0.05;
+
+            // Apply group rotation (rot around Y axis) and position
+            const finalX = cx + bx * Math.cos(rot) + bz * Math.sin(rot);
+            const finalZ = cz + bz * Math.cos(rot) - bx * Math.sin(rot);
+            const finalY = cy + by;
+
+            const rotY = rot + (Math.random() - 0.5) * 0.08;
+            const rotX = displaced ? (Math.random() - 0.5) * 0.15 : (Math.random() - 0.5) * 0.02;
+            const rotZ = displaced ? (Math.random() - 0.5) * 0.15 : (Math.random() - 0.5) * 0.02;
+
+            const scaleX = col.width * (0.9 + Math.random() * 0.1);
+            const scaleY = bh;
+            const scaleZ = thickness * (0.85 + Math.random() * 0.15);
+
+            addInstancedWallBlock(
+                finalX, finalY, finalZ,
+                rotX, rotY, rotZ,
+                scaleX, scaleY, scaleZ, type
             );
-
-            block.position.set(
-                col.start + col.width / 2 + stagger * 0.1 + (Math.random() - 0.5) * 0.05,
-                r * blockH + bh / 2 + (Math.random() - 0.5) * 0.02,
-                displaced ? 0.15 + Math.random() * 0.2 : (Math.random() - 0.5) * 0.05
-            );
-
-            block.rotation.y = (Math.random() - 0.5) * 0.08;
-            block.rotation.x = displaced ? (Math.random() - 0.5) * 0.15 : (Math.random() - 0.5) * 0.02;
-            block.rotation.z = displaced ? (Math.random() - 0.5) * 0.15 : (Math.random() - 0.5) * 0.02;
-
-            group.add(block);
         }
     });
-
-    group.position.set(x, getTerrainHeight(x, z), z);
-    group.rotation.y = rot;
-    scene.add(group);
 
     if (matSet) {
         rubblePile(scene,
@@ -353,7 +498,7 @@ export function ruinedWall(scene, x, z, w, h, rot, material, matSet) {
         );
     }
 
-    return group;
+    return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -368,23 +513,10 @@ export function archway(scene, pos, rot, matSet) {
 
     const leftPillar = new THREE.Group();
 
-    const baseL = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 1.4, pillarRadius * 1.6, 0.3, 8),
-        matSet.stoneDark
-    );
+    const baseLGeo = new THREE.CylinderGeometry(pillarRadius * 1.4, pillarRadius * 1.6, 0.3, 12, 4);
+    applyWeathering(baseLGeo, { intensity: 0.15, chipChance: 0.1, cleanBaseFraction: 0.0 });
+    const baseL = new THREE.Mesh(baseLGeo, matSet.stoneDark);
     baseL.position.y = 0.15;
-    const baseLPos = baseL.geometry.attributes.position;
-    for (let j = 0; j < baseLPos.count; j++) {
-        const x = baseLPos.getX(j);
-        const y = baseLPos.getY(j);
-        const z = baseLPos.getZ(j);
-        const dist = Math.sqrt(x * x + z * z);
-        if (y > 0.1 && dist > pillarRadius * 1.2) {
-            baseLPos.setY(j, y - 0.02);
-        }
-    }
-    baseLPos.needsUpdate = true;
-    baseL.geometry.computeVertexNormals();
     leftPillar.add(baseL);
 
     const drumCount = 6;
@@ -393,22 +525,8 @@ export function archway(scene, pos, rot, matSet) {
     for (let i = 0; i < drumCount; i++) {
         const drumHeight = 0.5;
         const drumRadius = pillarRadius * (1 - i * 0.02);
-        const drumGeo = new THREE.CylinderGeometry(drumRadius, drumRadius * 1.01, drumHeight, 10);
-
-        const positions = drumGeo.attributes.position;
-        for (let j = 0; j < positions.count; j++) {
-            const x = positions.getX(j);
-            const y = positions.getY(j);
-            const z = positions.getZ(j);
-            const dist = Math.sqrt(x * x + z * z);
-            if (dist > 0.3 && Math.random() < 0.1) {
-                const erosion = 0.98 + Math.random() * 0.01;
-                positions.setX(j, x * erosion);
-                positions.setZ(j, z * erosion);
-            }
-        }
-        positions.needsUpdate = true;
-        drumGeo.computeVertexNormals();
+        const drumGeo = new THREE.CylinderGeometry(drumRadius, drumRadius * 1.01, drumHeight, 12, 6);
+        applyWeathering(drumGeo, { intensity: 0.15, chipChance: 0.1, edgeBias: 0.8, cleanBaseFraction: 0.0 });
 
         const drum = new THREE.Mesh(
             drumGeo,
@@ -421,20 +539,10 @@ export function archway(scene, pos, rot, matSet) {
         yPos += drumHeight * 0.98;
     }
 
-    const capitalL = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 1.1, pillarRadius * 0.9, 0.15, 8),
-        matSet.stone
-    );
+    const capLGeo = new THREE.CylinderGeometry(pillarRadius * 1.1, pillarRadius * 0.9, 0.15, 12, 4);
+    applyWeathering(capLGeo, { intensity: 0.15, chipChance: 0.1, cleanBaseFraction: 0.0 });
+    const capitalL = new THREE.Mesh(capLGeo, matSet.stone);
     capitalL.position.y = yPos + 0.075;
-    const capLPos = capitalL.geometry.attributes.position;
-    for (let j = 0; j < capLPos.count; j++) {
-        const y = capLPos.getY(j);
-        if (Math.abs(y) > 0.05) {
-            capLPos.setY(j, y * 0.9);
-        }
-    }
-    capLPos.needsUpdate = true;
-    capitalL.geometry.computeVertexNormals();
     leftPillar.add(capitalL);
 
     leftPillar.position.set(-width / 2, 0, 0);
@@ -442,23 +550,10 @@ export function archway(scene, pos, rot, matSet) {
 
     const rightPillar = new THREE.Group();
 
-    const baseR = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 1.3, pillarRadius * 1.5, 0.25, 8),
-        matSet.stoneDark
-    );
+    const baseRGeo = new THREE.CylinderGeometry(pillarRadius * 1.3, pillarRadius * 1.5, 0.25, 12, 4);
+    applyWeathering(baseRGeo, { intensity: 0.15, chipChance: 0.1, cleanBaseFraction: 0.0 });
+    const baseR = new THREE.Mesh(baseRGeo, matSet.stoneDark);
     baseR.position.y = 0.125;
-    const baseRPos = baseR.geometry.attributes.position;
-    for (let j = 0; j < baseRPos.count; j++) {
-        const x = baseRPos.getX(j);
-        const z = baseRPos.getZ(j);
-        const angle = Math.atan2(z, x);
-        if (Math.abs(angle) < 0.3) {
-            baseRPos.setX(j, x * 0.85);
-            baseRPos.setZ(j, z * 0.85);
-        }
-    }
-    baseRPos.needsUpdate = true;
-    baseR.geometry.computeVertexNormals();
     rightPillar.add(baseR);
 
     const drumCountR = 3;
@@ -467,20 +562,8 @@ export function archway(scene, pos, rot, matSet) {
     for (let i = 0; i < drumCountR; i++) {
         const drumHeight = 0.5;
         const drumRadius = pillarRadius * (1 - i * 0.03);
-        const drumGeo = new THREE.CylinderGeometry(drumRadius, drumRadius * 1.02, drumHeight, 8);
-
-        const positions = drumGeo.attributes.position;
-        for (let j = 0; j < positions.count; j++) {
-            const x = positions.getX(j);
-            const y = positions.getY(j);
-            const z = positions.getZ(j);
-            if (Math.random() < 0.05) {
-                positions.setX(j, x * 0.98);
-                positions.setZ(j, z * 0.98);
-            }
-        }
-        positions.needsUpdate = true;
-        drumGeo.computeVertexNormals();
+        const drumGeo = new THREE.CylinderGeometry(drumRadius, drumRadius * 1.02, drumHeight, 12, 6);
+        applyWeathering(drumGeo, { intensity: 0.15, chipChance: 0.1, edgeBias: 0.8, cleanBaseFraction: 0.0 });
 
         const drum = new THREE.Mesh(
             drumGeo,
@@ -493,20 +576,10 @@ export function archway(scene, pos, rot, matSet) {
         yPos += drumHeight * 0.97;
     }
 
-    const brokenTop = new THREE.Mesh(
-        new THREE.CylinderGeometry(pillarRadius * 0.9, pillarRadius * 0.95, 0.15, 8),
-        matSet.stoneDark
-    );
+    const brokenTopGeo = new THREE.CylinderGeometry(pillarRadius * 0.9, pillarRadius * 0.95, 0.15, 12, 4);
+    applyWeathering(brokenTopGeo, { intensity: 0.25, chipChance: 0.2, cleanBaseFraction: 0.0 });
+    const brokenTop = new THREE.Mesh(brokenTopGeo, matSet.stoneDark);
     brokenTop.position.y = yPos + 0.075;
-    const brokenPos = brokenTop.geometry.attributes.position;
-    for (let j = 0; j < brokenPos.count; j++) {
-        const y = brokenPos.getY(j);
-        if (y > 0.05) {
-            brokenPos.setY(j, y + (Math.random() - 0.5) * 0.04);
-        }
-    }
-    brokenPos.needsUpdate = true;
-    brokenTop.geometry.computeVertexNormals();
     rightPillar.add(brokenTop);
 
     rightPillar.position.set(width / 2, 0, 0);
@@ -526,21 +599,8 @@ export function archway(scene, pos, rot, matSet) {
     }
 
     const archCurve = new THREE.CatmullRomCurve3(archPoints);
-    const archTube = new THREE.TubeGeometry(archCurve, 14, 0.3, 8, false);
-
-    const archPos = archTube.attributes.position;
-    for (let j = 0; j < archPos.count; j++) {
-        const x = archPos.getX(j);
-        const y = archPos.getY(j);
-        const z = archPos.getZ(j);
-        const dist = Math.sqrt(x * x + y * y);
-        if (dist > 0.2 && Math.random() < 0.08) {
-            archPos.setX(j, x * 0.99);
-            archPos.setY(j, y * 0.99);
-        }
-    }
-    archPos.needsUpdate = true;
-    archTube.computeVertexNormals();
+    const archTube = new THREE.TubeGeometry(archCurve, 14, 0.3, 12, false);
+    applyWeathering(archTube, { intensity: 0.1, chipChance: 0.05, cleanBaseFraction: 0.0 });
 
     const archMesh = new THREE.Mesh(archTube, matSet.stone);
     archGroup.add(archMesh);
@@ -551,23 +611,12 @@ export function archway(scene, pos, rot, matSet) {
         const x = Math.cos(angle) * archRadius * 0.55;
         const y = height + Math.sin(angle) * archRadius * 0.5 - 0.1;
 
-        const voussoir = new THREE.Mesh(
-            new THREE.BoxGeometry(0.25, 0.3, archThickness * 0.8),
-            i === 0 ? matSet.moss : matSet.stone
-        );
+        const voussoirGeo = new THREE.BoxGeometry(0.25, 0.3, archThickness * 0.8, 6, 6, 6);
+        applyWeathering(voussoirGeo, { intensity: 0.15, chipChance: 0.05, cleanBaseFraction: 0.0 });
+        const voussoir = new THREE.Mesh(voussoirGeo, i === 0 ? matSet.moss : matSet.stone);
 
         voussoir.position.set(x, y, 0);
         voussoir.rotation.z = -angle * 0.8;
-
-        const vPos = voussoir.geometry.attributes.position;
-        for (let j = 0; j < vPos.count; j++) {
-            const vx = vPos.getX(j);
-            if (Math.abs(vx) > 0.1) {
-                vPos.setX(j, vx * 0.95);
-            }
-        }
-        vPos.needsUpdate = true;
-        voussoir.geometry.computeVertexNormals();
 
         archGroup.add(voussoir);
     }
@@ -585,19 +634,17 @@ export function archway(scene, pos, rot, matSet) {
     keystoneGhost.rotation.x = Math.PI / 2;
     g.add(keystoneGhost);
 
-    const fallenArch = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.35, 0.35, 0.3, 8),
-        matSet.stone
-    );
+    const fallenArchGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 12, 4);
+    applyWeathering(fallenArchGeo, { intensity: 0.2, chipChance: 0.1, cleanBaseFraction: 0.0 });
+    const fallenArch = new THREE.Mesh(fallenArchGeo, matSet.stone);
     fallenArch.position.set(0.5, 0.15, 0);
     fallenArch.rotation.x = Math.PI / 2;
     fallenArch.rotation.z = 0.3;
     g.add(fallenArch);
 
-    const fallenTop = new THREE.Mesh(
-        new THREE.BoxGeometry(0.4, 0.2, 0.4),
-        matSet.stoneDark
-    );
+    const fallenTopGeo = new THREE.BoxGeometry(0.4, 0.2, 0.4, 8, 4, 8);
+    applyWeathering(fallenTopGeo, { intensity: 0.2, chipChance: 0.1, cleanBaseFraction: 0.0 });
+    const fallenTop = new THREE.Mesh(fallenTopGeo, matSet.stoneDark);
     fallenTop.position.set(1.8, 0.1, -0.5);
     fallenTop.rotation.y = Math.PI / 4;
     fallenTop.rotation.x = 0.2;
@@ -657,8 +704,6 @@ export function archway(scene, pos, rot, matSet) {
 // ---------------------------------------------------------------------------
 export function courseWall(scene, x, z, length, maxHeight, rot, matSet, opts = {}) {
     const { thickness = 0.5, collapseProfile = null, doorway = null } = opts;
-    const g = new THREE.Group();
-
     const blockH = 0.32;
     const rows = Math.round(maxHeight / blockH);
     let cursor = -length / 2;
@@ -668,6 +713,10 @@ export function courseWall(scene, x, z, length, maxHeight, rot, matSet, opts = {
         cols.push({ start: cursor, width: Math.min(bw, length / 2 - cursor) });
         cursor += bw + rand(0.02, 0.06);
     }
+
+    const cx = x;
+    const cy = 0;
+    const cz = z;
 
     cols.forEach((col) => {
         const t = (col.start + length / 2) / length;
@@ -685,32 +734,39 @@ export function courseWall(scene, x, z, length, maxHeight, rot, matSet, opts = {
             const stagger = (r % 2 === 0) ? 0.15 : -0.15;
             const displaced = Math.random() < 0.04;
 
-            const block = new THREE.Mesh(
-                new THREE.BoxGeometry(col.width, bh, thickness * rand(0.9, 1.05)),
-                Math.random() < 0.18 ? matSet.moss : (Math.random() < 0.6 ? matSet.stone : matSet.stoneDark)
+            let type = 'stone';
+            const randMat = Math.random();
+            if (randMat < 0.18) type = 'moss';
+            else if (randMat >= 0.78) type = 'dark';
+
+            const bx = col.start + col.width / 2 + stagger * 0.1;
+            const by = r * blockH + bh / 2;
+            const bz = displaced ? rand(0.15, 0.3) : (Math.random() - 0.5) * 0.03;
+
+            const finalX = cx + bx * Math.cos(rot) + bz * Math.sin(rot);
+            const finalZ = cz + bz * Math.cos(rot) - bx * Math.sin(rot);
+            const finalY = cy + by;
+
+            const rotY = rot + (Math.random() - 0.5) * 0.05;
+            const rotZ = displaced ? rand(-0.15, 0.15) : (Math.random() - 0.5) * 0.02;
+
+            const scaleX = col.width;
+            const scaleY = bh;
+            const scaleZ = thickness * rand(0.9, 1.05);
+
+            addInstancedWallBlock(
+                finalX, finalY, finalZ,
+                0, rotY, rotZ,
+                scaleX, scaleY, scaleZ, type
             );
-            block.position.set(
-                col.start + col.width / 2 + stagger * 0.1,
-                r * blockH + bh / 2,
-                displaced ? rand(0.15, 0.3) : (Math.random() - 0.5) * 0.03
-            );
-            block.rotation.y = (Math.random() - 0.5) * 0.05;
-            block.rotation.z = displaced ? rand(-0.15, 0.15) : (Math.random() - 0.5) * 0.02;
-            g.add(block);
         }
     });
-
-    g.position.set(x, 0, z);
-    g.rotation.y = rot;
-    scene.add(g);
-    return g;
 }
 
 // ---------------------------------------------------------------------------
 // foundationFootprint: low ring of half-buried stones marking former walls
 // ---------------------------------------------------------------------------
 export function foundationFootprint(scene, x, z, w, d, rot, matSet) {
-    const g = new THREE.Group();
     const perimeter = [];
     for (let i = -w / 2; i <= w / 2; i += rand(0.5, 0.7)) { perimeter.push([i, -d / 2]); perimeter.push([i, d / 2]); }
     for (let j = -d / 2; j <= d / 2; j += rand(0.5, 0.7)) { perimeter.push([-w / 2, j]); perimeter.push([w / 2, j]); }
@@ -719,16 +775,18 @@ export function foundationFootprint(scene, x, z, w, d, rot, matSet) {
     perimeter.forEach(([px, pz]) => {
         if (Math.random() < 0.25) return;
         const s = rand(0.35, 0.65);
-        const stone = new THREE.Mesh(jaggedBox(s, s * rand(0.6, 1.0), s, { chipChance: 0.1 }), Math.random() < 0.3 ? matSet.moss : matSet.stoneDark);
+        const type = Math.random() < 0.3 ? 'moss' : 'dark';
+
         const worldX = x + px * cosR - pz * sinR;
         const worldZ = z + px * sinR + pz * cosR;
         const worldY = getTerrainHeight(worldX, worldZ) + s * 0.15;
-        stone.position.set(worldX, worldY, worldZ);
-        stone.rotation.y = Math.random() * Math.PI;
-        scene.add(stone);
-    });
 
-    return g;
+        addInstancedRubble(
+            worldX, worldY, worldZ,
+            0, Math.random() * Math.PI, 0,
+            s, type
+        );
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -740,15 +798,17 @@ export function floorSlabs(scene, x, z, w, d, rot, matSet) {
         for (let iz = -d / 2; iz < d / 2; iz += rand(0.7, 1.0)) {
             if (Math.random() < 0.12) continue;
             const sw = rand(0.55, 0.85), sd = rand(0.55, 0.85);
-            const slab = new THREE.Mesh(new THREE.BoxGeometry(sw, 0.08, sd), Math.random() < 0.15 ? matSet.moss : matSet.stone);
             const lx = ix + rand(-0.08, 0.08);
             const lz = iz + rand(-0.08, 0.08);
             const wx = x + lx * cosR - lz * sinR;
             const wz = z + lx * sinR + lz * cosR;
             const wy = getTerrainHeight(wx, wz) + rand(-0.02, 0.01);
-            slab.position.set(wx, wy, wz);
-            slab.rotation.y = rot + rand(-0.05, 0.05);
-            scene.add(slab);
+
+            addInstancedFloorSlab(
+                wx, wy, wz,
+                rot + rand(-0.05, 0.05),
+                sw, 0.08, sd
+            );
         }
     }
 }
@@ -1060,6 +1120,7 @@ function addBranch(g, matSet, origin, dir, len, radius, depth) {
     mesh.position.copy(mid);
     mesh.lookAt(end);
     mesh.rotateX(Math.PI / 2);
+    mesh.userData.shadowGroup = 'tree';
     g.add(mesh);
 
     const branches = depth > 2 ? 2 : Math.random() < 0.7 ? 2 : 1;
@@ -1091,11 +1152,11 @@ export function stoneBench(scene, x, z, rot, matSet) {
     const slab = new THREE.Mesh(jaggedBox(1.8, 0.2, 0.6, { chipChance: 0.1 }), matSet.stone);
     slab.position.y = 0.45;
     g.add(slab);
-    
+
     const leg1 = new THREE.Mesh(jaggedBox(0.4, 0.4, 0.5, { chipChance: 0.2 }), matSet.stoneDark);
     leg1.position.set(-0.7, 0.2, 0);
     g.add(leg1);
-    
+
     const leg2 = new THREE.Mesh(jaggedBox(0.4, 0.4, 0.5, { chipChance: 0.2 }), matSet.stoneDark);
     leg2.position.set(0.7, 0.2, 0);
     g.add(leg2);

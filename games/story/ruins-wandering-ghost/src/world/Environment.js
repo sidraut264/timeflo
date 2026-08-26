@@ -70,6 +70,16 @@ export function buildEnvironment(scene) {
 
     const moon = new THREE.DirectionalLight(0x9fb3ff, 1.2);
     moon.position.set(-30, 40, -20);
+    moon.castShadow = true;
+    moon.shadow.mapSize.width = 2048;
+    moon.shadow.mapSize.height = 2048;
+    moon.shadow.camera.near = 0.5;
+    moon.shadow.camera.far = 150;
+    moon.shadow.camera.left = -60;
+    moon.shadow.camera.right = 60;
+    moon.shadow.camera.top = 60;
+    moon.shadow.camera.bottom = -60;
+    moon.shadow.bias = -0.001;
     scene.add(moon);
     const fillLight = new THREE.DirectionalLight(0x5577aa, 0.3);
     fillLight.position.set(20, 10, 30);
@@ -103,15 +113,45 @@ export function buildEnvironment(scene) {
             uniform vec3 uColorBottom;
             varying vec3 vWorldPos;
             void main() {
-                vec3 dir = normalize(vWorldPos);
-                float y = dir.y * 0.5 + 0.5;
-                gl_FragColor = vec4(mix(uColorBottom, uColorTop, y), 1.0);
+                float h = normalize(vWorldPos).y;
+                float t = smoothstep(-0.1, 0.4, h);
+                gl_FragColor = vec4(mix(uColorBottom, uColorTop, t), 1.0);
             }
         `,
         side: THREE.BackSide,
         depthWrite: false
     });
     scene.add(new THREE.Mesh(skyGeo, skyMat));
+
+    // Fog Boundary Ring (visualizes the edge of the map)
+    const ringGeo = new THREE.CylinderGeometry(68, 68, 30, 64, 1, true);
+    const ringMat = new THREE.ShaderMaterial({
+        uniforms: {
+            uFogColor: { value: new THREE.Color(fogColor) }
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 uFogColor;
+            varying vec2 vUv;
+            void main() {
+                // Fade out at the top of the cylinder
+                float alpha = smoothstep(1.0, 0.0, vUv.y);
+                gl_FragColor = vec4(uFogColor, alpha * 0.95);
+            }
+        `,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
+    const fogRing = new THREE.Mesh(ringGeo, ringMat);
+    fogRing.position.y = 10;
+    scene.add(fogRing);
 
     // 2d. Stars (twinkling via shader)
     const starCount = 1200;

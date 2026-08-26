@@ -7,6 +7,50 @@ import {
 } from "./RuinsUtils.js";
 
 // ---------------------------------------------------------------------------
+// LANDMARK HIERARCHY & SIGHTLINES
+// ---------------------------------------------------------------------------
+const TIER_1 = ["LOC_001_ARCHWAY", "LOC_007_BROKEN_TOWER", "LOC_008_SILENT_BELL"];
+const TIER_2 = ["LOC_003_EMPTY_HOUSE", "LOC_004_WELL", "LOC_005_STONE_GARDEN", "LOC_006_STATUE", "LOC_009_OLD_ROAD"];
+
+let _sightlineCorridors = null;
+function buildSightlines() {
+    if (_sightlineCorridors) return _sightlineCorridors;
+    _sightlineCorridors = [
+        [LOCATIONS.ARCHWAY, LOCATIONS.PATH], // Corridor A (Approach)
+        [LOCATIONS.HOUSE, LOCATIONS.TOWER],  // Corridor B (Glimpse)
+        [LOCATIONS.STATUE, LOCATIONS.TOWER], // Corridor C (Reveal)
+        [LOCATIONS.STATUE, LOCATIONS.BELL],  // Corridor D (Secondary)
+        [LOCATIONS.WELL, LOCATIONS.GARDEN]   // Corridor E (Communal)
+    ];
+    return _sightlineCorridors;
+}
+
+export function checkLandmarkClearance(px, pz, isTallObject) {
+    if (!isTallObject) return true; // Small scatter is always allowed
+
+    // 1. Tier 1 Clearance (Large breathing room)
+    for (const t1 of TIER_1) {
+        const loc = LOCATION_DATA[t1].position;
+        if (Math.hypot(px - loc.x, pz - loc.z) < 8.0) return false;
+    }
+
+    // 2. Tier 2 Clearance (Moderate breathing room)
+    for (const t2 of TIER_2) {
+        const loc = LOCATION_DATA[t2].position;
+        if (Math.hypot(px - loc.x, pz - loc.z) < 4.5) return false;
+    }
+
+    // 3. Sightline Corridors (Do not block the view)
+    const sightlines = buildSightlines();
+    for (const [a, b] of sightlines) {
+        if (distToSegment2D(px, pz, a.x, a.z, b.x, b.z) < 3.0) return false;
+    }
+
+    return true; // Valid placement
+}
+
+
+// ---------------------------------------------------------------------------
 // SMOOTHSTEP
 // ---------------------------------------------------------------------------
 function smoothstep(centerR, edgeR, dist) {
@@ -23,14 +67,14 @@ function districtWeightAt(px, pz) {
     const allLocs = Object.values(LOCATION_DATA);
     const weights = allLocs.map(loc => {
         const dist = Math.hypot(px - loc.position.x, pz - loc.position.z);
-        return { loc, w: smoothstep(8, 20, dist) };
+        return { loc, w: smoothstep(15, 55, dist) };  // expanded from 8,20 to reach the whole village
     });
     const totalW = weights.reduce((s, e) => s + e.w, 0);
     if (totalW === 0) return weights; 
     return weights.map(e => ({ loc: e.loc, w: e.w / totalW }));
 }
 
-function dominantDistrict(px, pz) {
+export function dominantDistrict(px, pz) {
     const weights = districtWeightAt(px, pz);
     let best = { district: "WILDERNESS", strength: 0 };
     for (const { loc, w } of weights) {
@@ -45,7 +89,7 @@ function neighborInfluence(px, pz, ownDistrict) {
     for (const loc of allLocs) {
         if (loc.district === ownDistrict) continue;
         const dist = Math.hypot(px - loc.position.x, pz - loc.position.z);
-        const w = smoothstep(6, 14, dist);
+        const w = smoothstep(12, 30, dist);  // expanded from 6,14
         if (w > maxForeignWeight) maxForeignWeight = w;
     }
     return maxForeignWeight;
@@ -77,7 +121,7 @@ function distToSegment2D(px, pz, ax, az, bx, bz) {
     return Math.hypot(px - (ax + t * dx), pz - (az + t * dz));
 }
 
-function minPathDistance(px, pz) {
+export function minPathDistance(px, pz) {
     const segs = buildPathSegments();
     let minD = Infinity;
     for (const [a, b] of segs) {
@@ -92,18 +136,18 @@ function minPathDistance(px, pz) {
 // ---------------------------------------------------------------------------
 const _largeFootprints = [];
 
-function tooCloseToExisting(x, z, minDist) {
+export function tooCloseToExisting(x, z, minDist) {
     for (const [fx, fz] of _largeFootprints) {
         if (Math.hypot(x - fx, z - fz) < minDist) return true;
     }
     return false;
 }
 
-function registerFootprint(x, z) {
+export function registerFootprint(x, z) {
     _largeFootprints.push([x, z]);
 }
 
-function findPlacement(cx, cz, radiusMin, radiusMax, minSep, pathClearance, maxTries = 8) {
+function findPlacement(cx, cz, radiusMin, radiusMax, minSep, pathClearance, maxTries = 8, isTallObject = true) {
     for (let t = 0; t < maxTries; t++) {
         const angle = Math.random() * Math.PI * 2;
         const r = rand(radiusMin, radiusMax);
@@ -111,6 +155,7 @@ function findPlacement(cx, cz, radiusMin, radiusMax, minSep, pathClearance, maxT
         const pz = cz + Math.sin(angle) * r;
         if (minPathDistance(px, pz) < pathClearance) continue;
         if (minSep > 0 && tooCloseToExisting(px, pz, minSep)) continue;
+        if (!checkLandmarkClearance(px, pz, isTallObject)) continue; // VISUAL HIERARCHY CHECK
         return [px, pz];
     }
     return null;
@@ -161,13 +206,15 @@ function scatterPathHistory(scene, cx, cz, localStrength, M) {
         
         const pathDist = minPathDistance(px, pz);
         
-        // Target points bordering the path (0.8 to 2.5 units away)
         if (pathDist > 0.8 && pathDist < 2.5) {
             if (Math.random() < localStrength * 0.4) {
                 neutralScatter(scene, px, pz, 0.6, M);
             }
             if (Math.random() < localStrength * 0.05) {
-                cartWreck(scene, px, pz, rand(0, Math.PI), M);
+                // Not tall, don't reject carts
+                if(checkLandmarkClearance(px, pz, false)) { 
+                    cartWreck(scene, px, pz, rand(0, Math.PI), M);
+                }
             }
         }
     }
@@ -203,7 +250,7 @@ export function buildDistricts(Game) {
                 
                 for (let i = 0; i < totalStructures; i++) {
                     const isFoundation = Math.random() > 0.5;
-                    const pos = findPlacement(cx, cz, 2, 14, 5.5, 2.5);
+                    const pos = findPlacement(cx, cz, 2, 14, 5.5, 2.5, 8, true);
                     if (!pos) continue;
                     const [px, pz] = pos;
                     const fw = smoothstep(4, 14, Math.hypot(px - cx, pz - cz));
@@ -218,43 +265,47 @@ export function buildDistricts(Game) {
                     }
                     registerFootprint(px, pz);
 
-                    // ==========================================
-                    // DOMESTIC HISTORY & COLLAPSE RELATIONSHIPS
-                    // ==========================================
-                    
                     if (Math.random() < 0.6) {
                         const edgeR = rand(2.5, 3.5);
                         const edgeAngle = Math.random() * Math.PI * 2;
-                        storageDebris(scene, px + Math.cos(edgeAngle) * edgeR, pz + Math.sin(edgeAngle) * edgeR, M);
+                        const tx = px + Math.cos(edgeAngle) * edgeR;
+                        const tz = pz + Math.sin(edgeAngle) * edgeR;
+                        if(checkLandmarkClearance(tx, tz, false)) storageDebris(scene, tx, tz, M);
                     }
 
                     if (Math.random() < 0.4) {
                         const edgeR = rand(3.0, 4.0);
                         const edgeAngle = Math.random() * Math.PI * 2;
-                        campfireRing(scene, px + Math.cos(edgeAngle) * edgeR, pz + Math.sin(edgeAngle) * edgeR, M);
+                        const tx = px + Math.cos(edgeAngle) * edgeR;
+                        const tz = pz + Math.sin(edgeAngle) * edgeR;
+                        if(checkLandmarkClearance(tx, tz, false)) campfireRing(scene, tx, tz, M);
                     }
                     
                     if (Math.random() < 0.5) {
                         const edgeR = rand(1.5, 3.5);
                         const edgeAngle = Math.random() * Math.PI * 2;
-                        rubblePile(scene, px + Math.cos(edgeAngle) * edgeR, pz + Math.sin(edgeAngle) * edgeR, rand(0.5, 1.2), rand(2, 4), M);
+                        const tx = px + Math.cos(edgeAngle) * edgeR;
+                        const tz = pz + Math.sin(edgeAngle) * edgeR;
+                        if(checkLandmarkClearance(tx, tz, false)) rubblePile(scene, tx, tz, rand(0.5, 1.2), rand(2, 4), M);
                     }
 
                     if (Math.random() < 0.5) {
                         const treeR = rand(1.0, 4.0);
                         const treeAngle = Math.random() * Math.PI * 2;
-                        createTree(scene, new THREE.Vector3(px + Math.cos(treeAngle) * treeR, 0, pz + Math.sin(treeAngle) * treeR), M);
+                        const tx = px + Math.cos(treeAngle) * treeR;
+                        const tz = pz + Math.sin(treeAngle) * treeR;
+                        if(checkLandmarkClearance(tx, tz, true)) createTree(scene, new THREE.Vector3(tx, 0, tz), M);
                     }
                 }
 
                 const treeCount = Math.round(rand(1, 3));
                 for (let i = 0; i < treeCount; i++) {
-                    const pos = findPlacement(cx, cz, 4, 14, 0, 2.0);
+                    const pos = findPlacement(cx, cz, 4, 14, 0, 2.0, 8, true);
                     if (pos) createTree(scene, new THREE.Vector3(pos[0], 0, pos[1]), M);
                 }
 
                 if (localStrength > 0.55 && Math.random() < 0.7) {
-                    const pos = findPlacement(cx, cz, 2, 9, 4.5, 2.5);
+                    const pos = findPlacement(cx, cz, 2, 9, 4.5, 2.5, 8, false); // floorSlabs not tall
                     if (pos) {
                         floorSlabs(scene, pos[0], pos[1], rand(3, 4.5), rand(3, 4.5), rand(0, Math.PI), M);
                         registerFootprint(pos[0], pos[1]);
@@ -280,7 +331,7 @@ export function buildDistricts(Game) {
             // ----------------------------------------------------------------
             else if (district === "COMMUNAL") {
                 if (localStrength > 0.4) {
-                    const pos = findPlacement(cx, cz, 1, 7, 4.0, 3.5);
+                    const pos = findPlacement(cx, cz, 1, 7, 4.0, 3.5, 8, false); // floorSlabs not tall
                     if (pos) {
                         const rot = rand(0, Math.PI);
                         const [px, pz] = pos;
@@ -306,7 +357,7 @@ export function buildDistricts(Game) {
 
                 const benchCount = Math.round(rand(1, 2) * localStrength);
                 for (let i = 0; i < benchCount; i++) {
-                    const pos = findPlacement(cx, cz, 5, 12, 0, 2.0);
+                    const pos = findPlacement(cx, cz, 5, 12, 0, 2.0, 8, false);
                     if (pos) stoneBench(scene, pos[0], pos[1], rand(0, Math.PI), M);
                 }
 
@@ -327,7 +378,7 @@ export function buildDistricts(Game) {
                     const edgeFw = 1 - smoothstep(10, 18, r);
                     neutralScatter(scene, px, pz, edgeFw, M);
                     if (Math.random() < edgeFw * 0.25) {
-                        createTree(scene, new THREE.Vector3(px, 0, pz), M);
+                        if(checkLandmarkClearance(px, pz, true)) createTree(scene, new THREE.Vector3(px, 0, pz), M);
                     }
                 }
             }
@@ -338,7 +389,7 @@ export function buildDistricts(Game) {
             else if (district === "DEFENSIVE") {
                 const wallCount = Math.round(rand(2, 4) * localStrength);
                 for (let i = 0; i < wallCount; i++) {
-                    const pos = findPlacement(cx, cz, 3, 12, 4.5, 3.5);
+                    const pos = findPlacement(cx, cz, 3, 12, 4.5, 3.5, 8, true);
                     if (!pos) continue;
                     const fw = smoothstep(4, 12, Math.hypot(pos[0] - cx, pos[1] - cz));
                     if (Math.random() > fw * localStrength + 0.1) continue;
@@ -348,20 +399,23 @@ export function buildDistricts(Game) {
                     ruinedWall(scene, px, pz, rand(4, 7), rand(3, 5), rot, M.stone, M);
                     registerFootprint(px, pz);
 
-                    // ==========================================
-                    // COLLAPSE DIRECTION RELATIONSHIP
-                    // ==========================================
                     const normalAngle = rot + (Math.random() > 0.5 ? Math.PI/2 : -Math.PI/2) + rand(-0.2, 0.2);
                     const dropDist = rand(1.5, 3.5);
-                    rubblePile(scene, px + Math.cos(normalAngle)*dropDist, pz + Math.sin(normalAngle)*dropDist, rand(1.5, 3.5), rand(5, 12), M);
+                    const rx = px + Math.cos(normalAngle)*dropDist;
+                    const rz = pz + Math.sin(normalAngle)*dropDist;
+                    if(checkLandmarkClearance(rx, rz, false)) rubblePile(scene, rx, rz, rand(1.5, 3.5), rand(5, 12), M);
 
                     if(Math.random() < 0.4) {
                         const colAngle = rot + rand(-Math.PI/4, Math.PI/4);
-                        brokenColumn(scene, px + Math.cos(colAngle)*3, pz + Math.sin(colAngle)*3, rand(3, 5.5), rand(0, Math.PI), M);
+                        const cx2 = px + Math.cos(colAngle)*3;
+                        const cz2 = pz + Math.sin(colAngle)*3;
+                        if(checkLandmarkClearance(cx2, cz2, true)) brokenColumn(scene, cx2, cz2, rand(3, 5.5), rand(0, Math.PI), M);
                     }
 
                     if(Math.random() < 0.3) {
-                        createTree(scene, new THREE.Vector3(px + rand(-3,3), 0, pz + rand(-3,3)), M);
+                        const tx = px + rand(-3,3);
+                        const tz = pz + rand(-3,3);
+                        if(checkLandmarkClearance(tx, tz, true)) createTree(scene, new THREE.Vector3(tx, 0, tz), M);
                     }
                 }
 
@@ -374,7 +428,7 @@ export function buildDistricts(Game) {
                     if (dom !== "DEFENSIVE") continue;
                     const edgeFw = 1 - smoothstep(10, 18, r);
                     if (Math.random() < edgeFw * 0.35) {
-                        rubblePile(scene, px, pz, rand(0.8, 1.8), rand(2, 5), M);
+                        if(checkLandmarkClearance(px, pz, false)) rubblePile(scene, px, pz, rand(0.8, 1.8), rand(2, 5), M);
                     }
                     neutralScatter(scene, px, pz, edgeFw, M);
                 }
@@ -386,7 +440,7 @@ export function buildDistricts(Game) {
             else if (district === "ENTRANCE") {
                 const colCount = Math.round(rand(1, 3) * localStrength);
                 for (let i = 0; i < colCount; i++) {
-                    const pos = findPlacement(cx, cz, 2, 7, 0, 2.0);
+                    const pos = findPlacement(cx, cz, 2, 7, 0, 2.0, 8, true);
                     if (pos) brokenColumn(scene, pos[0], pos[1], rand(1.5, 3.5), rand(0, Math.PI), M);
                 }
 
@@ -399,14 +453,14 @@ export function buildDistricts(Game) {
                     if (dom !== "ENTRANCE" && dom !== "RESIDENTIAL") continue;
                     const transitionW = dom === "RESIDENTIAL" ? strength : 1 - smoothstep(7, 16, r);
                     if (Math.random() < transitionW * 0.3) {
-                        rubblePile(scene, px, pz, rand(0.5, 1.2), rand(1, 3), M);
+                        if(checkLandmarkClearance(px, pz, false)) rubblePile(scene, px, pz, rand(0.5, 1.2), rand(1, 3), M);
                     }
                     neutralScatter(scene, px, pz, transitionW * 0.5, M);
                 }
 
                 const treeCount = Math.round(rand(2, 4));
                 for (let i = 0; i < treeCount; i++) {
-                    const pos = findPlacement(cx, cz, 3, 14, 0, 2.0);
+                    const pos = findPlacement(cx, cz, 3, 14, 0, 2.0, 8, true);
                     if (pos) createTree(scene, new THREE.Vector3(pos[0], 0, pos[1]), M);
                 }
             }
@@ -417,7 +471,7 @@ export function buildDistricts(Game) {
             else if (district === "OUTSKIRTS") {
                 const treeCount = Math.round(rand(4, 7));
                 for (let i = 0; i < treeCount; i++) {
-                    const pos = findPlacement(cx, cz, 2, 15, 0, 2.0);
+                    const pos = findPlacement(cx, cz, 2, 15, 0, 2.0, 8, true);
                     if (pos) createTree(scene, new THREE.Vector3(pos[0], 0, pos[1]), M);
                 }
 
@@ -430,7 +484,7 @@ export function buildDistricts(Game) {
                     const pz = cz + Math.sin(angle) * r;
                     const { district: dom } = dominantDistrict(px, pz);
                     if (dom === "DEFENSIVE") {
-                        rubblePile(scene, px, pz, rand(0.8, 1.5), rand(2, 5), M);
+                        if(checkLandmarkClearance(px, pz, false)) rubblePile(scene, px, pz, rand(0.8, 1.5), rand(2, 5), M);
                     } else if (dom === "OUTSKIRTS") {
                         neutralScatter(scene, px, pz, 0.4, M);
                     }
@@ -443,7 +497,8 @@ export function buildDistricts(Game) {
             else if (district === "MEMORIAL") {
                 const treeCount = Math.round(rand(3, 5));
                 for (let i = 0; i < treeCount; i++) {
-                    const pos = findPlacement(cx, cz, 2, 9, 0, 2.0);
+                    // Trees deliberately ignore clearance to maintain occlusion
+                    const pos = findPlacement(cx, cz, 2, 9, 0, 2.0, 8, false);
                     if (pos) createTree(scene, new THREE.Vector3(pos[0], 0, pos[1]), M);
                 }
                 

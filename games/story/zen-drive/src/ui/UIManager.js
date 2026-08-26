@@ -36,7 +36,6 @@ class UIManager {
     const labels = {
       SOLDIER:     '👤 Soldier',
       RATAMAHATTA: '👾 Ratamahatta',
-      ELF:         '🧝 Elf Girl',
       MANNEQUIN:   '🤖 Mannequin'
     };
     this.avatarBtn.textContent = labels[avatarKey] || '👤 Character';

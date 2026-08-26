@@ -14,6 +14,8 @@ import { buildSilentBell } from "./SilentBell.js";
 import { buildOldRoad } from "./OldRoad.js";
 import { buildGrave } from "./Grave.js";
 import { buildScatterAndPaths } from "./Scatter.js";
+import { buildMicroEnvironment } from "./MicroEnvironment.js";
+import { buildSettlementExpansion } from "./SettlementExpansion.js";
 
 export { LOCATIONS } from "./Locations.js";
 export {
@@ -25,6 +27,7 @@ export {
 
 export function registerRuinsStructures(Game) {
     buildScatterAndPaths(Game);
+    buildSettlementExpansion(Game);
     buildArchway(Game);
     buildForgottenPath(Game);
     buildEmptyHouse(Game);
@@ -35,4 +38,11 @@ export function registerRuinsStructures(Game) {
     buildSilentBell(Game);
     buildOldRoad(Game);
     buildGrave(Game);
+    buildMicroEnvironment(Game);
+
+    Game.registerStructure((scene, M) => {
+        import("./InstancedMeshManager.js").then(({ flushInstances }) => {
+            flushInstances(scene, M);
+        });
+    });
 }
