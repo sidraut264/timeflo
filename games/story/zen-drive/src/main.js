@@ -35,25 +35,48 @@ document.addEventListener('DOMContentLoaded', () => {
     let camLagX = 0, camLagY = 3.5, camLagZ = -7.5;
     let vKeyDebounce = false;
     let xKeyDebounce = false;
+    let tKeyDebounce = false;
+    let rKeyDebounce = false;
 
-    // Avatar switch button handler
-    if (uiManager.avatarBtn) {
-      uiManager.avatarBtn.addEventListener('click', () => {
-        const nextAv = character.nextAvatar();
-        uiManager.updateAvatarName(nextAv);
+    // Avatar switch button handler (desktop + mobile)
+    const handleAvatarSwitch = () => {
+      const nextAv = character.nextAvatar();
+      uiManager.updateAvatarName(nextAv);
+      if (uiManager.mobileAvatarBtn) uiManager.mobileAvatarBtn.textContent = uiManager.avatarBtn ? uiManager.avatarBtn.textContent : '\ud83d\udc64';
+    };
+    if (uiManager.avatarBtn) uiManager.avatarBtn.addEventListener('click', handleAvatarSwitch);
+    if (uiManager.mobileAvatarBtn) uiManager.mobileAvatarBtn.addEventListener('click', handleAvatarSwitch);
+
+    // Time toggle (desktop time-btn icon)
+    if (uiManager.timeBtn) {
+      uiManager.timeBtn.addEventListener('click', () => {
+        world.biomeManager.toggleTimeOfDay();
+        uiManager.updateTimeBtn(world.biomeManager.timeOfDay);
       });
     }
+
+    // Weather toggle (desktop + mobile)
+    const handleWeatherToggle = () => {
+      world.weatherSystem.toggleWeather();
+      uiManager.updateWeatherBtn(world.weatherSystem.type);
+    };
+    if (uiManager.weatherBtn) uiManager.weatherBtn.addEventListener('click', handleWeatherToggle);
+    if (uiManager.mobileWeatherBtn) uiManager.mobileWeatherBtn.addEventListener('click', handleWeatherToggle);
+
+    // Apply default Night biome on start
+    world.biomeManager.toggleTimeOfDay(); // starts as 'day', toggle to 'night'
+    uiManager.updateTimeBtn('night');
 
     // Audio init on click or key
     const startAudio = () => {
       audio.init();
       document.removeEventListener('keydown', startAudio);
-      uiManager.cruiseBtn.removeEventListener('click', startAudio);
-      uiManager.modeBtn.removeEventListener('click', startAudio);
+      if (uiManager.cruiseBtn) uiManager.cruiseBtn.removeEventListener('click', startAudio);
+      if (uiManager.modeBtn) uiManager.modeBtn.removeEventListener('click', startAudio);
     };
     document.addEventListener('keydown', startAudio);
-    uiManager.cruiseBtn.addEventListener('click', startAudio);
-    uiManager.modeBtn.addEventListener('click', startAudio);
+    if (uiManager.cruiseBtn) uiManager.cruiseBtn.addEventListener('click', startAudio);
+    if (uiManager.modeBtn) uiManager.modeBtn.addEventListener('click', startAudio);
 
     function animate() {
       requestAnimationFrame(animate);
@@ -85,6 +108,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         xKeyDebounce = false;
+      }
+
+      // Handle T key time switch debounce
+      if (input.keys.switchTime) {
+        if (!tKeyDebounce) {
+          tKeyDebounce = true;
+          world.biomeManager.toggleTimeOfDay();
+          uiManager.updateTimeBtn(world.biomeManager.timeOfDay);
+        }
+      } else {
+        tKeyDebounce = false;
+      }
+
+      // Handle R key weather switch debounce
+      if (input.keys.switchWeather) {
+        if (!rKeyDebounce) {
+          rKeyDebounce = true;
+          world.weatherSystem.toggleWeather();
+          uiManager.updateWeatherBtn(world.weatherSystem.type);
+        }
+      } else {
+        rKeyDebounce = false;
       }
 
       const activePos = uiManager.mode === 'CAR' ? car.position : character.position;

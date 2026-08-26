@@ -28,9 +28,42 @@
       <div class="pill" id="biome-pill">Forest</div>
     </div>
 
-    <button id="avatar-btn" class="top-btn" style="display:none;">👤 Soldier</button>
-    <button id="mode-btn" class="top-btn">🚗 Drive Mode</button>
-    <button id="cruise-btn" class="top-btn">✦ Auto Cruise</button>
+    <!-- Desktop top buttons (hidden on mobile) -->
+    <button id="avatar-btn" class="top-btn desktop-only" style="display:none;">👤 Soldier</button>
+    <button id="mode-btn" class="top-btn desktop-only">🚗 Drive Mode</button>
+    <button id="cruise-btn" class="top-btn desktop-only">✦ Auto Cruise</button>
+    <button id="weather-btn" class="top-btn desktop-only">☁️ Clear</button>
+
+    <!-- Day/Night toggle: always visible as a single icon button -->
+    <button id="time-btn" class="top-btn time-btn-icon">🌙</button>
+
+    <!-- Mobile: Settings gear button -->
+    <button id="settings-btn" class="mobile-only settings-gear-btn">⚙️</button>
+
+    <!-- Mobile Settings Panel (slide-up) -->
+    <div id="settings-panel" class="settings-panel">
+      <div class="settings-panel-header">
+        <span>Settings</span>
+        <button id="settings-close-btn" class="settings-close-btn">✕</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Mode</span>
+        <button id="mobile-mode-btn" class="settings-option-btn">🚗 Drive</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Character</span>
+        <button id="mobile-avatar-btn" class="settings-option-btn" style="display:none;">👤 Soldier</button>
+        <span id="mobile-avatar-placeholder" class="settings-option-btn disabled">— Car Only —</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Weather</span>
+        <button id="mobile-weather-btn" class="settings-option-btn">☁️ Clear</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Cruise</span>
+        <button id="mobile-cruise-btn" class="settings-option-btn">✦ Auto Cruise</button>
+      </div>
+    </div>
 
     <!-- Mobile Touch Overlay Controls -->
     <div id="mobile-controls">
@@ -49,7 +82,9 @@
       A / D &nbsp;Steer / Turn<br>
       SHIFT &nbsp;Run (On Foot)<br>
       V &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Switch Mode (Car / Walk)<br>
-      X &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Switch Avatar (Soldier/Ratamahatta/Mannequin)<br>
+      X &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Switch Avatar<br>
+      T &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Toggle Time<br>
+      R &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Toggle Weather<br>
       C &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cruise Control<br>
       SPACE &nbsp;Drift
     </div>
@@ -75,6 +110,7 @@
   <script src="/games/story/zen-drive/src/world/BiomeManager.js"></script>
   <script src="/games/story/zen-drive/src/world/TerrainGenerator.js"></script>
   <script src="/games/story/zen-drive/src/world/RoadGenerator.js"></script>
+  <script src="/games/story/zen-drive/src/world/WeatherSystem.js"></script>
   <script src="/games/story/zen-drive/src/world/World.js"></script>
   
   <script src="/games/story/zen-drive/src/ui/UIManager.js"></script>

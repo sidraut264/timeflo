@@ -8,7 +8,9 @@ class InputManager {
       drift: false,
       shift: false,
       switchMode: false,
-      switchAvatar: false
+      switchAvatar: false,
+      switchTime: false,
+      switchWeather: false
     };
 
     // Keyboard Listeners
@@ -34,6 +36,8 @@ class InputManager {
       case 'ShiftRight': this.keys.shift = true; break;
       case 'KeyV': this.keys.switchMode = true; break;
       case 'KeyX': this.keys.switchAvatar = true; break;
+      case 'KeyT': this.keys.switchTime = true; break;
+      case 'KeyR': this.keys.switchWeather = true; break;
     }
   }
 
@@ -52,6 +56,8 @@ class InputManager {
       case 'ShiftRight': this.keys.shift = false; break;
       case 'KeyV': this.keys.switchMode = false; break;
       case 'KeyX': this.keys.switchAvatar = false; break;
+      case 'KeyT': this.keys.switchTime = false; break;
+      case 'KeyR': this.keys.switchWeather = false; break;
     }
   }
 

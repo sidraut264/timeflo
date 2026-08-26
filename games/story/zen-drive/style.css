@@ -64,6 +64,117 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 #cruise-btn { right: 28px; }
 #mode-btn { right: 210px; }
 #avatar-btn { right: 385px; }
+#weather-btn { right: 398px; }
+
+/* Day/Night icon pill — always top-right, compact */
+.time-btn-icon {
+  right: 28px;
+  padding: 8px 14px;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  border-radius: 50%;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Responsive helpers */
+.mobile-only { display: none; }
+.desktop-only { display: initial; }
+
+/* ── Mobile Settings Gear ── */
+.settings-gear-btn {
+  position: fixed;
+  top: 18px; left: 18px;
+  width: 46px; height: 46px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 50%;
+  font-size: 1.2rem;
+  color: #fff;
+  cursor: pointer;
+  pointer-events: all;
+  z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.settings-gear-btn:active { background: rgba(255,255,255,0.2); }
+
+/* ── Slide-up Settings Panel ── */
+.settings-panel {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(8, 10, 16, 0.92);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 24px 36px;
+  z-index: 50;
+  pointer-events: all;
+  transform: translateY(110%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: none;
+}
+.settings-panel.open {
+  transform: translateY(0);
+}
+.settings-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  color: rgba(255,255,255,0.9);
+  font-family: monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.settings-close-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-label {
+  color: rgba(255,255,255,0.5);
+  font-family: monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.settings-option-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 24px;
+  padding: 10px 22px;
+  color: rgba(255,255,255,0.85);
+  font-family: monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.settings-option-btn:active, .settings-option-btn.active {
+  background: rgba(180,255,200,0.15);
+  border-color: rgba(120,220,140,0.6);
+  color: #b8ffb8;
+}
+.settings-option-btn.disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
 
 /* Mobile Touch Controls */
 #mobile-controls {
@@ -132,11 +243,20 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 }
 
 /* Hide desktop key text when touch control is active or on smaller screens */
-@media (max-width: 1024px), (pointer: coarse) {
+@media (max-width: 768px), (pointer: coarse) {
   #hints { display: none; }
-  #mode-btn { right: 150px; padding: 6px 14px; font-size: 0.68rem; }
-  #cruise-btn { right: 16px; padding: 6px 14px; font-size: 0.68rem; }
-  #avatar-btn { right: 280px; padding: 6px 14px; font-size: 0.68rem; }
+  /* Hide all desktop-only top buttons */
+  .desktop-only { display: none !important; }
+  /* Show mobile-only elements */
+  .mobile-only { display: flex !important; }
+  /* Show the settings panel (it starts hidden via transform) */
+  .settings-panel { display: block; }
+  /* Time button stays but repositioned for mobile — absolute top-right compact */
+  .time-btn-icon {
+    right: 72px;
+    width: 40px; height: 40px;
+    font-size: 1rem;
+  }
 }
 
 #loading {

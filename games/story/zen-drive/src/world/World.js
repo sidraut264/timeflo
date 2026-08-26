@@ -3,6 +3,7 @@ class World {
     this.scene = scene;
     
     this.biomeManager = new BiomeManager(scene, renderer);
+    this.weatherSystem = new WeatherSystem(scene);
     this.roadGenerator = new RoadGenerator(scene);
     this.terrainGenerator = new TerrainGenerator(scene, this.roadGenerator);
     
@@ -13,6 +14,7 @@ class World {
   update(carPos, speed, uiManager) {
     // 1. Update Subsystems
     this.biomeManager.update(carPos);
+    this.weatherSystem.update(carPos, speed);
     this.roadGenerator.update(carPos.z);
     
     const biome = this.biomeManager.current;

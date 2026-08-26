@@ -4,25 +4,89 @@ class UIManager {
     this.biomePill = document.getElementById('biome-pill');
     this.biomeLabel = document.getElementById('biome-label');
     this.biomeFade = document.getElementById('biome-fade');
+    // Desktop buttons
     this.cruiseBtn = document.getElementById('cruise-btn');
     this.modeBtn = document.getElementById('mode-btn');
     this.avatarBtn = document.getElementById('avatar-btn');
-    
+    this.timeBtn = document.getElementById('time-btn');
+    this.weatherBtn = document.getElementById('weather-btn');
+    // Mobile settings
+    this.settingsBtn = document.getElementById('settings-btn');
+    this.settingsPanel = document.getElementById('settings-panel');
+    this.settingsCloseBtn = document.getElementById('settings-close-btn');
+    this.mobileModeBtn = document.getElementById('mobile-mode-btn');
+    this.mobileAvatarBtn = document.getElementById('mobile-avatar-btn');
+    this.mobileAvatarPlaceholder = document.getElementById('mobile-avatar-placeholder');
+    this.mobileWeatherBtn = document.getElementById('mobile-weather-btn');
+    this.mobileCruiseBtn = document.getElementById('mobile-cruise-btn');
+
     this.loadingScreen = document.getElementById('loading');
     this.loadBar = document.getElementById('load-bar');
     
     this.isCruising = false;
     this.isFading = false;
     this.mode = 'CAR'; // 'CAR' or 'CHARACTER'
-    
-    this.cruiseBtn.addEventListener('click', () => {
+
+    // Desktop cruise/mode listeners
+    if (this.cruiseBtn) this.cruiseBtn.addEventListener('click', () => {
       this.isCruising = !this.isCruising;
       this.updateCruiseBtn();
     });
+    if (this.modeBtn) this.modeBtn.addEventListener('click', () => this.toggleMode());
 
-    this.modeBtn.addEventListener('click', () => {
-      this.toggleMode();
+    // Mobile settings panel toggle
+    if (this.settingsBtn) this.settingsBtn.addEventListener('click', () => this.openSettings());
+    if (this.settingsCloseBtn) this.settingsCloseBtn.addEventListener('click', () => this.closeSettings());
+    if (this.mobileCruiseBtn) this.mobileCruiseBtn.addEventListener('click', () => {
+      this.isCruising = !this.isCruising;
+      this.updateCruiseBtn();
+      this.updateMobileCruiseBtn();
     });
+    if (this.mobileModeBtn) this.mobileModeBtn.addEventListener('click', () => {
+      this.toggleMode();
+      this.updateMobileModeBtn();
+    });
+
+    this.timeOfDay = 'night';
+    this.weather = 'CLEAR';
+
+    // Initialize time button to show night icon
+    this.updateTimeBtn('night');
+  }
+
+  openSettings() {
+    if (this.settingsPanel) this.settingsPanel.classList.add('open');
+  }
+  closeSettings() {
+    if (this.settingsPanel) this.settingsPanel.classList.remove('open');
+  }
+
+  updateTimeBtn(timeOfDay) {
+    if (!this.timeBtn) return;
+    this.timeBtn.textContent = timeOfDay === 'day' ? '☀️' : '🌙';
+    this.timeBtn.title = timeOfDay === 'day' ? 'Switch to Night' : 'Switch to Day';
+  }
+
+  updateWeatherBtn(weather) {
+    const labels = { 'CLEAR': '☁️ Clear', 'RAIN': '🌧️ Rain', 'SNOW': '❄️ Snow' };
+    const label = labels[weather] || '☁️ Clear';
+    if (this.weatherBtn) this.weatherBtn.textContent = label;
+    if (this.mobileWeatherBtn) this.mobileWeatherBtn.textContent = label;
+  }
+
+  updateMobileModeBtn() {
+    if (!this.mobileModeBtn) return;
+    this.mobileModeBtn.textContent = this.mode === 'CAR' ? '🚗 Drive' : '🚶 On Foot';
+    this.mobileModeBtn.classList.toggle('active', this.mode === 'CHARACTER');
+    // Show/hide character selector in panel
+    if (this.mobileAvatarBtn) this.mobileAvatarBtn.style.display = this.mode === 'CHARACTER' ? 'inline-block' : 'none';
+    if (this.mobileAvatarPlaceholder) this.mobileAvatarPlaceholder.style.display = this.mode === 'CHARACTER' ? 'none' : 'inline-block';
+  }
+
+  updateMobileCruiseBtn() {
+    if (!this.mobileCruiseBtn) return;
+    this.mobileCruiseBtn.textContent = this.isCruising ? '✦ Cruising...' : '✦ Auto Cruise';
+    this.mobileCruiseBtn.classList.toggle('active', this.isCruising);
   }
 
   toggleMode() {
