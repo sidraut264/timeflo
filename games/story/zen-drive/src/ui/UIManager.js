@@ -73,8 +73,16 @@ class UIManager {
 
   updateTimeBtn(timeOfDay) {
     if (!this.timeBtn) return;
-    this.timeBtn.textContent = timeOfDay === 'day' ? '☀️' : '🌙';
-    this.timeBtn.title = timeOfDay === 'day' ? 'Switch to Night' : 'Switch to Day';
+    if (timeOfDay === 'day') {
+      this.timeBtn.textContent = '☀️';
+      this.timeBtn.title = 'Switch to Night';
+    } else if (timeOfDay === 'sunset') {
+      this.timeBtn.textContent = '🌅';
+      this.timeBtn.title = 'Switch to Day';
+    } else {
+      this.timeBtn.textContent = '🌙';
+      this.timeBtn.title = 'Switch to Sunset';
+    }
   }
 
   updateWeatherBtn(weather) {

@@ -124,6 +124,69 @@ const NIGHT_BIOMES = [
   },
 ];
 
+const SUNSET_BIOMES = [
+  {
+    id: 'forest', name: 'Sunset Forest', short: 'Forest',
+    sky: [0x1a0a1e, 0x8b3a2a, 0xf59c50],
+    fog: { color: 0xc2663a, near: 35, far: 260 },
+    ground: 0x2a1e0e, road: 0x1e1a14, dash: 0xffcc88,
+    ambient: 0.45, sunCol: 0xff8040, sunStr: 1.8,
+    sunPos: [180, 18, -80], exposure: 1.15,
+    treeCount: 220, spread: 80, hRange: [7, 18],
+    treeType: 'pine',
+  },
+  {
+    id: 'autumn', name: 'Sunset Valley', short: 'Autumn',
+    sky: [0x1e0c06, 0xb04010, 0xf9a030],
+    fog: { color: 0xd86030, near: 30, far: 220 },
+    ground: 0x3a1808, road: 0x1e180e, dash: 0xffdb70,
+    ambient: 0.45, sunCol: 0xff6020, sunStr: 2.2,
+    sunPos: [-200, 12, -60], exposure: 1.2,
+    treeCount: 170, spread: 75, hRange: [5, 14],
+    treeType: 'autumn',
+  },
+  {
+    id: 'desert', name: 'Desert Dusk', short: 'Desert',
+    sky: [0x1c0c18, 0x7a2c20, 0xf0a050],
+    fog: { color: 0xc07040, near: 50, far: 360 },
+    ground: 0x7a4020, road: 0x281c10, dash: 0xffdd99,
+    ambient: 0.55, sunCol: 0xff7030, sunStr: 2.0,
+    sunPos: [220, 10, -40], exposure: 1.25,
+    treeCount: 70, spread: 120, hRange: [2, 6],
+    treeType: 'cactus',
+  },
+  {
+    id: 'snow', name: 'Twilight Snow', short: 'Snow',
+    sky: [0x180818, 0x704060, 0xf0b090],
+    fog: { color: 0xb07868, near: 25, far: 200 },
+    ground: 0xb0907a, road: 0x201c1a, dash: 0xffddb0,
+    ambient: 0.40, sunCol: 0xff9060, sunStr: 1.5,
+    sunPos: [190, 14, -70], exposure: 1.1,
+    treeCount: 150, spread: 70, hRange: [4, 12],
+    treeType: 'snowPine',
+  },
+  {
+    id: 'blossom', name: 'Blossom Dusk', short: 'Blossom',
+    sky: [0x1e0810, 0x9a3850, 0xf48870],
+    fog: { color: 0xc06868, near: 30, far: 230 },
+    ground: 0x2c1c18, road: 0x1a1218, dash: 0xffaa88,
+    ambient: 0.42, sunCol: 0xff7050, sunStr: 1.7,
+    sunPos: [-190, 10, -50], exposure: 1.1,
+    treeCount: 170, spread: 65, hRange: [5, 13],
+    treeType: 'blossom',
+  },
+  {
+    id: 'coastal', name: 'Coastal Sunset', short: 'Coastal',
+    sky: [0x140610, 0x8a3830, 0xf09060],
+    fog: { color: 0xc07050, near: 45, far: 320 },
+    ground: 0x3a2a18, road: 0x201814, dash: 0xffcc88,
+    ambient: 0.48, sunCol: 0xff6830, sunStr: 2.1,
+    sunPos: [240, 8, -30], exposure: 1.2,
+    treeCount: 90, spread: 90, hRange: [6, 16],
+    treeType: 'palm',
+  },
+];
+
 class BiomeManager {
   constructor(scene, renderer) {
     this.scene = scene;
@@ -217,13 +280,20 @@ class BiomeManager {
   }
 
   toggleTimeOfDay() {
-    this.timeOfDay = this.timeOfDay === 'day' ? 'night' : 'day';
-    const sourceArray = this.timeOfDay === 'day' ? DAY_BIOMES : NIGHT_BIOMES;
+    // Cycle: night → sunset → day → night
+    if (this.timeOfDay === 'night') this.timeOfDay = 'sunset';
+    else if (this.timeOfDay === 'sunset') this.timeOfDay = 'day';
+    else this.timeOfDay = 'night';
+    const sourceArray = this.timeOfDay === 'day' ? DAY_BIOMES
+      : this.timeOfDay === 'sunset' ? SUNSET_BIOMES
+      : NIGHT_BIOMES;
     this.applyBiome(sourceArray[this.currentIndex], false);
   }
 
   nextBiome() {
-    const sourceArray = this.timeOfDay === 'day' ? DAY_BIOMES : NIGHT_BIOMES;
+    const sourceArray = this.timeOfDay === 'day' ? DAY_BIOMES
+      : this.timeOfDay === 'sunset' ? SUNSET_BIOMES
+      : NIGHT_BIOMES;
     this.currentIndex = (this.currentIndex + 1) % sourceArray.length;
     return sourceArray[this.currentIndex];
   }
