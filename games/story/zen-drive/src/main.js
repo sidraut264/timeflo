@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         car.group.visible = true;
         character.group.visible = false;
 
-        car.update(dt, input.keys, uiManager.isCruising, roadInfo);
+        car.update(dt, input.keys, uiManager.isCruising, roadInfo, uiManager.sensitivity);
       } else {
         // On Foot Mode (Character)
         car.group.visible = true; // Keep car visible parked on road!

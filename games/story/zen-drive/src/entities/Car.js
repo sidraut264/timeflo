@@ -91,7 +91,7 @@ class Car {
     }
   }
 
-  update(dt, input, isCruising, roadInfo) {
+  update(dt, input, isCruising, roadInfo, sensitivity = 0.5) {
     // 1. Throttle / Braking Logic
     let accel = 0;
     
@@ -121,8 +121,8 @@ class Car {
 
     // 2. Responsive Arcade Steering
     let targetSteer = 0;
-    if (input.left) targetSteer = 1.0;
-    else if (input.right) targetSteer = -1.0;
+    if (input.left) targetSteer = 1.0 * sensitivity;
+    else if (input.right) targetSteer = -1.0 * sensitivity;
 
     // Smooth steer response
     if (targetSteer !== 0) {

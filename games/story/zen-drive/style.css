@@ -175,6 +175,22 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
   cursor: default;
   pointer-events: none;
 }
+.settings-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.1);
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+}
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #b8ffb8;
+  cursor: pointer;
+}
 
 /* Mobile Touch Controls */
 #mobile-controls {
@@ -183,16 +199,28 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
   z-index: 15;
 }
 
+#joystick-zone {
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  z-index: 10;
+  pointer-events: all;
+  touch-action: none; /* Prevent scrolling */
+}
+
 #joystick-base {
-  position: fixed;
-  bottom: 35px; left: 35px;
+  position: absolute;
+  /* Will be positioned dynamically via JS */
   width: 120px; height: 120px;
   background: rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(12px);
   border: 2px solid rgba(255, 255, 255, 0.35);
   border-radius: 50%;
-  pointer-events: all;
-  touch-action: none;
+  pointer-events: none; /* Passes touches to zone */
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+  transform: translate(-50%, -50%);
+  z-index: 11;
 }
 
 #joystick-knob {
@@ -232,6 +260,14 @@ canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
   border-color: rgba(180, 240, 180, 0.8);
   color: #b8ffb8;
   transform: scale(0.95);
+}
+
+.action-icon-btn {
+  width: 56px; height: 56px;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  border-radius: 50%;
 }
 
 #hints {

@@ -62,11 +62,12 @@ class InputManager {
   }
 
   initTouchControls() {
+    const zone = document.getElementById('joystick-zone');
     const base = document.getElementById('joystick-base');
     const knob = document.getElementById('joystick-knob');
     const actionBtn = document.getElementById('btn-touch-action');
 
-    if (!base || !knob) return;
+    if (!zone || !base || !knob) return;
 
     let activeTouchId = null;
     let baseRect = null;
@@ -75,25 +76,36 @@ class InputManager {
       e.preventDefault();
       const touch = e.changedTouches[0];
       activeTouchId = touch.identifier;
+      
+      // Position the floating joystick
+      base.style.left = `${touch.clientX}px`;
+      base.style.top = `${touch.clientY}px`;
+      base.style.opacity = '1';
+      
+      // The base is centered around the touch, so its rect is calculated after moving
       baseRect = base.getBoundingClientRect();
       this.updateJoystick(touch.clientX, touch.clientY, baseRect, knob);
     };
 
     const handleTouchMove = (e) => {
-      e.preventDefault();
+      let isJoystickTouch = false;
       for (let i = 0; i < e.changedTouches.length; i++) {
         const touch = e.changedTouches[i];
         if (touch.identifier === activeTouchId && baseRect) {
+          isJoystickTouch = true;
           this.updateJoystick(touch.clientX, touch.clientY, baseRect, knob);
         }
       }
+      if (isJoystickTouch) e.preventDefault();
     };
 
     const handleTouchEnd = (e) => {
-      e.preventDefault();
+      let isJoystickTouch = false;
       for (let i = 0; i < e.changedTouches.length; i++) {
         if (e.changedTouches[i].identifier === activeTouchId) {
+          isJoystickTouch = true;
           activeTouchId = null;
+          base.style.opacity = '0';
           knob.style.transform = 'translate(-50%, -50%)';
           this.keys.up = false;
           this.keys.down = false;
@@ -101,9 +113,10 @@ class InputManager {
           this.keys.right = false;
         }
       }
+      if (isJoystickTouch) e.preventDefault();
     };
 
-    base.addEventListener('touchstart', handleTouchStart, { passive: false });
+    zone.addEventListener('touchstart', handleTouchStart, { passive: false });
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd, { passive: false });
 

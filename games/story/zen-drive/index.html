@@ -63,16 +63,23 @@
         <span class="settings-label">Cruise</span>
         <button id="mobile-cruise-btn" class="settings-option-btn">✦ Auto Cruise</button>
       </div>
+      <div class="settings-row" style="flex-direction: column; align-items: flex-start; gap: 8px; border-bottom: none; padding-top: 16px;">
+        <span class="settings-label">Steering Sensitivity</span>
+        <input type="range" id="sensitivity-slider" min="0.1" max="1.5" step="0.1" value="0.5" class="settings-slider">
+      </div>
     </div>
 
     <!-- Mobile Touch Overlay Controls -->
     <div id="mobile-controls">
+      <!-- Zone to capture touches on the left half of the screen -->
+      <div id="joystick-zone"></div>
+      
       <div id="joystick-base">
         <div id="joystick-knob"></div>
       </div>
       
       <div id="touch-actions">
-        <button id="btn-touch-action" class="touch-btn">⚡ DRIFT / RUN</button>
+        <button id="btn-touch-action" class="touch-btn action-icon-btn" style="display: none;">🏃</button>
       </div>
     </div>
 

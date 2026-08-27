@@ -19,6 +19,8 @@ class UIManager {
     this.mobileAvatarPlaceholder = document.getElementById('mobile-avatar-placeholder');
     this.mobileWeatherBtn = document.getElementById('mobile-weather-btn');
     this.mobileCruiseBtn = document.getElementById('mobile-cruise-btn');
+    this.touchActionBtn = document.getElementById('btn-touch-action');
+    this.sensitivitySlider = document.getElementById('sensitivity-slider');
 
     this.loadingScreen = document.getElementById('loading');
     this.loadBar = document.getElementById('load-bar');
@@ -49,6 +51,14 @@ class UIManager {
 
     this.timeOfDay = 'night';
     this.weather = 'CLEAR';
+    this.sensitivity = 0.5; // lower default sensitivity (previously 1.0 implicitly)
+
+    if (this.sensitivitySlider) {
+      this.sensitivity = parseFloat(this.sensitivitySlider.value);
+      this.sensitivitySlider.addEventListener('input', (e) => {
+        this.sensitivity = parseFloat(e.target.value);
+      });
+    }
 
     // Initialize time button to show night icon
     this.updateTimeBtn('night');
@@ -81,6 +91,11 @@ class UIManager {
     // Show/hide character selector in panel
     if (this.mobileAvatarBtn) this.mobileAvatarBtn.style.display = this.mode === 'CHARACTER' ? 'inline-block' : 'none';
     if (this.mobileAvatarPlaceholder) this.mobileAvatarPlaceholder.style.display = this.mode === 'CHARACTER' ? 'none' : 'inline-block';
+    
+    // Only show action icon (drift/run) when in CHARACTER mode
+    if (this.touchActionBtn) {
+      this.touchActionBtn.style.display = this.mode === 'CHARACTER' ? 'flex' : 'none';
+    }
   }
 
   updateMobileCruiseBtn() {
