@@ -73,6 +73,18 @@ const DAY_BIOMES = [
     ground: 0x1a1515, road: 0x111111, dash: 0xff4400, ambient: 0.40, sunCol: 0xff6644, sunStr: 1.4,
     sunPos: [-120, 100, -180], exposure: 1.0, treeCount: 80, spread: 100, hRange: [4, 10], treeType: 'volcanic',
   },
+  {
+    id: 'ruins', name: 'Ancient Ruins', short: 'Ruins',
+    sky: [0x546e7a, 0x78909c, 0xb0bec5], fog: { color: 0x90a4ae, near: 30, far: 300 },
+    ground: 0x5d4037, road: 0x3e2723, dash: 0xa1887f, ambient: 0.65, sunCol: 0xfff3e0, sunStr: 1.3,
+    sunPos: [80, 140, -160], exposure: 1.0, treeCount: 70, spread: 120, hRange: [7, 18], treeType: 'ruin',
+  },
+  {
+    id: 'village', name: 'Old Village', short: 'Village',
+    sky: [0x4fc3f7, 0x81d4fa, 0xb3e5fc], fog: { color: 0x81d4fa, near: 50, far: 350 },
+    ground: 0x558b2f, road: 0x4e342e, dash: 0xd7ccc8, ambient: 0.65, sunCol: 0xfff9c4, sunStr: 1.3,
+    sunPos: [-80, 140, -160], exposure: 1.0, treeCount: 50, spread: 90, hRange: [6, 10], treeType: 'house',
+  },
 ];
 
 const NIGHT_BIOMES = [
@@ -154,6 +166,18 @@ const NIGHT_BIOMES = [
     ground: 0x110a0a, road: 0x0a0a0a, dash: 0x992200, ambient: 0.15, sunCol: 0xaa3322, sunStr: 0.6,
     sunPos: [-120, 100, -180], exposure: 0.95, treeCount: 80, spread: 100, hRange: [4, 10], treeType: 'volcanic',
   },
+  {
+    id: 'ruins', name: 'Moonlit Ruins', short: 'Ruins',
+    sky: [0x000000, 0x111d2b, 0x243447], fog: { color: 0x1a2639, near: 20, far: 200 },
+    ground: 0x1a1614, road: 0x141010, dash: 0x4a4a4a, ambient: 0.2, sunCol: 0x99aacc, sunStr: 0.5,
+    sunPos: [80, 140, -160], exposure: 1.0, treeCount: 70, spread: 120, hRange: [7, 18], treeType: 'ruin',
+  },
+  {
+    id: 'village', name: 'Sleeping Village', short: 'Village',
+    sky: [0x01050a, 0x05101a, 0x0a1a2a], fog: { color: 0x081525, near: 30, far: 250 },
+    ground: 0x112211, road: 0x151210, dash: 0x444444, ambient: 0.2, sunCol: 0x88aabb, sunStr: 0.5,
+    sunPos: [-80, 140, -160], exposure: 1.0, treeCount: 50, spread: 90, hRange: [6, 10], treeType: 'house',
+  },
 ];
 
 const SUNSET_BIOMES = [
@@ -234,6 +258,18 @@ const SUNSET_BIOMES = [
     sky: [0x0a0505, 0x3a0a0a, 0x801515], fog: { color: 0x4a1010, near: 25, far: 250 },
     ground: 0x1a0a0a, road: 0x0f0a0a, dash: 0xff4400, ambient: 0.35, sunCol: 0xff3311, sunStr: 1.6,
     sunPos: [-150, 10, -150], exposure: 1.05, treeCount: 80, spread: 100, hRange: [4, 10], treeType: 'volcanic',
+  },
+  {
+    id: 'ruins', name: 'Forgotten Ruins', short: 'Ruins',
+    sky: [0x301420, 0x8c3814, 0xf29048], fog: { color: 0xd47030, near: 30, far: 280 },
+    ground: 0x4e280c, road: 0x24201c, dash: 0xffd880, ambient: 0.55, sunCol: 0xffa040, sunStr: 1.6,
+    sunPos: [140, 12, -90], exposure: 1.1, treeCount: 70, spread: 120, hRange: [7, 18], treeType: 'ruin',
+  },
+  {
+    id: 'village', name: 'Village Dusk', short: 'Village',
+    sky: [0x140610, 0x8a3830, 0xf09060], fog: { color: 0xc07050, near: 40, far: 300 },
+    ground: 0x3a2a18, road: 0x201814, dash: 0xffcc88, ambient: 0.55, sunCol: 0xff6830, sunStr: 1.8,
+    sunPos: [-140, 12, -90], exposure: 1.1, treeCount: 50, spread: 90, hRange: [6, 10], treeType: 'house',
   },
 ];
 

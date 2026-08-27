@@ -84,6 +84,13 @@ class TerrainGenerator {
       palm:         new THREE.MeshStandardMaterial({ color: 0x22581c, roughness: 0.7, flatShading: true }),
       savannaLeaves:new THREE.MeshStandardMaterial({ color: 0x5c6b30, roughness: 0.8, flatShading: true }),
       swampLeaves:  new THREE.MeshStandardMaterial({ color: 0x2e452a, roughness: 0.9, flatShading: true }),
+      // Architecture
+      stone:        new THREE.MeshStandardMaterial({ color: 0x9a8e7e, roughness: 0.92, flatShading: true }),
+      stoneLight:   new THREE.MeshStandardMaterial({ color: 0xbab0a0, roughness: 0.85, flatShading: true }),
+      stoneDark:    new THREE.MeshStandardMaterial({ color: 0x5e5448, roughness: 0.95, flatShading: true }),
+      plaster:      new THREE.MeshStandardMaterial({ color: 0xe0d8c8, roughness: 0.9 }),
+      roofRed:      new THREE.MeshStandardMaterial({ color: 0xa93226, roughness: 0.8, flatShading: true }),
+      roofDark:     new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.8, flatShading: true }),
       // Props
       rock:         new THREE.MeshStandardMaterial({ color: 0x6b675c, roughness: 0.95, flatShading: true }),
       grassTuft:    new THREE.MeshStandardMaterial({ color: 0x3f6b28, roughness: 0.85, flatShading: true, side: THREE.DoubleSide }),
@@ -404,6 +411,64 @@ class TerrainGenerator {
       branch.castShadow = true;
       g.add(branch);
       g.userData.swayAmount = 0.002;
+
+    } else if (type === 'ruin') {
+      // Build a random ruin piece (pillar, arch, or rubble)
+      const r = Math.random();
+      if (r < 0.4) {
+        // Pillar
+        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(h*0.08, h*0.08, h, 6), this.mats.stone);
+        pillar.position.y = h/2;
+        pillar.castShadow = true;
+        g.add(pillar);
+        if (Math.random() > 0.5) {
+          const broken = new THREE.Mesh(new THREE.CylinderGeometry(h*0.08, h*0.06, h*0.2, 6), this.mats.stoneLight);
+          broken.position.set(h*0.1, h + h*0.1, 0);
+          broken.rotation.z = Math.PI/2 - 0.2;
+          g.add(broken);
+        }
+      } else if (r < 0.7) {
+        // Archway
+        const p1 = new THREE.Mesh(new THREE.CylinderGeometry(h*0.08, h*0.08, h, 6), this.mats.stone);
+        p1.position.set(-h*0.3, h/2, 0);
+        const p2 = new THREE.Mesh(new THREE.CylinderGeometry(h*0.08, h*0.08, h, 6), this.mats.stone);
+        p2.position.set(h*0.3, h/2, 0);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(h*0.9, h*0.15, h*0.2), this.mats.stoneDark);
+        top.position.y = h;
+        g.add(p1, p2, top);
+      } else {
+        // Rubble block
+        const block = new THREE.Mesh(new THREE.BoxGeometry(h*0.6, h*0.4, h*0.5), this.mats.stoneDark);
+        block.position.y = h*0.2;
+        block.rotation.y = Math.random();
+        g.add(block);
+      }
+      g.userData.swayAmount = 0; // Ruins don't sway
+
+    } else if (type === 'house') {
+      // Small village house
+      const w = h * 0.8 + Math.random() * h * 0.4;
+      const d = h * 0.8 + Math.random() * h * 0.4;
+      const height = h * 0.6;
+      
+      const body = new THREE.Mesh(new THREE.BoxGeometry(w, height, d), this.mats.plaster);
+      body.position.y = height / 2;
+      body.castShadow = true;
+      g.add(body);
+      
+      const isRed = Math.random() > 0.5;
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w, d) * 0.8, height * 0.6, 4), isRed ? this.mats.roofRed : this.mats.roofDark);
+      roof.position.y = height + height * 0.3;
+      roof.rotation.y = Math.PI / 4;
+      roof.castShadow = true;
+      g.add(roof);
+
+      // Window
+      const window = new THREE.Mesh(new THREE.PlaneGeometry(h*0.2, h*0.2), this.mats.woodDark);
+      window.position.set(0, height/2, d/2 + 0.01);
+      g.add(window);
+      
+      g.userData.swayAmount = 0; // Houses don't sway
 
     } else {
       // Palm (default)
