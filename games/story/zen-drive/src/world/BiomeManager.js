@@ -51,13 +51,27 @@ const DAY_BIOMES = [
   },
   {
     id: 'coastal', name: 'Ocean Cliffs', short: 'Coastal',
-    sky: [0x081830, 0x144078, 0x3888d0],
-    fog: { color: 0x4090d8, near: 60, far: 420 },
-    ground: 0x4e6040, road: 0x262830, dash: 0xeef4ff,
-    ambient: 0.68, sunCol: 0xfff6d8, sunStr: 1.9,
-    sunPos: [200, 170, -300], exposure: 1.1,
-    treeCount: 90, spread: 90, hRange: [6, 16],
-    treeType: 'palm',
+    sky: [0x081830, 0x144078, 0x3888d0], fog: { color: 0x4090d8, near: 60, far: 420 },
+    ground: 0x4e6040, road: 0x262830, dash: 0xeef4ff, ambient: 0.68, sunCol: 0xfff6d8, sunStr: 1.9,
+    sunPos: [200, 170, -300], exposure: 1.1, treeCount: 90, spread: 90, hRange: [6, 16], treeType: 'palm',
+  },
+  {
+    id: 'savanna', name: 'Dry Savanna', short: 'Savanna',
+    sky: [0x2b5b84, 0x5a8fb4, 0xd0c4a8], fog: { color: 0xc0b490, near: 40, far: 450 },
+    ground: 0x8c7841, road: 0x302a24, dash: 0xfff0c0, ambient: 0.75, sunCol: 0xffe8b0, sunStr: 2.0,
+    sunPos: [100, 150, -100], exposure: 1.15, treeCount: 110, spread: 140, hRange: [5, 12], treeType: 'savanna',
+  },
+  {
+    id: 'swamp', name: 'Murky Swamp', short: 'Swamp',
+    sky: [0x152520, 0x3a5040, 0x768870], fog: { color: 0x5a6b5c, near: 15, far: 180 },
+    ground: 0x1a2e15, road: 0x1c1e18, dash: 0x889988, ambient: 0.55, sunCol: 0xd0e8d0, sunStr: 1.1,
+    sunPos: [40, 90, -120], exposure: 0.9, treeCount: 190, spread: 60, hRange: [8, 17], treeType: 'swamp',
+  },
+  {
+    id: 'volcanic', name: 'Volcanic Ash', short: 'Volcanic',
+    sky: [0x100a0a, 0x2a1515, 0x602a2a], fog: { color: 0x3a1a1a, near: 25, far: 250 },
+    ground: 0x1a1515, road: 0x111111, dash: 0xff4400, ambient: 0.40, sunCol: 0xff6644, sunStr: 1.4,
+    sunPos: [-120, 100, -180], exposure: 1.0, treeCount: 80, spread: 100, hRange: [4, 10], treeType: 'volcanic',
   },
 ];
 
@@ -122,6 +136,24 @@ const NIGHT_BIOMES = [
     treeCount: 90, spread: 90, hRange: [6, 16],
     treeType: 'palm',
   },
+  {
+    id: 'savanna', name: 'Savanna Night', short: 'Savanna',
+    sky: [0x020305, 0x070f1a, 0x12243b], fog: { color: 0x151e28, near: 30, far: 300 },
+    ground: 0x2a281e, road: 0x151310, dash: 0x666655, ambient: 0.2, sunCol: 0x99aacc, sunStr: 0.5,
+    sunPos: [100, 150, -100], exposure: 1.0, treeCount: 110, spread: 140, hRange: [5, 12], treeType: 'savanna',
+  },
+  {
+    id: 'swamp', name: 'Midnight Swamp', short: 'Swamp',
+    sky: [0x010302, 0x050f0a, 0x0f1a14], fog: { color: 0x0c1510, near: 10, far: 140 },
+    ground: 0x0d140a, road: 0x10110e, dash: 0x334433, ambient: 0.1, sunCol: 0x668877, sunStr: 0.3,
+    sunPos: [40, 90, -120], exposure: 0.85, treeCount: 190, spread: 60, hRange: [8, 17], treeType: 'swamp',
+  },
+  {
+    id: 'volcanic', name: 'Cooling Lava', short: 'Volcanic',
+    sky: [0x000000, 0x0a0202, 0x1a0505], fog: { color: 0x0f0303, near: 20, far: 200 },
+    ground: 0x110a0a, road: 0x0a0a0a, dash: 0x992200, ambient: 0.15, sunCol: 0xaa3322, sunStr: 0.6,
+    sunPos: [-120, 100, -180], exposure: 0.95, treeCount: 80, spread: 100, hRange: [4, 10], treeType: 'volcanic',
+  },
 ];
 
 const SUNSET_BIOMES = [
@@ -184,6 +216,24 @@ const SUNSET_BIOMES = [
     sunPos: [240, 8, -30], exposure: 1.2,
     treeCount: 90, spread: 90, hRange: [6, 16],
     treeType: 'palm',
+  },
+  {
+    id: 'savanna', name: 'Savanna Dusk', short: 'Savanna',
+    sky: [0x180a1e, 0x8b3a2a, 0xf59c50], fog: { color: 0xd87b40, near: 35, far: 350 },
+    ground: 0x6a4825, road: 0x221a15, dash: 0xffcc88, ambient: 0.5, sunCol: 0xff7030, sunStr: 1.8,
+    sunPos: [140, 12, -90], exposure: 1.1, treeCount: 110, spread: 140, hRange: [5, 12], treeType: 'savanna',
+  },
+  {
+    id: 'swamp', name: 'Swamp Twilight', short: 'Swamp',
+    sky: [0x101510, 0x4a3a2a, 0x857050], fog: { color: 0x605540, near: 15, far: 160 },
+    ground: 0x202a15, road: 0x151610, dash: 0x998866, ambient: 0.4, sunCol: 0xd09060, sunStr: 1.3,
+    sunPos: [60, 8, -100], exposure: 0.95, treeCount: 190, spread: 60, hRange: [8, 17], treeType: 'swamp',
+  },
+  {
+    id: 'volcanic', name: 'Ember Skies', short: 'Volcanic',
+    sky: [0x0a0505, 0x3a0a0a, 0x801515], fog: { color: 0x4a1010, near: 25, far: 250 },
+    ground: 0x1a0a0a, road: 0x0f0a0a, dash: 0xff4400, ambient: 0.35, sunCol: 0xff3311, sunStr: 1.6,
+    sunPos: [-150, 10, -150], exposure: 1.05, treeCount: 80, spread: 100, hRange: [4, 10], treeType: 'volcanic',
   },
 ];
 

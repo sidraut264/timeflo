@@ -50,11 +50,51 @@ class TerrainGenerator {
     this.scene.add(this.treeGroup);
     this.trees = [];
 
-    this.propGroup = new THREE.Group(); // rocks, grass tufts, flowers
+    this.propGroup = new THREE.Group();
     this.scene.add(this.propGroup);
     this.props = [];
 
     this._tmpColor = new THREE.Color();
+
+    // Shared material cache — drastically reduces WebGL state changes and
+    // eliminates the per-tree material allocation that was leaking memory.
+    this.mats = {
+      // Trunks
+      woodBrown:  new THREE.MeshStandardMaterial({ color: 0x3e2212, roughness: 0.9 }),
+      woodDark:   new THREE.MeshStandardMaterial({ color: 0x221812, roughness: 0.9 }),
+      woodLight:  new THREE.MeshStandardMaterial({ color: 0x5a4225, roughness: 0.9 }),
+      woodRed:    new THREE.MeshStandardMaterial({ color: 0x34180c, roughness: 0.9 }),
+      woodBurnt:  new THREE.MeshStandardMaterial({ color: 0x1a1515, roughness: 0.95 }),
+      // Foliage
+      pineLeaves: [
+        new THREE.MeshStandardMaterial({ color: 0x1a3a16, roughness: 0.8 }),
+        new THREE.MeshStandardMaterial({ color: 0x1e421a, roughness: 0.8 }),
+        new THREE.MeshStandardMaterial({ color: 0x224a1e, roughness: 0.8 }),
+      ],
+      autumnLeaves: [
+        new THREE.MeshStandardMaterial({ color: 0xd44a1c, roughness: 0.7, flatShading: true }),
+        new THREE.MeshStandardMaterial({ color: 0xe26a1b, roughness: 0.7, flatShading: true }),
+        new THREE.MeshStandardMaterial({ color: 0xef9428, roughness: 0.7, flatShading: true }),
+        new THREE.MeshStandardMaterial({ color: 0xba3210, roughness: 0.7, flatShading: true }),
+      ],
+      cactus:       new THREE.MeshStandardMaterial({ color: 0x365e23, roughness: 0.7, flatShading: true }),
+      snowPine:     new THREE.MeshStandardMaterial({ color: 0x1b301b, roughness: 0.8 }),
+      snowCap:      new THREE.MeshStandardMaterial({ color: 0xedf4fa, roughness: 0.4 }),
+      blossom:      new THREE.MeshStandardMaterial({ color: 0xf494b8, roughness: 0.7, flatShading: true }),
+      palm:         new THREE.MeshStandardMaterial({ color: 0x22581c, roughness: 0.7, flatShading: true }),
+      savannaLeaves:new THREE.MeshStandardMaterial({ color: 0x5c6b30, roughness: 0.8, flatShading: true }),
+      swampLeaves:  new THREE.MeshStandardMaterial({ color: 0x2e452a, roughness: 0.9, flatShading: true }),
+      // Props
+      rock:         new THREE.MeshStandardMaterial({ color: 0x6b675c, roughness: 0.95, flatShading: true }),
+      grassTuft:    new THREE.MeshStandardMaterial({ color: 0x3f6b28, roughness: 0.85, flatShading: true, side: THREE.DoubleSide }),
+      flowerStem:   new THREE.MeshStandardMaterial({ color: 0x3f6b28 }),
+      flowerPetal: [
+        new THREE.MeshStandardMaterial({ color: 0xf4d35e, flatShading: true }),
+        new THREE.MeshStandardMaterial({ color: 0xee6c4d, flatShading: true }),
+        new THREE.MeshStandardMaterial({ color: 0xf2f2f2, flatShading: true }),
+        new THREE.MeshStandardMaterial({ color: 0xc86bd6, flatShading: true }),
+      ],
+    };
   }
 
   // Kept for backward compatibility — recolors the "mid" grass tone and
@@ -233,59 +273,57 @@ class TerrainGenerator {
 
     if (type === 'pine') {
       const trunkH = h * 0.22;
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, trunkH, 6), new THREE.MeshStandardMaterial({ color: 0x3e2212, roughness: 0.9 }));
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, trunkH, 6), this.mats.woodBrown);
       trunk.position.y = trunkH / 2;
       trunk.castShadow = true;
       g.add(trunk);
 
       const crown = new THREE.Group();
       for (let i = 0; i < 3; i++) {
-        const t = i / 2;
-        const cH = h * (0.55 - t * 0.12);
-        const cR = h * 0.32 * (1 - t * 0.42);
-        const y = trunkH + h * 0.24 * i;
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(cR, cH, 7), new THREE.MeshStandardMaterial({ color: 0x1a3a16 + i * 0x040804, roughness: 0.8 }));
+        const cH = h * (0.55 - (i/2) * 0.12);
+        const cR = h * 0.32 * (1 - (i/2) * 0.42);
+        const y  = trunkH + h * 0.24 * i;
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(cR, cH, 7), this.mats.pineLeaves[i]);
         cone.position.y = y + cH / 2;
         cone.castShadow = true;
         crown.add(cone);
       }
       g.add(crown);
       g.userData.swayTarget = crown;
+
     } else if (type === 'autumn') {
       const trunkH = h * 0.38;
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, trunkH, 6), new THREE.MeshStandardMaterial({ color: 0x3a1e0d, roughness: 0.9 }));
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, trunkH, 6), this.mats.woodBrown);
       trunk.position.y = trunkH / 2;
       g.add(trunk);
 
-      const foliageCols = [0xd44a1c, 0xe26a1b, 0xef9428, 0xba3210];
-      const col = foliageCols[Math.floor(Math.random() * foliageCols.length)];
-      const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(h * 0.32, 1), new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, flatShading: true }));
+      const col = this.mats.autumnLeaves[Math.floor(Math.random() * this.mats.autumnLeaves.length)];
+      const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(h * 0.32, 1), col);
       foliage.position.y = trunkH + h * 0.25;
       foliage.castShadow = true;
       g.add(foliage);
       g.userData.swayTarget = foliage;
+
     } else if (type === 'cactus') {
-      const mat = new THREE.MeshStandardMaterial({ color: 0x365e23, roughness: 0.7, flatShading: true });
-      const main = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, h, 7), mat);
+      const main = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, h, 7), this.mats.cactus);
       main.position.y = h / 2;
       main.castShadow = true;
       g.add(main);
-
-      // A couple of side arms for silhouette variety
       const armCount = Math.random() > 0.4 ? 1 : 2;
       for (let i = 0; i < armCount; i++) {
         const armH = h * (0.3 + Math.random() * 0.2);
-        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, armH, 6), mat);
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, armH, 6), this.mats.cactus);
         const side = i === 0 ? 1 : -1;
         arm.position.set(side * 0.32, h * (0.45 + Math.random() * 0.2), 0);
         arm.rotation.z = side * 0.9;
         arm.castShadow = true;
         g.add(arm);
       }
-      g.userData.swayAmount = 0.005; // cacti barely move
+      g.userData.swayAmount = 0.005;
+
     } else if (type === 'snowPine') {
       const trunkH = h * 0.2;
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.18, trunkH, 6), new THREE.MeshStandardMaterial({ color: 0x221812, roughness: 0.9 }));
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.18, trunkH, 6), this.mats.woodDark);
       trunk.position.y = trunkH / 2;
       g.add(trunk);
 
@@ -293,44 +331,92 @@ class TerrainGenerator {
       for (let i = 0; i < 3; i++) {
         const cH = h * 0.45;
         const cR = h * 0.28 * (1 - i * 0.25);
-        const y = trunkH + h * 0.22 * i;
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(cR, cH, 7), new THREE.MeshStandardMaterial({ color: 0x1b301b, roughness: 0.8 }));
+        const y  = trunkH + h * 0.22 * i;
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(cR, cH, 7), this.mats.snowPine);
         cone.position.y = y + cH / 2;
         cone.castShadow = true;
         crown.add(cone);
-
-        const snow = new THREE.Mesh(new THREE.ConeGeometry(cR * 0.92, cH * 0.3, 7), new THREE.MeshStandardMaterial({ color: 0xedf4fa, roughness: 0.4 }));
+        const snow = new THREE.Mesh(new THREE.ConeGeometry(cR * 0.92, cH * 0.3, 7), this.mats.snowCap);
         snow.position.y = y + cH * 0.8;
-        snow.castShadow = true;
         crown.add(snow);
       }
       g.add(crown);
       g.userData.swayTarget = crown;
+
     } else if (type === 'blossom') {
       const trunkH = h * 0.35;
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.18, trunkH, 6), new THREE.MeshStandardMaterial({ color: 0x34180c, roughness: 0.9 }));
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.18, trunkH, 6), this.mats.woodRed);
       trunk.position.y = trunkH / 2;
       g.add(trunk);
-
-      const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(h * 0.34, 1), new THREE.MeshStandardMaterial({ color: 0xf494b8, roughness: 0.7, flatShading: true }));
+      const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(h * 0.34, 1), this.mats.blossom);
       foliage.position.y = trunkH + h * 0.25;
       foliage.castShadow = true;
       g.add(foliage);
       g.userData.swayTarget = foliage;
-    } else { // Palm
+
+    } else if (type === 'savanna') {
+      // Acacia: tapered trunk, wide flat canopy
+      const trunkH = h * 0.6;
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.2, trunkH, 5), this.mats.woodLight);
+      trunk.position.y = trunkH / 2;
+      trunk.rotation.z = (Math.random() - 0.5) * 0.1;
+      trunk.castShadow = true;
+      g.add(trunk);
+      const canopyH = h * 0.15;
+      const canopy = new THREE.Mesh(new THREE.CylinderGeometry(h * 0.5, h * 0.4, canopyH, 8), this.mats.savannaLeaves);
+      canopy.position.y = trunkH + canopyH / 2;
+      canopy.castShadow = true;
+      g.add(canopy);
+      g.userData.swayTarget = canopy;
+
+    } else if (type === 'swamp') {
+      // Willow: tall dark trunk, drooping foliage
+      const trunkH = h * 0.7;
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.25, trunkH, 6), this.mats.woodDark);
+      trunk.position.y = trunkH / 2;
+      trunk.castShadow = true;
+      g.add(trunk);
+      const crown = new THREE.Group();
+      const core = new THREE.Mesh(new THREE.DodecahedronGeometry(h * 0.25, 0), this.mats.swampLeaves);
+      core.position.y = trunkH;
+      crown.add(core);
+      for (let i = 0; i < 4; i++) {
+        const droop = new THREE.Mesh(new THREE.ConeGeometry(0.15, h * 0.4, 5), this.mats.swampLeaves);
+        droop.position.set((Math.random() - 0.5) * h * 0.3, trunkH - h * 0.15, (Math.random() - 0.5) * h * 0.3);
+        droop.rotation.x = Math.PI;
+        crown.add(droop);
+      }
+      g.add(crown);
+      g.userData.swayTarget = crown;
+      g.userData.swayAmount = 0.04;
+
+    } else if (type === 'volcanic') {
+      // Burnt dead tree: jagged trunk + one branch, no leaves
+      const trunkH = h * 0.6;
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.25, trunkH, 5), this.mats.woodBurnt);
+      trunk.position.y = trunkH / 2;
+      trunk.rotation.z = (Math.random() - 0.5) * 0.2;
+      trunk.castShadow = true;
+      g.add(trunk);
+      const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.1, h * 0.3, 4), this.mats.woodBurnt);
+      branch.position.set(0.15, trunkH * 0.7, 0);
+      branch.rotation.z = 0.8;
+      branch.castShadow = true;
+      g.add(branch);
+      g.userData.swayAmount = 0.002;
+
+    } else {
+      // Palm (default)
       const trunkH = h * 0.75;
-      // Slight bend for a more natural palm silhouette
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.22, trunkH, 6), new THREE.MeshStandardMaterial({ color: 0x5a4225, roughness: 0.9 }));
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.22, trunkH, 6), this.mats.woodLight);
       trunk.position.y = trunkH / 2;
       trunk.rotation.z = (Math.random() - 0.5) * 0.18;
       g.add(trunk);
-
       const crown = new THREE.Group();
       crown.position.y = trunkH;
-      const frondCount = 6;
-      for (let i = 0; i < frondCount; i++) {
-        const frond = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.6, 5), new THREE.MeshStandardMaterial({ color: 0x22581c, roughness: 0.7, flatShading: true }));
-        frond.rotation.y = (i / frondCount) * Math.PI * 2;
+      for (let i = 0; i < 6; i++) {
+        const frond = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.6, 5), this.mats.palm);
+        frond.rotation.y = (i / 6) * Math.PI * 2;
         frond.rotation.x = Math.PI / 2.6;
         frond.castShadow = true;
         crown.add(frond);
@@ -349,15 +435,13 @@ class TerrainGenerator {
   buildRock() {
     const s = 0.4 + Math.random() * 0.9;
     const geo = new THREE.IcosahedronGeometry(s, 0);
-    // Distort vertices slightly for a non-uniform boulder shape
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const jitter = 0.85 + Math.random() * 0.3;
       pos.setXYZ(i, pos.getX(i) * jitter, pos.getY(i) * jitter, pos.getZ(i) * jitter);
     }
     geo.computeVertexNormals();
-    const mat = new THREE.MeshStandardMaterial({ color: 0x6b675c, roughness: 0.95, flatShading: true });
-    const rock = new THREE.Mesh(geo, mat);
+    const rock = new THREE.Mesh(geo, this.mats.rock);
     rock.castShadow = true;
     rock.receiveShadow = true;
     rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
@@ -367,28 +451,26 @@ class TerrainGenerator {
   buildGrassTuft() {
     const g = new THREE.Group();
     const bladeCount = 4 + Math.floor(Math.random() * 3);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x3f6b28, roughness: 0.85, flatShading: true, side: THREE.DoubleSide });
     for (let i = 0; i < bladeCount; i++) {
       const bh = 0.4 + Math.random() * 0.35;
-      const blade = new THREE.Mesh(new THREE.ConeGeometry(0.05, bh, 3), mat);
+      const blade = new THREE.Mesh(new THREE.ConeGeometry(0.05, bh, 3), this.mats.grassTuft);
       blade.position.set((Math.random() - 0.5) * 0.25, bh / 2, (Math.random() - 0.5) * 0.25);
       blade.rotation.z = (Math.random() - 0.5) * 0.5;
       g.add(blade);
     }
-    g.userData.swayAmount = 0.12; // grass sways more than trees
+    g.userData.swayAmount = 0.12;
     g.userData.swayPhase = Math.random() * Math.PI * 2;
     g.userData.swayTarget = g;
     return g;
   }
 
   buildFlower() {
-    const petalColors = [0xf4d35e, 0xee6c4d, 0xf2f2f2, 0xc86bd6];
-    const col = petalColors[Math.floor(Math.random() * petalColors.length)];
+    const col = this.mats.flowerPetal[Math.floor(Math.random() * this.mats.flowerPetal.length)];
     const g = new THREE.Group();
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.3, 4), new THREE.MeshStandardMaterial({ color: 0x3f6b28 }));
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.3, 4), this.mats.flowerStem);
     stem.position.y = 0.15;
     g.add(stem);
-    const bloom = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), new THREE.MeshStandardMaterial({ color: col, flatShading: true }));
+    const bloom = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), col);
     bloom.position.y = 0.32;
     g.add(bloom);
     g.userData.swayAmount = 0.15;
@@ -397,12 +479,23 @@ class TerrainGenerator {
     return g;
   }
 
+  // Dispose all geometries inside a scene-object group WITHOUT disposing
+  // shared materials (they live in this.mats and are reused across all trees).
+  _disposeObject(obj) {
+    if (!obj) return;
+    obj.traverse(child => {
+      if (child.isMesh && child.geometry) child.geometry.dispose();
+    });
+  }
+
   updateScenery(carZ, biome) {
     if (this.trees.length === 0 || this.currentBiomeId !== biome.id) {
       this.currentBiomeId = biome.id;
-      for (const t of this.trees) this.treeGroup.remove(t);
+
+      // Properly dispose old geometry before rebuilding
+      for (const t of this.trees) { this._disposeObject(t); this.treeGroup.remove(t); }
       this.trees = [];
-      for (const p of this.props) this.propGroup.remove(p);
+      for (const p of this.props) { this._disposeObject(p); this.propGroup.remove(p); }
       this.props = [];
 
       for (let i = 0; i < biome.treeCount; i++) {
@@ -413,14 +506,15 @@ class TerrainGenerator {
         this.trees.push(tree);
       }
 
-      // Ground clutter — roughly 1.6x the tree count, closer to the road
       const propCount = Math.round(biome.treeCount * 1.6);
       for (let i = 0; i < propCount; i++) {
         const roll = Math.random();
         let prop;
-        if (roll < 0.35) prop = this.buildRock();
-        else if (roll < 0.8) prop = this.buildGrassTuft();
-        else prop = this.buildFlower();
+        // Skip flowers/grass in volcanic — only dead rocks fit the mood
+        if (biome.id === 'volcanic') prop = this.buildRock();
+        else if (roll < 0.35) prop = this.buildRock();
+        else if (roll < 0.8)  prop = this.buildGrassTuft();
+        else                   prop = this.buildFlower();
         this.placeProp(prop, carZ - 50 + Math.random() * 800, biome);
         this.propGroup.add(prop);
         this.props.push(prop);
