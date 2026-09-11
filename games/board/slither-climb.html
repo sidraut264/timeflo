@@ -1394,7 +1394,7 @@
                         moveTokenVisual3D(state.current, c);
 
                         for (const s of state.snakes) {
-                            if (c > s.tail && c < s.head) {
+                            if (c === s.head) {
                                 disturbed.add(s.id);
                                 flashSnakeBody(s.id);
                             }
