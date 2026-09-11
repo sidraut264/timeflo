@@ -9,16 +9,17 @@
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
         :root {
-            --bg: #0f1711;
-            --panel: rgba(45, 65, 38, 0.45);
-            --panel-2: rgba(58, 80, 48, 0.6);
-            --panel-border: rgba(144, 186, 120, 0.15);
-            --ink: #1f2a1b;
-            --ink-soft: #384d2c;
-            --gold: #dfb256;
-            --gold-soft: #f4d58d;
-            --cream: #f9f5eb;
-            --danger: #d94a38;
+            --bg: #1a0f08;
+            --panel: rgba(105, 50, 20, 0.35);
+            --panel-2: rgba(130, 65, 30, 0.5);
+            --panel-border: rgba(210, 140, 80, 0.4);
+            --ink: #2b1408;
+            --ink-soft: #5c2b12;
+            --gold: #ffb833;
+            --gold-soft: #ffd680;
+            --cream: #fdf5e6;
+            --danger: #ff4757;
+            --accent-glow: 0 0 15px rgba(210, 140, 80, 0.4);
         }
 
         * {
@@ -32,7 +33,7 @@
         }
 
         body {
-            background: radial-gradient(circle at 30% 0%, #20351d 0%, var(--bg) 70%);
+            background: radial-gradient(circle at 30% 0%, #4a2210 0%, var(--bg) 70%);
             font-family: 'Inter', sans-serif;
             color: var(--cream);
             min-height: 100vh;
@@ -98,7 +99,7 @@
             margin-top: 14px;
             font-size: 1.05rem;
             line-height: 1.55;
-            color: #D7CEB2;
+            color: #f5e4cd;
         }
 
         .setup .tagline b {
@@ -170,19 +171,19 @@
             font-weight: 800;
             font-size: 1.15rem;
             cursor: pointer;
-            box-shadow: 0 6px 0 #b38b3a, 0 10px 18px rgba(0, 0, 0, .35);
+            box-shadow: 0 6px 0 #cca11b, 0 10px 18px rgba(0, 0, 0, .35);
             transition: all .15s ease;
         }
 
         .start-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 0 #b38b3a, 0 14px 24px rgba(0, 0, 0, .4);
+            box-shadow: 0 8px 0 #cca11b, 0 14px 24px rgba(0, 0, 0, .4);
             filter: brightness(1.1);
         }
 
         .start-btn:active {
             transform: translateY(4px);
-            box-shadow: 0 2px 0 #b38b3a, 0 4px 10px rgba(0, 0, 0, .3);
+            box-shadow: 0 2px 0 #cca11b, 0 4px 10px rgba(0, 0, 0, .3);
         }
 
         /* ---------- GAME SCREEN ---------- */
@@ -201,8 +202,8 @@
             margin: 0 auto;
             border-radius: 16px;
             padding: 16px;
-            background: linear-gradient(155deg, #8A5A34, #5C3A20 60%, #4A2F1A);
-            box-shadow: 0 18px 46px rgba(0, 0, 0, .5), inset 0 0 0 2px #3E2712, inset 0 0 30px rgba(0, 0, 0, .35);
+            background: linear-gradient(155deg, #5c3216, #361b0a 60%, #1c0e05);
+            box-shadow: 0 18px 46px rgba(0, 0, 0, .5), inset 0 0 0 2px #1f0f05, inset 0 0 30px rgba(0, 0, 0, .35);
         }
 
         .board-wrap .corner-bl,
@@ -281,7 +282,7 @@
         }
 
         .sidebar .subtitle {
-            color: #BFB58F;
+            color: #edcba1;
             font-size: .88rem;
             margin-bottom: 18px;
         }
@@ -324,7 +325,7 @@
 
         .player-pos {
             font-size: .85rem;
-            color: #C9C09A;
+            color: #f5e4cd;
             font-variant-numeric: tabular-nums;
         }
 
@@ -351,7 +352,7 @@
             font-size: 1.8rem;
             font-weight: 700;
             flex-shrink: 0;
-            box-shadow: 0 4px 0 #b9ad84, 0 8px 14px rgba(0, 0, 0, .35);
+            box-shadow: 0 4px 0 #b3d1b8, 0 8px 14px rgba(0, 0, 0, .35);
         }
 
         .roll-btn {
@@ -365,19 +366,19 @@
             font-weight: 800;
             font-size: 1.05rem;
             cursor: pointer;
-            box-shadow: 0 4px 0 #b38b3a;
+            box-shadow: 0 4px 0 #cca11b;
             transition: all .15s ease;
         }
         
         .roll-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 0 #b38b3a;
+            box-shadow: 0 6px 0 #cca11b;
             filter: brightness(1.1);
         }
 
         .roll-btn:active:not(:disabled) {
             transform: translateY(3px);
-            box-shadow: 0 1px 0 #b38b3a;
+            box-shadow: 0 1px 0 #cca11b;
         }
 
         .roll-btn:disabled {
@@ -411,24 +412,24 @@
         }
 
         .log-entry {
-            color: #D8D0AE;
+            color: #f5e4cd;
             border-left: 2px solid var(--panel-2);
             padding-left: 8px;
         }
 
         .log-entry.bite {
             border-color: var(--danger);
-            color: #F0B7A6;
+            color: #ffb8b8;
         }
 
         .log-entry.ladder {
-            border-color: #6E9457;
-            color: #CFE6BE;
+            border-color: #55efc4;
+            color: #d1ffeb;
         }
 
         .log-entry.slither {
             border-color: var(--gold);
-            color: #F1DFA9;
+            color: #fff6cc;
             font-style: italic;
         }
 
@@ -442,7 +443,7 @@
         .win-screen {
             position: fixed;
             inset: 0;
-            background: rgba(15, 20, 10, .86);
+            background: rgba(38, 17, 8, .86);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -517,7 +518,7 @@
         <div id="setupScreen" class="setup">
             <h1>Slither &amp; Climb</h1>
             <svg class="flourish" viewBox="0 0 120 14" fill="none">
-                <path d="M2 7 C 20 -2, 30 16, 48 7 S 78 -2, 96 7 S 110 12, 118 7" stroke="#CB9A3B" stroke-width="1.6"
+                <path d="M2 7 C 20 -2, 30 16, 48 7 S 78 -2, 96 7 S 110 12, 118 7" stroke="#ffd700" stroke-width="1.6"
                     stroke-linecap="round" />
             </svg>
             <p class="tagline">Classic snakes and ladders, now in 3D, with a catch: <b>walk across a snake's body and it
@@ -538,7 +539,7 @@
             <div class="sidebar">
                 <div class="title">Slither &amp; Climb</div>
                 <svg class="flourish" style="margin:0 0 12px" viewBox="0 0 120 14" fill="none">
-                    <path d="M2 7 C 20 -2, 30 16, 48 7 S 78 -2, 96 7 S 110 12, 118 7" stroke="#CB9A3B"
+                    <path d="M2 7 C 20 -2, 30 16, 48 7 S 78 -2, 96 7 S 110 12, 118 7" stroke="#ffd700"
                         stroke-width="1.6" stroke-linecap="round" />
                 </svg>
                 <div class="subtitle">Cross a snake, and it moves.</div>
@@ -562,8 +563,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         (function () {
-            const PLAYER_COLORS = ['#E2572B', '#2E7CA6', '#E8B93A', '#4F8B4C'];
-            const SNAKE_COLORS = ['#6B8E4E', '#8E4B6B', '#4B6B8E', '#B5602C', '#5C7A3A', '#7A3A5C', '#3A5C7A'];
+            const PLAYER_COLORS = ['#ff4757', '#1e90ff', '#ffd700', '#2ed573'];
+            const SNAKE_COLORS = ['#2ed573', '#ff6b81', '#ffa502', '#70a1ff', '#eccc68', '#ff7f50', '#a4b0be'];
             const DICE_PIPS = {
                 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8]
             };
@@ -618,7 +619,7 @@
                 const cnv = document.createElement('canvas'); cnv.width = cnv.height = size;
                 const ctx = cnv.getContext('2d');
                 ctx.clearRect(0, 0, size, size);
-                ctx.fillStyle = 'rgba(43,38,20,0.6)';
+                ctx.fillStyle = 'rgba(38, 17, 8, 0.75)';
                 ctx.font = 'bold 30px Inter, sans-serif';
                 ctx.textAlign = 'right'; ctx.textBaseline = 'top';
                 ctx.fillText(String(n), size - 10, 8);
@@ -634,9 +635,9 @@
                 const size = 160;
                 const cnv = document.createElement('canvas'); cnv.width = cnv.height = size;
                 const ctx = cnv.getContext('2d');
-                ctx.fillStyle = '#F4ECD4'; ctx.fillRect(0, 0, size, size);
+                ctx.fillStyle = '#FFFDF5'; ctx.fillRect(0, 0, size, size);
                 ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 5; ctx.strokeRect(3, 3, size - 6, size - 6);
-                ctx.fillStyle = '#23200F';
+                ctx.fillStyle = '#0d3819';
                 const pad = size * 0.24, step = (size - 2 * pad) / 2;
                 const cells = [];
                 for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) cells.push([pad + c * step, pad + r * step]);
@@ -657,7 +658,7 @@
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
                 scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x18240F);
+                scene.background = new THREE.Color(0x1a0c05);
 
                 const viewSize = 7.4;
                 camera = new THREE.OrthographicCamera(-viewSize, viewSize, viewSize, -viewSize, 0.1, 100);
@@ -665,20 +666,20 @@
                 camera.up.set(0, 0, -1);
                 camera.lookAt(5, 0, 5);
 
-                const hemi = new THREE.HemisphereLight(0xdfe9c8, 0x4a3823, 0.95);
+                const hemi = new THREE.HemisphereLight(0xfffae6, 0x1f1109, 1.2);
                 scene.add(hemi);
-                const dir = new THREE.DirectionalLight(0xfff2d0, 0.85);
+                const dir = new THREE.DirectionalLight(0xffea9f, 1.5);
                 dir.position.set(8, 12, 3);
                 dir.castShadow = true;
                 dir.shadow.mapSize.set(1024, 1024);
                 dir.shadow.camera.left = -10; dir.shadow.camera.right = 10;
                 dir.shadow.camera.top = 10; dir.shadow.camera.bottom = -10;
                 scene.add(dir);
-                scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+                scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
                 const table = new THREE.Mesh(
                     new THREE.PlaneGeometry(26, 26),
-                    new THREE.MeshStandardMaterial({ color: 0x203118, roughness: 1 })
+                    new THREE.MeshStandardMaterial({ color: 0x241103, roughness: 0.9 })
                 );
                 table.rotation.x = -Math.PI / 2;
                 table.position.set(5, -0.02, 5);
@@ -713,12 +714,19 @@
 
             // ---------- board ----------
             function buildBoard3D() {
+                const baseGeo = new THREE.BoxGeometry(10.6, 0.4, 10.6);
+                const baseMat = new THREE.MeshStandardMaterial({ color: 0x241103, roughness: 0.8 });
+                const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+                baseMesh.position.set(5, -0.2, 5);
+                baseMesh.receiveShadow = true;
+                dynamicGroup.add(baseMesh);
+
                 for (let num = 1; num <= 100; num++) {
                     const { row, col } = rowColFromTop(num);
                     const isGoal = num === 100;
                     const shadeIdx = (row + col) % 2;
-                    const color = isGoal ? 0xE4C374 : (shadeIdx === 0 ? 0xE4D9AC : 0xD3C58F);
-                    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.92, metalness: 0.02 });
+                    const color = isGoal ? 0xFFD700 : (shadeIdx === 0 ? 0x5b3a29 : 0x422818);
+                    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.75, metalness: 0.05 });
                     const tile = new THREE.Mesh(tileGeo, mat);
                     tile.position.set(col + 0.5, 0.06, row + 0.5);
                     tile.receiveShadow = true;
@@ -732,7 +740,7 @@
                     if (isGoal) {
                         const flag = new THREE.Mesh(
                             new THREE.ConeGeometry(0.26, 0.42, 4),
-                            new THREE.MeshStandardMaterial({ color: 0xC43B3B, roughness: 0.4, metalness: 0.25, emissive: 0x220000 })
+                            new THREE.MeshStandardMaterial({ color: 0xff4757, roughness: 0.4, metalness: 0.25, emissive: 0x330000 })
                         );
                         flag.position.set(col + 0.5, 0.06 + 0.21, row + 0.5);
                         flag.rotation.y = Math.PI / 4;
@@ -764,7 +772,7 @@
                     dirFlat.normalize();
                     const perp = new THREE.Vector3().crossVectors(dirFlat, new THREE.Vector3(0, 1, 0)).normalize();
                     const railOffset = 0.17;
-                    const railMat = new THREE.MeshStandardMaterial({ color: 0x8A5A32, roughness: 0.7 });
+                    const railMat = new THREE.MeshStandardMaterial({ color: 0x5c2b12, roughness: 0.6 });
 
                     [-1, 1].forEach(sign => {
                         const p1 = new THREE.Vector3(a.x + perp.x * railOffset * sign, a.y, a.z + perp.z * railOffset * sign);
@@ -1198,7 +1206,7 @@
                         if (tv.active) {
                             const pulse = (phase * 1.4) % 1;
                             tv.ring.material.opacity = 0.85 * (1 - pulse);
-                            tv.ring.scale.setScalar(1 + pulse * 0.6);
+                            tv.ring.scale.setScalar(1 + pulse * 0.8);
                         } else {
                             tv.ring.material.opacity = 0;
                         }
