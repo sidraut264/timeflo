@@ -949,6 +949,8 @@
       // === STORY ===
       { name: 'Ruins & Ghost',  url: 'games/story/ruins-wandering-ghost/index.html', icon: '👻', desc: 'Atmospheric 3D story RPG', category: 'Story' },
       { name: 'Zen Drive',      url: 'games/story/zen-drive/index.html',             icon: '🚗', desc: 'A peaceful journey through worlds', category: 'Story' },
+      // === BOARD ===
+      { name: 'Slither & Climb', url: 'games/board/slither-climb.html',                      icon: '🎲', desc: '3D snakes and ladders', category: 'Board' },
     ];
 
     let spinning = false;
@@ -968,8 +970,8 @@
     const sidebarGamesList = document.getElementById('sidebarGamesList');
 
     // Populate Sidebar Games List (grouped by category)
-    const CATEGORY_ICONS = { Arcade: '🕹️', Puzzles: '🧩', Zen: '🍃', Story: '📜' };
-    const CATEGORY_COLORS = { Arcade: '#ff2d78', Puzzles: '#00d4ff', Zen: '#39ff14', Story: '#bc5aff' };
+    const CATEGORY_ICONS = { Arcade: '🕹️', Puzzles: '🧩', Zen: '🍃', Story: '📜', Board: '🎲' };
+    const CATEGORY_COLORS = { Arcade: '#ff2d78', Puzzles: '#00d4ff', Zen: '#39ff14', Story: '#bc5aff', Board: '#ff8c00' };
 
     function populateSidebar() {
       sidebarGamesList.innerHTML = '';

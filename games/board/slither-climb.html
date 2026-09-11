@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slither &amp; Climb — 3D</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg: #0f1711;
+            --panel: rgba(45, 65, 38, 0.45);
+            --panel-2: rgba(58, 80, 48, 0.6);
+            --panel-border: rgba(144, 186, 120, 0.15);
+            --ink: #1f2a1b;
+            --ink-soft: #384d2c;
+            --gold: #dfb256;
+            --gold-soft: #f4d58d;
+            --cream: #f9f5eb;
+            --danger: #d94a38;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at 30% 0%, #20351d 0%, var(--bg) 70%);
+            font-family: 'Inter', sans-serif;
+            color: var(--cream);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 28px 16px 60px;
+            position: relative;
+            isolation: isolate;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: .5;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/></svg>");
+        }
+
+        h1,
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 1080px;
+        }
+
+        .flourish {
+            width: 120px;
+            height: 14px;
+            margin: 14px auto 0;
+            opacity: .75;
+        }
+
+        /* ---------- SETUP SCREEN ---------- */
+        .setup {
+            max-width: 520px;
+            margin: 8vh auto 0;
+            text-align: center;
+            background: var(--panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 48px 32px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .setup h1 {
+            font-size: clamp(2.1rem, 5vw, 3rem);
+            font-weight: 600;
+            color: var(--gold-soft);
+            letter-spacing: .01em;
+        }
+
+        .setup .tagline {
+            margin-top: 14px;
+            font-size: 1.05rem;
+            line-height: 1.55;
+            color: #D7CEB2;
+        }
+
+        .setup .tagline b {
+            color: var(--gold-soft);
+            font-weight: 600;
+        }
+
+        .count-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 34px 0 20px;
+        }
+
+        .count-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 2px solid var(--panel-2);
+            background: var(--panel);
+            color: var(--cream);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s ease;
+        }
+
+        .count-btn:hover {
+            border-color: var(--gold);
+        }
+
+        .count-btn.active {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: #2B2109;
+        }
+
+        .name-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 26px;
+        }
+
+        .name-grid input {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 2px solid var(--panel-2);
+            background: var(--panel);
+            color: var(--cream);
+            font-family: 'Inter';
+            font-size: 1rem;
+        }
+
+        .name-grid input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .start-btn {
+            padding: 14px 40px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(180deg, var(--gold-soft), var(--gold));
+            color: #2B2109;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #b38b3a, 0 10px 18px rgba(0, 0, 0, .35);
+            transition: all .15s ease;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #b38b3a, 0 14px 24px rgba(0, 0, 0, .4);
+            filter: brightness(1.1);
+        }
+
+        .start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #b38b3a, 0 4px 10px rgba(0, 0, 0, .3);
+        }
+
+        /* ---------- GAME SCREEN ---------- */
+        .game {
+            display: flex;
+            gap: 28px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .board-wrap {
+            position: relative;
+            flex: 1 1 520px;
+            max-width: 620px;
+            aspect-ratio: 1/1;
+            margin: 0 auto;
+            border-radius: 16px;
+            padding: 16px;
+            background: linear-gradient(155deg, #8A5A34, #5C3A20 60%, #4A2F1A);
+            box-shadow: 0 18px 46px rgba(0, 0, 0, .5), inset 0 0 0 2px #3E2712, inset 0 0 30px rgba(0, 0, 0, .35);
+        }
+
+        .board-wrap .corner-bl,
+        .board-wrap .corner-br,
+        .board-wrap .corner-tl,
+        .board-wrap .corner-tr {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            pointer-events: none;
+            border: 2px solid var(--gold-soft);
+            opacity: .55;
+            z-index: 2;
+        }
+
+        .board-wrap .corner-tl {
+            top: 6px;
+            left: 6px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .board-wrap .corner-tr {
+            top: 6px;
+            right: 6px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .board-wrap .corner-bl {
+            bottom: 6px;
+            left: 6px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .board-wrap .corner-br {
+            bottom: 6px;
+            right: 6px;
+            border-left: none;
+            border-top: none;
+        }
+
+        #boardCanvas {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            right: 16px;
+            bottom: 16px;
+            width: calc(100% - 32px);
+            height: calc(100% - 32px);
+            border-radius: 6px;
+            display: block;
+        }
+
+        /* ---------- SIDEBAR ---------- */
+        .sidebar {
+            flex: 1 1 280px;
+            max-width: 340px;
+            margin: 0 auto;
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 16px 32px rgba(0,0,0,0.3);
+        }
+
+        .sidebar .title {
+            font-size: 1.7rem;
+            color: var(--gold-soft);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .sidebar .subtitle {
+            color: #BFB58F;
+            font-size: .88rem;
+            margin-bottom: 18px;
+        }
+
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .player-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--panel);
+            border-radius: 10px;
+            padding: 9px 12px;
+            border: 2px solid transparent;
+        }
+
+        .player-row.active {
+            border-color: var(--gold);
+            background: var(--panel-2);
+        }
+
+        .player-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 2px solid rgba(0, 0, 0, .3);
+        }
+
+        .player-name {
+            font-weight: 600;
+            flex: 1;
+            font-size: .95rem;
+        }
+
+        .player-pos {
+            font-size: .85rem;
+            color: #C9C09A;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .dice-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            background: var(--panel);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .roll-readout {
+            width: 58px;
+            height: 58px;
+            border-radius: 12px;
+            background: var(--cream);
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            box-shadow: 0 4px 0 #b9ad84, 0 8px 14px rgba(0, 0, 0, .35);
+        }
+
+        .roll-btn {
+            flex: 1;
+            padding: 13px 10px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(180deg, var(--gold-soft), var(--gold));
+            color: #2B2109;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #b38b3a;
+            transition: all .15s ease;
+        }
+        
+        .roll-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #b38b3a;
+            filter: brightness(1.1);
+        }
+
+        .roll-btn:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #b38b3a;
+        }
+
+        .roll-btn:disabled {
+            opacity: .5;
+            cursor: default;
+            box-shadow: none;
+            transform: none;
+            filter: grayscale(0.5);
+        }
+
+        .log {
+            background: var(--panel);
+            border-radius: 12px;
+            padding: 12px 14px;
+            max-height: 280px;
+            overflow-y: auto;
+            font-size: .85rem;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 6px;
+        }
+
+        .log::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .log::-webkit-scrollbar-thumb {
+            background: var(--panel-2);
+            border-radius: 3px;
+        }
+
+        .log-entry {
+            color: #D8D0AE;
+            border-left: 2px solid var(--panel-2);
+            padding-left: 8px;
+        }
+
+        .log-entry.bite {
+            border-color: var(--danger);
+            color: #F0B7A6;
+        }
+
+        .log-entry.ladder {
+            border-color: #6E9457;
+            color: #CFE6BE;
+        }
+
+        .log-entry.slither {
+            border-color: var(--gold);
+            color: #F1DFA9;
+            font-style: italic;
+        }
+
+        .log-entry.win {
+            border-color: var(--gold);
+            color: var(--gold-soft);
+            font-weight: 700;
+        }
+
+        /* ---------- WIN SCREEN ---------- */
+        .win-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 20, 10, .86);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+            text-align: center;
+            padding: 20px;
+            z-index: 50;
+        }
+
+        .win-screen h2 {
+            font-size: clamp(1.8rem, 5vw, 2.6rem);
+            color: var(--gold-soft);
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 820px) {
+            .game {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                max-width: none;
+                width: 100%;
+            }
+
+            .board-wrap {
+                max-width: 560px;
+                width: 100%;
+            }
+
+            .back-btn {
+                top: 18px; left: 18px; padding: 6px 14px; font-size: 0.65rem;
+            }
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 28px;
+            left: 28px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 30px;
+            padding: 8px 22px;
+            color: rgba(255,255,255,0.85);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-family: monospace;
+            z-index: 100;
+            transition: all 0.3s;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="../../index.html" class="back-btn">← ARCADE</a>
+
+    <div class="app">
+
+        <!-- SETUP -->
+        <div id="setupScreen" class="setup">
+            <h1>Slither &amp; Climb</h1>
+            <svg class="flourish" viewBox="0 0 120 14" fill="none">
+                <path d="M2 7 C 20 -2, 30 16, 48 7 S 78 -2, 96 7 S 110 12, 118 7" stroke="#CB9A3B" stroke-width="1.6"
+                    stroke-linecap="round" />
+            </svg>
+            <p class="tagline">Classic snakes and ladders, now in 3D, with a catch: <b>walk across a snake's body and it
+                    slithers off</b> to a new hiding spot before anyone can predict it again.</p>
+            <div class="count-row" id="countRow"></div>
+            <div class="name-grid" id="nameGrid"></div>
+            <button class="start-btn" id="startBtn">Start game</button>
+        </div>
+
+        <!-- GAME -->
+        <div id="gameScreen" class="game" hidden>
+            <div class="board-wrap">
+                <span class="corner-tl"></span><span class="corner-tr"></span>
+                <span class="corner-bl"></span><span class="corner-br"></span>
+                <canvas id="boardCanvas"></canvas>
+            </div>
+
+            <div class="sidebar">
+                <div class="title">Slither &amp; Climb</div>
+                <svg class="flourish" style="margin:0 0 12px" viewBox="0 0 120 14" fill="none">
+                    <path d="M2 7 C 20 -2, 30 16, 48 7 S 78 -2, 96 7 S 110 12, 118 7" stroke="#CB9A3B"
+                        stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+                <div class="subtitle">Cross a snake, and it moves.</div>
+                <div class="player-list" id="playerList"></div>
+                <div class="dice-area">
+                    <div class="roll-readout" id="rollReadout">–</div>
+                    <button class="roll-btn" id="rollBtn">Roll dice</button>
+                </div>
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+
+        <!-- WIN -->
+        <div id="winScreen" class="win-screen" hidden>
+            <h2 id="winMessage"></h2>
+            <button class="start-btn" id="playAgainBtn">Play again</button>
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        (function () {
+            const PLAYER_COLORS = ['#E2572B', '#2E7CA6', '#E8B93A', '#4F8B4C'];
+            const SNAKE_COLORS = ['#6B8E4E', '#8E4B6B', '#4B6B8E', '#B5602C', '#5C7A3A', '#7A3A5C', '#3A5C7A'];
+            const DICE_PIPS = {
+                1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8]
+            };
+            const LADDERS = [
+                { bottom: 2, top: 23 }, { bottom: 8, top: 34 }, { bottom: 20, top: 41 },
+                { bottom: 28, top: 76 }, { bottom: 50, top: 69 }, { bottom: 62, top: 81 },
+                { bottom: 71, top: 91 }, { bottom: 88, top: 98 }
+            ];
+            const DICE_X = 11.6, DICE_Z = 9.0;
+
+            let state = null;
+
+            // ---------- board geometry (numbering) ----------
+            function rowColFromTop(num) {
+                const rowFromBottom = Math.floor((num - 1) / 10);
+                const posInRow = (num - 1) % 10;
+                const col = (rowFromBottom % 2 === 0) ? posInRow : (9 - posInRow);
+                const rowFromTop = 9 - rowFromBottom;
+                return { row: rowFromTop, col };
+            }
+            function cellCenter3D(num) {
+                const { row, col } = rowColFromTop(num);
+                return new THREE.Vector3(col + 0.5, 0, row + 0.5);
+            }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function lerpPt3(a, b, t) { return new THREE.Vector3(lerp(a.x, b.x, t), 0, lerp(a.z, b.z, t)); }
+            function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+            function shade(hex, amt) {
+                const n = parseInt(hex.slice(1), 16);
+                let r = (n >> 16) + amt, g = ((n >> 8) & 255) + amt, b = (n & 255) + amt;
+                r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
+                return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            }
+            function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+            function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+            // ================= THREE.JS SCENE =================
+            let renderer, scene, camera, dynamicGroup, dieMesh;
+            let threeReady = false;
+            let snakeVisuals = {};
+            let tokenVisuals = {};
+
+            const tileGeo = new THREE.BoxGeometry(0.92, 0.12, 0.92);
+            const numberPlaneGeo = new THREE.PlaneGeometry(0.86, 0.86);
+            const sphereGeo = new THREE.SphereGeometry(1, 12, 12);
+            const SEG_COUNT = 35;
+
+            const numberTextureCache = {};
+            function numberTexture(n) {
+                if (numberTextureCache[n]) return numberTextureCache[n];
+                const size = 128;
+                const cnv = document.createElement('canvas'); cnv.width = cnv.height = size;
+                const ctx = cnv.getContext('2d');
+                ctx.clearRect(0, 0, size, size);
+                ctx.fillStyle = 'rgba(43,38,20,0.6)';
+                ctx.font = 'bold 30px Inter, sans-serif';
+                ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+                ctx.fillText(String(n), size - 10, 8);
+                const tex = new THREE.CanvasTexture(cnv);
+                tex.needsUpdate = true;
+                numberTextureCache[n] = tex;
+                return tex;
+            }
+
+            const pipTextureCache = {};
+            function pipTexture(n) {
+                if (pipTextureCache[n]) return pipTextureCache[n];
+                const size = 160;
+                const cnv = document.createElement('canvas'); cnv.width = cnv.height = size;
+                const ctx = cnv.getContext('2d');
+                ctx.fillStyle = '#F4ECD4'; ctx.fillRect(0, 0, size, size);
+                ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 5; ctx.strokeRect(3, 3, size - 6, size - 6);
+                ctx.fillStyle = '#23200F';
+                const pad = size * 0.24, step = (size - 2 * pad) / 2;
+                const cells = [];
+                for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) cells.push([pad + c * step, pad + r * step]);
+                DICE_PIPS[n].forEach(idx => {
+                    const [x, y] = cells[idx];
+                    ctx.beginPath(); ctx.arc(x, y, size * 0.1, 0, Math.PI * 2); ctx.fill();
+                });
+                const tex = new THREE.CanvasTexture(cnv);
+                tex.needsUpdate = true;
+                pipTextureCache[n] = tex;
+                return tex;
+            }
+
+            function initThree() {
+                const canvas = document.getElementById('boardCanvas');
+                renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x18240F);
+
+                const viewSize = 7.4;
+                camera = new THREE.OrthographicCamera(-viewSize, viewSize, viewSize, -viewSize, 0.1, 100);
+                camera.position.set(5, 14, 5);
+                camera.up.set(0, 0, -1);
+                camera.lookAt(5, 0, 5);
+
+                const hemi = new THREE.HemisphereLight(0xdfe9c8, 0x4a3823, 0.95);
+                scene.add(hemi);
+                const dir = new THREE.DirectionalLight(0xfff2d0, 0.85);
+                dir.position.set(8, 12, 3);
+                dir.castShadow = true;
+                dir.shadow.mapSize.set(1024, 1024);
+                dir.shadow.camera.left = -10; dir.shadow.camera.right = 10;
+                dir.shadow.camera.top = 10; dir.shadow.camera.bottom = -10;
+                scene.add(dir);
+                scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+
+                const table = new THREE.Mesh(
+                    new THREE.PlaneGeometry(26, 26),
+                    new THREE.MeshStandardMaterial({ color: 0x203118, roughness: 1 })
+                );
+                table.rotation.x = -Math.PI / 2;
+                table.position.set(5, -0.02, 5);
+                table.receiveShadow = true;
+                scene.add(table);
+
+                dynamicGroup = new THREE.Group();
+                scene.add(dynamicGroup);
+
+                buildDie();
+
+                resizeRenderer();
+                window.addEventListener('resize', resizeRenderer);
+                requestAnimationFrame(animate);
+            }
+
+            function resizeRenderer() {
+                const wrap = document.getElementById('boardCanvas');
+                const w = wrap.clientWidth || 500, h = wrap.clientHeight || 500;
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                renderer.setSize(w, h, false);
+                const aspect = w / h;
+                const viewSize = 7.4;
+                camera.left = -viewSize * aspect; camera.right = viewSize * aspect;
+                camera.top = viewSize; camera.bottom = -viewSize;
+                camera.updateProjectionMatrix();
+            }
+
+            function clearGroup(g) {
+                while (g.children.length) g.remove(g.children[0]);
+            }
+
+            // ---------- board ----------
+            function buildBoard3D() {
+                for (let num = 1; num <= 100; num++) {
+                    const { row, col } = rowColFromTop(num);
+                    const isGoal = num === 100;
+                    const shadeIdx = (row + col) % 2;
+                    const color = isGoal ? 0xE4C374 : (shadeIdx === 0 ? 0xE4D9AC : 0xD3C58F);
+                    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.92, metalness: 0.02 });
+                    const tile = new THREE.Mesh(tileGeo, mat);
+                    tile.position.set(col + 0.5, 0.06, row + 0.5);
+                    tile.receiveShadow = true;
+                    dynamicGroup.add(tile);
+
+                    const label = new THREE.Mesh(numberPlaneGeo, new THREE.MeshBasicMaterial({ map: numberTexture(num), transparent: true, depthWrite: false }));
+                    label.rotation.x = -Math.PI / 2;
+                    label.position.set(col + 0.5, 0.122, row + 0.5);
+                    dynamicGroup.add(label);
+
+                    if (isGoal) {
+                        const flag = new THREE.Mesh(
+                            new THREE.ConeGeometry(0.26, 0.42, 4),
+                            new THREE.MeshStandardMaterial({ color: 0xC43B3B, roughness: 0.4, metalness: 0.25, emissive: 0x220000 })
+                        );
+                        flag.position.set(col + 0.5, 0.06 + 0.21, row + 0.5);
+                        flag.rotation.y = Math.PI / 4;
+                        flag.castShadow = true;
+                        dynamicGroup.add(flag);
+                    }
+                }
+            }
+
+            // ---------- ladders ----------
+            function cylinderBetween(p1, p2, radius, mat) {
+                const dir = new THREE.Vector3().subVectors(p2, p1);
+                const length = dir.length() || 0.001;
+                const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+                const geo = new THREE.CylinderGeometry(radius, radius, length, 8);
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.copy(mid);
+                mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                return mesh;
+            }
+
+            function buildLadders3D() {
+                state.ladders.forEach(l => {
+                    const a = cellCenter3D(l.bottom); a.y = 0.16;
+                    const b = cellCenter3D(l.top); b.y = 0.16;
+                    const dirFlat = new THREE.Vector3(b.x - a.x, 0, b.z - a.z);
+                    const length = dirFlat.length();
+                    dirFlat.normalize();
+                    const perp = new THREE.Vector3().crossVectors(dirFlat, new THREE.Vector3(0, 1, 0)).normalize();
+                    const railOffset = 0.17;
+                    const railMat = new THREE.MeshStandardMaterial({ color: 0x8A5A32, roughness: 0.7 });
+
+                    [-1, 1].forEach(sign => {
+                        const p1 = new THREE.Vector3(a.x + perp.x * railOffset * sign, a.y, a.z + perp.z * railOffset * sign);
+                        const p2 = new THREE.Vector3(b.x + perp.x * railOffset * sign, b.y, b.z + perp.z * railOffset * sign);
+                        dynamicGroup.add(cylinderBetween(p1, p2, 0.045, railMat));
+                    });
+
+                    const rungCount = Math.max(4, Math.round(length / 0.55));
+                    const rungMat = new THREE.MeshStandardMaterial({ color: 0xD8AE71, roughness: 0.6 });
+                    for (let i = 1; i < rungCount; i++) {
+                        const t = i / rungCount;
+                        const cx = a.x + (b.x - a.x) * t, cz = a.z + (b.z - a.z) * t;
+                        const p1 = new THREE.Vector3(cx + perp.x * railOffset, a.y, cz + perp.z * railOffset);
+                        const p2 = new THREE.Vector3(cx - perp.x * railOffset, a.y, cz - perp.z * railOffset);
+                        dynamicGroup.add(cylinderBetween(p1, p2, 0.032, rungMat));
+                    }
+
+                    const glowMat = new THREE.MeshStandardMaterial({ color: 0xE4C374, emissive: 0xE4C374, emissiveIntensity: 0.4 });
+                    [a, b].forEach(pt => {
+                        const dot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), glowMat);
+                        dot.position.set(pt.x, pt.y, pt.z);
+                        dynamicGroup.add(dot);
+                    });
+                });
+            }
+
+            // ---------- snakes ----------
+            function segColor(hex, t) {
+                const head = new THREE.Color(shade(hex, 60));
+                const tail = new THREE.Color(shade(hex, -45));
+                return head.clone().lerp(tail, t);
+            }
+
+            let snakeScaleTexture = null;
+            function getSnakeScaleTexture() {
+                if (snakeScaleTexture) return snakeScaleTexture;
+                const size = 128;
+                const cnv = document.createElement('canvas');
+                cnv.width = size; cnv.height = size;
+                const ctx = cnv.getContext('2d');
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, size, size);
+                
+                ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+                ctx.lineWidth = 2;
+                for(let y=-size; y<size*2; y+=12) {
+                    for(let x=-size; x<size*2; x+=12) {
+                        ctx.strokeRect(x+y, y-x, 8, 8);
+                    }
+                }
+                
+                const grad = ctx.createLinearGradient(0, 0, 0, size);
+                grad.addColorStop(0, 'rgba(0,0,0,0.5)'); // Dark back
+                grad.addColorStop(0.4, 'rgba(0,0,0,0)');
+                grad.addColorStop(1, 'rgba(255,255,255,0.3)'); // Light belly
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, size, size);
+
+                snakeScaleTexture = new THREE.CanvasTexture(cnv);
+                snakeScaleTexture.wrapS = THREE.RepeatWrapping;
+                snakeScaleTexture.wrapT = THREE.RepeatWrapping;
+                snakeScaleTexture.repeat.set(2, 1);
+                return snakeScaleTexture;
+            }
+
+            function buildSnakeGroup(s) {
+                const segs = [];
+                const tex = getSnakeScaleTexture();
+                for (let i = 0; i < SEG_COUNT; i++) {
+                    const t = i / (SEG_COUNT - 1); // 0 is head
+                    const baseColor = segColor(s.color, t);
+                    const mat = new THREE.MeshStandardMaterial({ 
+                        color: baseColor.clone(), 
+                        map: tex,
+                        roughness: 0.45, 
+                        metalness: 0.15 
+                    });
+                    const mesh = new THREE.Mesh(sphereGeo, mat);
+                    mesh.castShadow = true;
+                    dynamicGroup.add(mesh);
+                    segs.push({ mesh, mat, baseColor });
+                }
+                const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.8 });
+                const eyeGeo = new THREE.SphereGeometry(0.055, 12, 12);
+                const eyeL = new THREE.Mesh(eyeGeo, eyeMat); dynamicGroup.add(eyeL);
+                const eyeR = new THREE.Mesh(eyeGeo, eyeMat); dynamicGroup.add(eyeR);
+                const tongue = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.03, 0.35, 6),
+                    new THREE.MeshStandardMaterial({ color: 0xE03B3B, emissive: 0x440000 })
+                );
+                dynamicGroup.add(tongue);
+                return { segs, eyeL, eyeR, tongue, flashUntil: 0, headPath: [] };
+            }
+
+            function getSegmentPointsFromPath(path, count, totalLength) {
+                const pts = [];
+                if (!path || path.length === 0) {
+                    for(let i=0; i<count; i++) pts.push(new THREE.Vector3());
+                    return pts;
+                }
+                pts.push(path[0].clone());
+                
+                let pathIdx = 0;
+                let currentPt = path[0];
+                const segmentSpacing = totalLength / (count - 1);
+
+                for (let i = 1; i < count; i++) {
+                    let remainingDist = segmentSpacing;
+                    let sanity = 0;
+                    while (remainingDist > 0 && pathIdx < path.length - 1 && sanity < 1000) {
+                        sanity++;
+                        const nextPt = path[pathIdx + 1];
+                        const d = currentPt.distanceTo(nextPt);
+                        if (d >= remainingDist) {
+                            const t = (d > 0.0001) ? (remainingDist / d) : 0;
+                            currentPt = new THREE.Vector3().lerpVectors(currentPt, nextPt, t);
+                            pts.push(currentPt.clone());
+                            remainingDist = 0;
+                        } else {
+                            remainingDist -= d;
+                            pathIdx++;
+                            currentPt = path[pathIdx];
+                        }
+                    }
+                    if (pts.length <= i) pts.push(currentPt ? currentPt.clone() : path[path.length-1].clone());
+                }
+                return pts;
+            }
+
+            function updateSnakeVisual(s, parts, ts) {
+                const flashing = performance.now() < parts.flashUntil;
+                
+                let pts = [];
+                let isAnimating = !!s.anim;
+                let currentPhase = s.id * 1.7; // Static phase for resting
+                
+                if (isAnimating) {
+                    const raw = Math.max(0, Math.min(1, (ts - s.anim.start) / s.anim.duration));
+                    const e = easeInOutCubic(raw);
+                    
+                    const currentHead = s.anim.curve.getPoint(e);
+                    parts.headPath.unshift(currentHead);
+                    if (parts.headPath.length > 500) parts.headPath.pop();
+                    
+                    const currentLen = lerp(s.anim.oldLen, s.anim.newLen, e);
+                    pts = getSegmentPointsFromPath(parts.headPath, SEG_COUNT, currentLen);
+                    
+                    currentPhase += e * Math.PI * 8.0; // Animate 4 full wiggle cycles during move
+                    
+                    if (raw >= 1) {
+                        s.anim = null;
+                        parts.headPath = [];
+                    }
+                } else {
+                    const tailPt = cellCenter3D(s.tail);
+                    const headPt = cellCenter3D(s.head);
+                    for (let i = 0; i < SEG_COUNT; i++) {
+                        const t = i / (SEG_COUNT - 1); // 0 is head
+                        pts.push(lerpPt3(headPt, tailPt, t)); 
+                    }
+                }
+                
+                for (let i = 0; i < SEG_COUNT; i++) {
+                    const t = i / (SEG_COUNT - 1); 
+                    const basePt = pts[i];
+                    
+                    let tangent;
+                    if (i === 0 && pts.length > 1) {
+                        tangent = new THREE.Vector3().subVectors(pts[0], pts[1]).normalize();
+                    } else if (i < SEG_COUNT - 1) {
+                        tangent = new THREE.Vector3().subVectors(pts[i - 1], pts[i + 1]).normalize();
+                    } else if (i > 0) {
+                        tangent = new THREE.Vector3().subVectors(pts[i - 1], pts[i]).normalize();
+                    } else {
+                        tangent = new THREE.Vector3(1, 0, 0);
+                    }
+                    if (tangent.length() < 0.001) tangent.set(1, 0, 0);
+                    
+                    const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+                    
+                    const envelope = Math.sin((1 - t) * Math.PI); 
+                    const osc = Math.sin((1 - t) * Math.PI * 3.5 - currentPhase); 
+                    
+                    const wiggleAmt = 0.45; 
+                    const wig = wiggleAmt * envelope * osc;
+                    
+                    const px = basePt.x + normal.x * wig;
+                    const pz = basePt.z + normal.z * wig;
+                    
+                    const py = 0.12 + Math.sin((1 - t) * Math.PI) * 0.15;
+                    
+                    const seg = parts.segs[i];
+                    seg.mesh.position.set(px, py, pz);
+                    
+                    let r;
+                    const invT = 1 - t; 
+                    if (invT < 0.15) r = lerp(0.04, 0.18, invT / 0.15); 
+                    else if (invT < 0.85) r = 0.18; 
+                    else if (invT < 0.95) r = lerp(0.18, 0.11, (invT - 0.85) / 0.10); 
+                    else r = lerp(0.11, 0.22, (invT - 0.95) / 0.05); 
+                    
+                    if (invT > 0.95) {
+                        seg.mesh.scale.set(r, r * 0.65, r);
+                    } else {
+                        seg.mesh.scale.setScalar(r);
+                    }
+                    
+                    if (flashing) seg.mat.color.set(0xF4E1A0);
+                    else seg.mat.color.copy(seg.baseColor);
+                    
+                    if (i === 0) parts.headWorldPos = { x: px, y: py, z: pz };
+                    if (i === 1) parts.neckWorldPos = { x: px, y: py, z: pz };
+                }
+                
+                const hp = parts.headWorldPos || {x:0, y:0, z:0};
+                const np = parts.neckWorldPos || {x: hp.x-1, y: hp.y, z: hp.z};
+                
+                let tx = hp.x - np.x, tz = hp.z - np.z;
+                const tl = Math.hypot(tx, tz) || 1; 
+                tx /= tl; tz /= tl;
+                const hnx = -tz, hnz = tx;
+                
+                parts.eyeL.position.set(hp.x + hnx * 0.16 + tx * 0.1, hp.y + 0.1, hp.z + hnz * 0.16 + tz * 0.1);
+                parts.eyeR.position.set(hp.x - hnx * 0.16 + tx * 0.1, hp.y + 0.1, hp.z - hnz * 0.16 + tz * 0.1);
+                
+                const tipX = hp.x + tx * 0.45, tipZ = hp.z + tz * 0.45;
+                parts.tongue.position.set(tipX, hp.y, tipZ);
+                const dirVec = new THREE.Vector3(tx, 0, tz).normalize();
+                if (dirVec.lengthSq() > 0.01) {
+                    parts.tongue.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dirVec);
+                }
+                parts.tongue.visible = (Math.sin(ts / 150 + s.id) > 0.5);
+            }
+
+            function flashSnakeBody(snakeId) {
+                const parts = snakeVisuals[snakeId];
+                if (!parts) return;
+                parts.flashUntil = performance.now() + 550;
+            }
+
+            function animateSnakeMove(snake, oldTail, oldHead) {
+                const tailStart = cellCenter3D(oldTail);
+                const headStart = cellCenter3D(oldHead);
+                const tailEnd = cellCenter3D(snake.tail);
+                const headEnd = cellCenter3D(snake.head);
+                
+                const points = [];
+                points.push(headStart.clone());
+                const mid1 = new THREE.Vector3().lerpVectors(headStart, tailEnd, 0.5);
+                mid1.x += (Math.random() - 0.5) * 4;
+                mid1.z += (Math.random() - 0.5) * 4;
+                points.push(mid1);
+                points.push(tailEnd.clone());
+                const mid2 = new THREE.Vector3().lerpVectors(tailEnd, headEnd, 0.5);
+                mid2.x += (Math.random() - 0.5) * 2;
+                mid2.z += (Math.random() - 0.5) * 2;
+                points.push(mid2);
+                points.push(headEnd.clone());
+                
+                const curve = new THREE.CatmullRomCurve3(points, false, 'chordal');
+                
+                const parts = snakeVisuals[snake.id];
+                parts.headPath = [];
+                
+                const numOldPoints = 60;
+                for(let i=0; i<numOldPoints; i++) {
+                    parts.headPath.push(lerpPt3(headStart, tailStart, i / (numOldPoints - 1)));
+                }
+                
+                snake.anim = {
+                    curve: curve,
+                    oldLen: headStart.distanceTo(tailStart),
+                    newLen: headEnd.distanceTo(tailEnd),
+                    start: performance.now(),
+                    duration: 3000
+                };
+            }
+
+            // ---------- tokens ----------
+            function offsetForIndex(i, total) {
+                if (total <= 1) return { x: 0, z: 0 };
+                const angle = (i / total) * Math.PI * 2;
+                return { x: Math.cos(angle) * 0.22, z: Math.sin(angle) * 0.22 };
+            }
+            function countAt(pos) {
+                return state.players.filter(p => (p.pos === 0 ? 1 : p.pos) === pos).length;
+            }
+            function buildTokenGroup(p) {
+                const group = new THREE.Group();
+                const base = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.22, 0.26, 0.18, 16),
+                    new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.35, metalness: 0.25 })
+                );
+                base.position.y = 0.09; base.castShadow = true; base.receiveShadow = true;
+                const top = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.2, 16, 16),
+                    new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.2, metalness: 0.3, emissive: new THREE.Color(p.color).multiplyScalar(0.12) })
+                );
+                top.position.y = 0.28; top.castShadow = true;
+                group.add(base, top);
+
+                const ring = new THREE.Mesh(
+                    new THREE.RingGeometry(0.3, 0.4, 32),
+                    new THREE.MeshBasicMaterial({ color: 0xCB9A3B, transparent: true, opacity: 0, side: THREE.DoubleSide })
+                );
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.y = 0.02;
+                group.add(ring);
+
+                dynamicGroup.add(group);
+                return { group, ring, active: false };
+            }
+            function buildTokens3D() {
+                state.players.forEach((p, i) => {
+                    const tv = buildTokenGroup(p);
+                    tokenVisuals[p.id] = tv;
+                    const shownPos = p.pos === 0 ? 1 : p.pos;
+                    const c = cellCenter3D(shownPos);
+                    const off = offsetForIndex(i, countAt(shownPos));
+                    tv.group.position.set(c.x + off.x, 0, c.z + off.z);
+                    tv.group.visible = p.pos !== 0;
+                });
+            }
+            function animateGroupTo(group, targetX, targetZ, duration, hop) {
+                return new Promise(resolve => {
+                    const fromX = group.position.x, fromZ = group.position.z, baseY = 0;
+                    const start = performance.now();
+                    function step(ts) {
+                        const t = Math.min(1, (ts - start) / duration);
+                        const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                        group.position.x = fromX + (targetX - fromX) * e;
+                        group.position.z = fromZ + (targetZ - fromZ) * e;
+                        group.position.y = hop ? Math.sin(Math.PI * t) * 0.28 : baseY;
+                        if (t < 1) requestAnimationFrame(step);
+                        else { group.position.y = baseY; resolve(); }
+                    }
+                    requestAnimationFrame(step);
+                });
+            }
+            function moveTokenVisual3D(playerIndex, cellNum) {
+                const p = state.players[playerIndex];
+                const tv = tokenVisuals[p.id];
+                if (!tv) return;
+                tv.group.visible = true;
+                const c = cellCenter3D(cellNum);
+                animateGroupTo(tv.group, c.x, c.z, 170, true);
+            }
+            function updateActiveTokenFlags() {
+                if (!state) return;
+                state.players.forEach((p, i) => {
+                    const tv = tokenVisuals[p.id];
+                    if (tv) tv.active = (i === state.current && !state.over);
+                });
+            }
+
+            // ---------- dice ----------
+            function localNormalForNumber(n) {
+                switch (n) {
+                    case 1: return new THREE.Vector3(0, 1, 0);
+                    case 6: return new THREE.Vector3(0, -1, 0);
+                    case 2: return new THREE.Vector3(1, 0, 0);
+                    case 5: return new THREE.Vector3(-1, 0, 0);
+                    case 3: return new THREE.Vector3(0, 0, 1);
+                    case 4: return new THREE.Vector3(0, 0, -1);
+                }
+            }
+            function buildDie() {
+                const tray = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.75, 0.8, 0.12, 24),
+                    new THREE.MeshStandardMaterial({ color: 0x3a2a15, roughness: 0.9 })
+                );
+                tray.position.set(DICE_X, 0.06, DICE_Z);
+                tray.receiveShadow = true;
+                scene.add(tray);
+
+                // BoxGeometry material order: [+x, -x, +y, -y, +z, -z]
+                const faceOrder = [2, 5, 1, 6, 3, 4];
+                const materials = faceOrder.map(n => new THREE.MeshStandardMaterial({ map: pipTexture(n), roughness: 0.35, metalness: 0.05 }));
+                dieMesh = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.62, 0.62), materials);
+                dieMesh.castShadow = true;
+                dieMesh.position.set(DICE_X, 0.5, DICE_Z);
+                scene.add(dieMesh);
+            }
+            function roll3DDie(target) {
+                return new Promise(resolve => {
+                    const axis = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
+                    let angSpeed = 14 + Math.random() * 6;
+                    const tumbleDuration = 550;
+                    const startTime = performance.now();
+                    let lastTs = startTime;
+
+                    function tumble(ts) {
+                        const dt = Math.min(0.05, (ts - lastTs) / 1000); lastTs = ts;
+                        const elapsed = ts - startTime;
+                        const decay = Math.max(0, 1 - elapsed / tumbleDuration);
+                        dieMesh.rotateOnWorldAxis(axis, angSpeed * decay * dt);
+                        if (elapsed < tumbleDuration) requestAnimationFrame(tumble);
+                        else settle();
+                    }
+                    function settle() {
+                        const localNormal = localNormalForNumber(target);
+                        const targetQuat = new THREE.Quaternion().setFromUnitVectors(localNormal, new THREE.Vector3(0, 1, 0));
+                        const startQuat = dieMesh.quaternion.clone();
+                        const settleStart = performance.now();
+                        const settleDuration = 320;
+                        function settleStep(ts) {
+                            const t = Math.min(1, (ts - settleStart) / settleDuration);
+                            const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                            dieMesh.quaternion.slerpQuaternions(startQuat, targetQuat, e);
+                            if (t < 1) requestAnimationFrame(settleStep);
+                            else { dieMesh.quaternion.copy(targetQuat); resolve(); }
+                        }
+                        requestAnimationFrame(settleStep);
+                    }
+                    requestAnimationFrame(tumble);
+                });
+            }
+
+            // ---------- render loop ----------
+            function animate(ts) {
+                requestAnimationFrame(animate);
+                if (state) {
+                    const phase = ts / 1000;
+                    state.snakes.forEach(s => {
+                        const parts = snakeVisuals[s.id];
+                        if (!parts) return;
+                        updateSnakeVisual(s, parts, ts);
+                    });
+                    Object.values(tokenVisuals).forEach(tv => {
+                        if (tv.active) {
+                            const pulse = (phase * 1.4) % 1;
+                            tv.ring.material.opacity = 0.85 * (1 - pulse);
+                            tv.ring.scale.setScalar(1 + pulse * 0.6);
+                        } else {
+                            tv.ring.material.opacity = 0;
+                        }
+                    });
+                }
+                renderer.render(scene, camera);
+            }
+
+            // ---------- setup screen ----------
+            let selectedCount = 2;
+            const countRow = document.getElementById('countRow');
+            const nameGrid = document.getElementById('nameGrid');
+
+            function buildCountButtons() {
+                countRow.innerHTML = '';
+                [2, 3, 4].forEach(n => {
+                    const b = document.createElement('button');
+                    b.className = 'count-btn' + (n === selectedCount ? ' active' : '');
+                    b.textContent = n;
+                    b.onclick = () => { selectedCount = n; buildCountButtons(); buildNameInputs(); };
+                    countRow.appendChild(b);
+                });
+            }
+            function buildNameInputs() {
+                nameGrid.innerHTML = '';
+                for (let i = 0; i < selectedCount; i++) {
+                    const inp = document.createElement('input');
+                    inp.placeholder = 'Player ' + (i + 1) + ' name';
+                    inp.maxLength = 16;
+                    inp.id = 'nameInput' + i;
+                    nameGrid.appendChild(inp);
+                }
+            }
+            buildCountButtons();
+            buildNameInputs();
+
+            document.getElementById('startBtn').onclick = () => {
+                const players = [];
+                for (let i = 0; i < selectedCount; i++) {
+                    const val = document.getElementById('nameInput' + i).value.trim();
+                    players.push({ id: i, name: val || ('Player ' + (i + 1)), color: PLAYER_COLORS[i], pos: 0 });
+                }
+                document.getElementById('setupScreen').hidden = true;
+                document.getElementById('gameScreen').hidden = false;
+                if (!threeReady) { initThree(); threeReady = true; }
+                resizeRenderer();
+                initGame(players);
+            };
+            document.getElementById('playAgainBtn').onclick = () => {
+                document.getElementById('winScreen').hidden = true;
+                document.getElementById('setupScreen').hidden = false;
+            };
+
+            // ---------- game init ----------
+            function initGame(players) {
+                if (dynamicGroup) clearGroup(dynamicGroup);
+                snakeVisuals = {};
+                tokenVisuals = {};
+
+                state = {
+                    players,
+                    current: 0,
+                    snakes: [
+                        { id: 0, head: 95, tail: 42, color: SNAKE_COLORS[0] },
+                        { id: 1, head: 92, tail: 53, color: SNAKE_COLORS[1] },
+                        { id: 2, head: 87, tail: 24, color: SNAKE_COLORS[2] },
+                        { id: 3, head: 64, tail: 36, color: SNAKE_COLORS[3] },
+                        { id: 4, head: 56, tail: 9, color: SNAKE_COLORS[4] },
+                        { id: 5, head: 49, tail: 11, color: SNAKE_COLORS[5] },
+                        { id: 6, head: 17, tail: 5, color: SNAKE_COLORS[6] },
+                    ],
+                    ladders: LADDERS,
+                    rolling: false,
+                    over: false
+                };
+
+                buildBoard3D();
+                buildLadders3D();
+                state.snakes.forEach(s => snakeVisuals[s.id] = buildSnakeGroup(s));
+                buildTokens3D();
+
+                renderPlayerList();
+                document.getElementById('rollReadout').textContent = '–';
+                document.getElementById('log').innerHTML = '';
+                log('Game on. ' + players.map(p => p.name).join(', ') + ' — good luck.', '');
+                document.getElementById('rollBtn').onclick = handleRollClick;
+            }
+
+            // ---------- sidebar ----------
+            function renderPlayerList() {
+                const wrap = document.getElementById('playerList');
+                wrap.innerHTML = '';
+                state.players.forEach((p, i) => {
+                    const row = document.createElement('div');
+                    row.className = 'player-row' + (i === state.current ? ' active' : '');
+                    row.innerHTML = `<span class="player-dot" style="background:${p.color}"></span>
+                        <span class="player-name">${escapeHtml(p.name)}</span>
+                        <span class="player-pos">${p.pos === 0 ? 'start' : p.pos}</span>`;
+                    wrap.appendChild(row);
+                });
+                updateActiveTokenFlags();
+            }
+
+            function log(msg, cls) {
+                const wrap = document.getElementById('log');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry' + (cls ? ' ' + cls : '');
+                entry.textContent = msg;
+                wrap.prepend(entry);
+            }
+
+            // ---------- snake relocation ----------
+            function cellFreeFor(c, excludeId) {
+                if (c <= 1 || c >= 100) return false;
+                for (const s of state.snakes) {
+                    if (s.id === excludeId) continue;
+                    if (c === s.head || c === s.tail) return false;
+                }
+                for (const l of state.ladders) {
+                    if (c === l.bottom || c === l.top) return false;
+                }
+                return true;
+            }
+            function rangesOverlap(aTail, aHead, bTail, bHead) {
+                return !(aHead < bTail || aTail > bHead);
+            }
+            function relocateSnake(snake) {
+                const oldTail = snake.tail, oldHead = snake.head;
+
+                for (let tries = 0; tries < 150; tries++) {
+                    const length = 6 + Math.floor(Math.random() * 24);
+                    const tail = 2 + Math.floor(Math.random() * (97 - length));
+                    const head = tail + length;
+                    if (head >= 99) continue;
+                    if (Math.abs(tail - oldTail) < 4 && Math.abs(head - oldHead) < 4) continue;
+                    if (!cellFreeFor(tail, snake.id) || !cellFreeFor(head, snake.id)) continue;
+                    let clashesPlayer = state.players.some(p => p.pos > tail && p.pos < head);
+                    if (clashesPlayer) continue;
+                    let overlaps = false;
+                    for (const s of state.snakes) {
+                        if (s.id === snake.id) continue;
+                        if (rangesOverlap(tail, head, s.tail, s.head)) { overlaps = true; break; }
+                    }
+                    if (overlaps) continue;
+                    snake.tail = tail; snake.head = head;
+                    return true;
+                }
+
+                for (let tries = 0; tries < 200; tries++) {
+                    const length = 6 + Math.floor(Math.random() * 24);
+                    const tail = 2 + Math.floor(Math.random() * (97 - length));
+                    const head = tail + length;
+                    if (head >= 99) continue;
+                    if (Math.abs(tail - oldTail) < 4 && Math.abs(head - oldHead) < 4) continue;
+                    if (!cellFreeFor(tail, snake.id) || !cellFreeFor(head, snake.id)) continue;
+                    let clashesPlayer = state.players.some(p => p.pos > tail && p.pos < head);
+                    if (clashesPlayer) continue;
+                    snake.tail = tail; snake.head = head;
+                    return true;
+                }
+                return false;
+            }
+
+            // ---------- turn logic ----------
+            async function handleRollClick() {
+                if (state.rolling || state.over) return;
+                state.rolling = true;
+                document.getElementById('rollBtn').disabled = true;
+
+                try {
+                    const dice = 1 + Math.floor(Math.random() * 6);
+                    await roll3DDie(dice);
+                    document.getElementById('rollReadout').textContent = dice;
+
+                    const p = state.players[state.current];
+                    log(`${p.name} rolled a ${dice}.`, '');
+
+                    const start = p.pos;
+                    let end = start + dice;
+
+                    if (end > 100) {
+                        log(`${p.name} needs an exact roll to reach 100 — stays at ${start === 0 ? 'start' : start}.`, '');
+                        await finishTurn(dice === 6);
+                        return;
+                    }
+
+                    const disturbed = new Set();
+                    let bittenBy = null;
+                    let landedLadder = null;
+
+                    for (let c = start + 1; c <= end; c++) {
+                        await sleep(160);
+                        moveTokenVisual3D(state.current, c);
+
+                        for (const s of state.snakes) {
+                            if (c > s.tail && c < s.head) {
+                                disturbed.add(s.id);
+                                flashSnakeBody(s.id);
+                            }
+                        }
+
+                        if (c === end) {
+                            for (const s of state.snakes) {
+                                if (c === s.head) { bittenBy = s; }
+                            }
+                            for (const l of state.ladders) {
+                                if (c === l.bottom) { landedLadder = l; }
+                            }
+                        }
+                    }
+
+                    p.pos = end;
+                    renderPlayerList();
+
+                    if (bittenBy) {
+                        await sleep(250);
+                        log(`Oh no — ${p.name} landed right on a snake's head at ${bittenBy.head} and slides down to ${bittenBy.tail}.`, 'bite');
+                        p.pos = bittenBy.tail;
+                        moveTokenVisual3D(state.current, p.pos);
+                        renderPlayerList();
+                    } else if (landedLadder) {
+                        await sleep(250);
+                        log(`${p.name} found a ladder at ${landedLadder.bottom} and climbs to ${landedLadder.top}.`, 'ladder');
+                        p.pos = landedLadder.top;
+                        moveTokenVisual3D(state.current, p.pos);
+                        renderPlayerList();
+                    }
+
+                    if (disturbed.size) {
+                        await sleep(300);
+                        for (const id of disturbed) {
+                            const snake = state.snakes.find(s => s.id === id);
+                            const oldHead = snake.head, oldTail = snake.tail;
+                            const success = relocateSnake(snake);
+                            if (success) {
+                                animateSnakeMove(snake, oldTail, oldHead);
+                                log(`The snake at ${oldTail}–{oldHead} felt footsteps and slithered away to ${snake.tail}–${snake.head}.`, 'slither');
+                            }
+                        }
+                        await sleep(3200);
+                    }
+
+                    if (p.pos === 100) {
+                        state.over = true;
+                        log(`${p.name} reaches 100 and wins! 🎉`, 'win');
+                        renderPlayerList();
+                        await sleep(500);
+                        showWin(p);
+                        return;
+                    }
+
+                    await finishTurn(dice === 6);
+                } catch (e) {
+                    console.error("Game error during turn", e);
+                    state.rolling = false;
+                    document.getElementById('rollBtn').disabled = false;
+                }
+            }
+
+            async function finishTurn(extraTurn) {
+                state.rolling = false;
+                document.getElementById('rollBtn').disabled = false;
+                if (extraTurn && !state.over) {
+                    log(`${state.players[state.current].name} rolled a 6 — go again.`, '');
+                    renderPlayerList();
+                    return;
+                }
+                state.current = (state.current + 1) % state.players.length;
+                renderPlayerList();
+            }
+
+            function showWin(player) {
+                document.getElementById('winMessage').textContent = `${player.name} wins!`;
+                document.getElementById('winScreen').hidden = false;
+            }
+
+        })();
+    </script>
+</body>
+
+</html>

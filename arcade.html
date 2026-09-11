@@ -445,6 +445,7 @@
       <button class="tab-btn"        data-cat="Puzzles" style="--tab-color:#00d4ff;">🧩 Puzzles <span class="count" id="tabCountPuzzles">6</span></button>
       <button class="tab-btn"        data-cat="Zen"     style="--tab-color:#39ff14;">🍃 Zen <span class="count" id="tabCountZen">5</span></button>
       <button class="tab-btn"        data-cat="Story"   style="--tab-color:#bc5aff;">📜 Story <span class="count" id="tabCountStory">1</span></button>
+      <button class="tab-btn"        data-cat="Board"   style="--tab-color:#ff8c00;">🎲 Board <span class="count" id="tabCountBoard">0</span></button>
     </div>
 
     <div id="gamesGrid"></div>
@@ -479,6 +480,7 @@
       { name: 'Frostbound',     url: 'games/zen/frostbound.html',      icon: '❄️', desc: 'Arctic wilderness 3D survival', category: 'Zen' },
       { name: 'Ruins & Ghost',  url: 'games/story/ruins-wandering-ghost/index.html', icon: '👻', desc: 'Atmospheric 3D story RPG', category: 'Story' },
       { name: 'Zen Drive',      url: 'games/story/zen-drive/index.html',             icon: '🚗', desc: 'A peaceful journey through worlds', category: 'Story' },
+      { name: 'Slither & Climb', url: 'games/board/slither-climb.html',                      icon: '🎲', desc: '3D snakes and ladders', category: 'Board' },
     ];
 
     const CFG = {
@@ -486,6 +488,7 @@
       Puzzles: { color:'#00d4ff', glow:'rgba(0,212,255,.15)',   shadow:'rgba(0,212,255,.25)'  },
       Zen:     { color:'#39ff14', glow:'rgba(57,255,20,.12)',   shadow:'rgba(57,255,20,.2)'   },
       Story:   { color:'#bc5aff', glow:'rgba(188,90,255,.15)',  shadow:'rgba(188,90,255,.25)' },
+      Board:   { color:'#ff8c00', glow:'rgba(255,140,0,.15)',   shadow:'rgba(255,140,0,.25)'  },
     };
 
     let activeCategory = 'all';
@@ -502,12 +505,14 @@
       document.getElementById('puzzleCount').textContent     = byCategory.Puzzles || 0;
       document.getElementById('zenCount').textContent        = byCategory.Zen     || 0;
       if (document.getElementById('storyCount')) document.getElementById('storyCount').textContent = byCategory.Story || 0;
+      if (document.getElementById('boardCount')) document.getElementById('boardCount').textContent = byCategory.Board || 0;
       document.getElementById('totalCount').textContent      = GAMES.length;
       document.getElementById('tabCountAll').textContent     = GAMES.length;
       document.getElementById('tabCountArcade').textContent  = byCategory.Arcade  || 0;
       document.getElementById('tabCountPuzzles').textContent = byCategory.Puzzles || 0;
       document.getElementById('tabCountZen').textContent     = byCategory.Zen     || 0;
       if (document.getElementById('tabCountStory')) document.getElementById('tabCountStory').textContent = byCategory.Story || 0;
+      if (document.getElementById('tabCountBoard')) document.getElementById('tabCountBoard').textContent = byCategory.Board || 0;
     }
 
     function render() {
