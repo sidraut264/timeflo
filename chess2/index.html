@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess 2 — The Variant</title>
+    <meta name="description" content="Chess 2 — A fresh take on chess with Royal Guards, Ministers, Diplomats, and Center Victory." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header class="app-header">
+        <h1 class="game-title">Chess 2</h1>
+        <p class="game-subtitle">The Variant</p>
+      </header>
+
+      <!-- Main layout -->
+      <main class="game-layout">
+
+        <!-- Left panel: status + move history -->
+        <aside class="side-panel left-panel" aria-label="Game status and move history">
+          <section class="status-section" aria-live="polite" aria-atomic="true">
+            <div id="turn-indicator" class="turn-indicator" role="status">
+              <span class="turn-label">Turn</span>
+              <span id="turn-player" class="turn-player white-text">White</span>
+            </div>
+            <div id="game-message" class="game-message" role="alert" aria-live="assertive"></div>
+          </section>
+
+          <section class="history-section">
+            <h2 class="panel-heading">Move History</h2>
+            <ol id="move-history-list" class="move-history-list" aria-label="Move history"></ol>
+          </section>
+        </aside>
+
+        <!-- Board area -->
+        <section class="board-section" aria-label="Chess board">
+          <!-- File labels (top) -->
+          <div class="file-labels top" aria-hidden="true">
+            <div class="rank-label-spacer"></div>
+            <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span><span>i</span>
+          </div>
+
+          <div class="board-with-ranks">
+            <!-- Rank labels (left) -->
+            <div class="rank-labels" aria-hidden="true">
+              <span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+            </div>
+            <!-- Board -->
+            <div id="board-container" role="grid" aria-label="Chess board, 9 by 9"></div>
+            <!-- Rank labels (right) -->
+            <div class="rank-labels" aria-hidden="true">
+              <span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+            </div>
+          </div>
+
+          <!-- File labels (bottom) -->
+          <div class="file-labels bottom" aria-hidden="true">
+            <div class="rank-label-spacer"></div>
+            <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span><span>i</span>
+          </div>
+
+          <!-- Controls -->
+          <div class="controls-row">
+            <button id="reset-btn" class="btn btn-reset" aria-label="Reset game to starting position">
+              ↺ Reset Game
+            </button>
+          </div>
+        </section>
+
+        <!-- Right panel: legend -->
+        <aside class="side-panel right-panel" aria-label="Piece legend">
+          <section>
+            <h2 class="panel-heading">Pieces</h2>
+            <ul class="legend-list">
+              <li><span class="legend-symbol white-text">K</span> King</li>
+              <li><span class="legend-symbol white-text">Q</span> Queen</li>
+              <li><span class="legend-symbol white-text">R</span> Rook</li>
+              <li><span class="legend-symbol white-text">B</span> Bishop</li>
+              <li><span class="legend-symbol white-text">N</span> Knight</li>
+              <li><span class="legend-symbol white-text">P</span> Pawn</li>
+              <li><span class="legend-symbol white-text">G</span> Royal Guard</li>
+              <li><span class="legend-symbol white-text">M</span> Minister</li>
+              <li><span class="legend-symbol diplomat-text">D</span> Diplomat</li>
+            </ul>
+          </section>
+
+          <section class="rules-section">
+            <h2 class="panel-heading">Highlights</h2>
+            <ul class="highlight-legend">
+              <li><span class="hl-dot selected-dot"></span> Selected</li>
+              <li><span class="hl-dot move-dot"></span> Legal Move</li>
+              <li><span class="hl-dot capture-dot"></span> Capture</li>
+              <li><span class="hl-dot promote-dot"></span> Promote</li>
+              <li><span class="hl-dot center-dot"></span> e5 (Center)</li>
+              <li><span class="hl-dot check-dot"></span> Check!</li>
+            </ul>
+          </section>
+
+          <section class="rules-section">
+            <h2 class="panel-heading">Victory</h2>
+            <ul class="rules-list">
+              <li>Checkmate the enemy King</li>
+              <li><strong>OR</strong> Hold e5 for one full turn</li>
+            </ul>
+          </section>
+        </aside>
+
+      </main>
+    </div>
+
+    <!-- Promotion Modal -->
+    <div id="promotion-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="promotion-title" hidden>
+      <div class="modal-box">
+        <h2 id="promotion-title" class="modal-title">Pawn Promotion</h2>
+        <p id="promotion-subtitle" class="modal-subtitle"></p>
+        <div class="promotion-choices" role="group" aria-label="Choose promotion piece">
+          <button class="promotion-btn" data-type="Queen" aria-label="Promote to Queen" tabindex="0">
+            <span class="promo-symbol">Q</span>
+            <span class="promo-name">Queen</span>
+          </button>
+          <button class="promotion-btn" data-type="Rook" aria-label="Promote to Rook" tabindex="0">
+            <span class="promo-symbol">R</span>
+            <span class="promo-name">Rook</span>
+          </button>
+          <button class="promotion-btn" data-type="Bishop" aria-label="Promote to Bishop" tabindex="0">
+            <span class="promo-symbol">B</span>
+            <span class="promo-name">Bishop</span>
+          </button>
+          <button class="promotion-btn" data-type="Knight" aria-label="Promote to Knight" tabindex="0">
+            <span class="promo-symbol">N</span>
+            <span class="promo-name">Knight</span>
+          </button>
+        </div>
+        <button id="promotion-cancel" class="btn btn-cancel" aria-label="Cancel promotion">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="gameover-overlay" class="modal-overlay gameover-overlay" role="dialog" aria-modal="true" aria-labelledby="gameover-title" hidden>
+      <div class="modal-box gameover-box">
+        <div id="gameover-icon" class="gameover-icon" aria-hidden="true">♛</div>
+        <h2 id="gameover-title" class="gameover-title"></h2>
+        <p id="gameover-subtitle" class="gameover-subtitle"></p>
+        <button id="gameover-reset" class="btn btn-reset" aria-label="Start a new game">
+          ↺ New Game
+        </button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

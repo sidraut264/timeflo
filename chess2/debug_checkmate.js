@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var GameState_1 = require("./src/game/GameState");
+var Board_1 = require("./src/game/Board");
+var Player_1 = require("./src/game/Player");
+var Piece_1 = require("./src/game/Piece");
+var gameState = new GameState_1.GameState(true);
+var board = gameState.board;
+board.setPiece(Board_1.Board.parseCoordinate('a1'), new Piece_1.King(Player_1.Player.White));
+board.setPiece(Board_1.Board.parseCoordinate('c2'), new Piece_1.Rook(Player_1.Player.Black));
+board.setPiece(Board_1.Board.parseCoordinate('c1'), new Piece_1.Rook(Player_1.Player.Black));
+console.log("Is White King in check? " + gameState.isKingInCheck(Player_1.Player.White));
+var moves = gameState.getLegalMoves(Board_1.Board.parseCoordinate('a1'));
+console.log("Legal moves for King at a1:", moves.map(function (m) { return "".concat(String.fromCharCode('a'.charCodeAt(0) + m.file)).concat(m.rank + 1); }));
