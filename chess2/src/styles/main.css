@@ -1,3 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cinzel:wght@700&display=swap');
+
+/* Arcade Back Button */
+.back-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 30px;
+  padding: 8px 22px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  z-index: 1000;
+  transition: all 0.3s;
+}
+.back-btn:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border-color: rgba(255,255,255,0.5);
+}
+@media (max-width: 768px) {
+  .back-btn {
+    top: 12px;
+    left: 12px;
+    padding: 6px 14px;
+    font-size: 0.65rem;
+  }
+}
+
 /* ============================================================
    Chess 2 — Main Stylesheet
    Design: Dark theme, warm board, premium typography
