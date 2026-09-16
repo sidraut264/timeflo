@@ -82,9 +82,11 @@ export class ShieldSystem {
     if (isGuardItself) {
       activeShields = [RelativeDirection.Front];
     } else if (isLeftPiece) {
-      activeShields = [RelativeDirection.Front, RelativeDirection.FrontLeft];
-    } else if (isRightPiece) {
+      // Left piece: Guard is to the RIGHT, so the diagonal toward Guard is FrontRight
       activeShields = [RelativeDirection.Front, RelativeDirection.FrontRight];
+    } else if (isRightPiece) {
+      // Right piece: Guard is to the LEFT, so the diagonal toward Guard is FrontLeft
+      activeShields = [RelativeDirection.Front, RelativeDirection.FrontLeft];
     }
 
     // Determine direction of attack
