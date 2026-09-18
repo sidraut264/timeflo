@@ -59,7 +59,7 @@ export class GameState {
     this.setupRank(Player.White, 1, [Pawn, Pawn, Pawn, Pawn, RoyalGuard, Pawn, Pawn, Pawn, Pawn]);
 
     // Black Pieces
-    this.setupRank(Player.Black, 8, [Rook, Bishop, Knight, Queen, King, Minister, Knight, Bishop, Rook]);
+    this.setupRank(Player.Black, 8, [Rook, Bishop, Knight, Minister, King, Queen, Knight, Bishop, Rook]);
     this.setupRank(Player.Black, 7, [Pawn, Pawn, Pawn, Pawn, RoyalGuard, Pawn, Pawn, Pawn, Pawn]);
 
     // Diplomats (Static, Permanent, center area)
