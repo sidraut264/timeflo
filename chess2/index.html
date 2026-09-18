@@ -16,8 +16,19 @@
 
       <!-- Header -->
       <header class="app-header">
-        <h1 class="game-title">Chess 2</h1>
-        <p class="game-subtitle">The Variant</p>
+        <div class="header-content">
+          <div class="title-area">
+            <h1 class="game-title">Chess 2</h1>
+            <p class="game-subtitle">The Variant</p>
+          </div>
+          <div class="playtest-toggle-container">
+            <label class="toggle-switch">
+              <input type="checkbox" id="playtest-toggle" aria-label="Toggle Playtest Mode">
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Playtest Mode</span>
+          </div>
+        </div>
       </header>
 
       <!-- Main layout -->
@@ -36,6 +47,79 @@
           <section class="history-section">
             <h2 class="panel-heading">Move History</h2>
             <ol id="move-history-list" class="move-history-list" aria-label="Move history"></ol>
+          </section>
+
+          <!-- Playtest Editor Panel (Hidden by default) -->
+          <section id="playtest-editor-panel" class="playtest-section" aria-hidden="true" hidden>
+            <h2 class="panel-heading">Scenario Editor</h2>
+            
+            <div class="editor-controls">
+              <select id="scenario-select" aria-label="Select Scenario Preset">
+                <option value="">-- Load Preset --</option>
+              </select>
+              
+              <div class="editor-buttons">
+                <button id="pt-reset-btn" class="btn btn-sm">Reset Start</button>
+                <button id="pt-clear-btn" class="btn btn-sm">Clear Board</button>
+                <button id="pt-export-btn" class="btn btn-sm">Export JSON</button>
+                <button id="pt-import-btn" class="btn btn-sm">Import JSON</button>
+              </div>
+            </div>
+
+            <div class="piece-palette">
+              <div class="palette-group">
+                <span class="palette-label">White</span>
+                <div class="palette-row" id="palette-white">
+                  <button class="palette-btn white-text" data-type="King" data-player="White">K</button>
+                  <button class="palette-btn white-text" data-type="Queen" data-player="White">Q</button>
+                  <button class="palette-btn white-text" data-type="Rook" data-player="White">R</button>
+                  <button class="palette-btn white-text" data-type="Bishop" data-player="White">B</button>
+                  <button class="palette-btn white-text" data-type="Knight" data-player="White">N</button>
+                  <button class="palette-btn white-text" data-type="Pawn" data-player="White">P</button>
+                  <button class="palette-btn white-text" data-type="RoyalGuard" data-player="White">G</button>
+                  <button class="palette-btn white-text" data-type="Minister" data-player="White">M</button>
+                </div>
+              </div>
+              
+              <div class="palette-group">
+                <span class="palette-label">Black</span>
+                <div class="palette-row" id="palette-black">
+                  <button class="palette-btn black-text" data-type="King" data-player="Black">K</button>
+                  <button class="palette-btn black-text" data-type="Queen" data-player="Black">Q</button>
+                  <button class="palette-btn black-text" data-type="Rook" data-player="Black">R</button>
+                  <button class="palette-btn black-text" data-type="Bishop" data-player="Black">B</button>
+                  <button class="palette-btn black-text" data-type="Knight" data-player="Black">N</button>
+                  <button class="palette-btn black-text" data-type="Pawn" data-player="Black">P</button>
+                  <button class="palette-btn black-text" data-type="RoyalGuard" data-player="Black">G</button>
+                  <button class="palette-btn black-text" data-type="Minister" data-player="Black">M</button>
+                </div>
+              </div>
+
+              <div class="palette-group">
+                <span class="palette-label">Neutral / Tools</span>
+                <div class="palette-row">
+                  <button class="palette-btn diplomat-text" data-type="Diplomat" data-player="">D</button>
+                  <button class="palette-btn eraser-btn" data-type="Eraser" data-player="">✕</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="editor-settings">
+              <label>Current Player: 
+                <select id="pt-current-player">
+                  <option value="White">White</option>
+                  <option value="Black">Black</option>
+                </select>
+              </label>
+              <label>Center Hold: 
+                <select id="pt-center-hold">
+                  <option value="">None</option>
+                  <option value="White">White</option>
+                  <option value="Black">Black</option>
+                </select>
+              </label>
+              <div id="pt-validation-error" class="validation-error" hidden></div>
+            </div>
           </section>
         </aside>
 
@@ -109,6 +193,23 @@
               <li>Checkmate the enemy King</li>
               <li><strong>OR</strong> Hold e5 for one full turn</li>
             </ul>
+          </section>
+
+          <!-- Playtest State Inspector (Hidden by default) -->
+          <section id="playtest-inspector-panel" class="playtest-section" aria-hidden="true" hidden>
+            <h2 class="panel-heading">State Inspector</h2>
+            <div class="inspector-content">
+              <div class="inspector-row"><span>Status:</span> <span id="insp-status">PLAYING</span></div>
+              <div class="inspector-row"><span>Winner:</span> <span id="insp-winner">None</span></div>
+              <div class="inspector-row"><span>W. King:</span> <span id="insp-w-king">--</span></div>
+              <div class="inspector-row"><span>B. King:</span> <span id="insp-b-king">--</span></div>
+              <div class="inspector-row"><span>Hold:</span> <span id="insp-hold">None</span></div>
+              <div class="inspector-row"><span>W. Check:</span> <span id="insp-w-check">Safe</span></div>
+              <div class="inspector-row"><span>B. Check:</span> <span id="insp-b-check">Safe</span></div>
+              <hr class="inspector-divider">
+              <div class="inspector-row"><strong>Selected:</strong> <span id="insp-sel-piece">None</span></div>
+              <div class="inspector-row"><strong>Legal:</strong> <span id="insp-sel-moves">--</span></div>
+            </div>
           </section>
         </aside>
 

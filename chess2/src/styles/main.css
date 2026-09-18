@@ -689,3 +689,554 @@ body {
   :root { --sq: 36px; }
   .file-labels { display: none; }
 }
+
+/* ---- Playtest Toggle ---- */
+.playtest-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+}
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(255,255,255,0.1);
+  transition: .2s;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--text-muted);
+  transition: .2s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: rgba(233, 69, 96, 0.3);
+  border-color: var(--accent);
+}
+input:checked + .slider:before {
+  transform: translateX(16px);
+  background-color: var(--accent);
+}
+.toggle-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+input:checked ~ .toggle-label {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+/* ---- Playtest Sections ---- */
+.playtest-section {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 12px rgba(233, 69, 96, 0.1);
+}
+.playtest-section[hidden] {
+  display: none !important;
+}
+
+.editor-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.editor-controls select {
+  width: 100%;
+  padding: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+}
+.editor-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.btn-sm {
+  padding: 6px 4px;
+  font-size: 11px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+}
+
+.piece-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.palette-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.palette-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.palette-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.palette-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 0;
+  font-family: var(--font-board);
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: .1s;
+}
+.palette-btn:hover { background: rgba(255,255,255,0.1); }
+.palette-btn.active {
+  background: rgba(233, 69, 96, 0.2);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 4px rgba(233, 69, 96, 0.5);
+}
+.eraser-btn { color: #ff6b6b; font-family: var(--font-ui); }
+
+.editor-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+.editor-settings label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-muted);
+}
+.editor-settings select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+.validation-error {
+  color: #ff6b6b;
+  font-size: 11px;
+  background: rgba(255,0,0,0.1);
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,0,0,0.3);
+  margin-top: 4px;
+}
+
+/* Inspector */
+.inspector-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.inspector-row {
+  display: flex;
+  justify-content: space-between;
+}
+.inspector-row span:first-child {
+  color: var(--text-muted);
+}
+.inspector-row span:last-child {
+  font-weight: 600;
+}
+.inspector-divider {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 4px 0;
+}
+
+/* Board editing mode cursors */
+.board-edit-mode .square {
+  cursor: crosshair !important;
+}
+
+/* ================================================================
+   VISUAL EFFECTS & ANIMATIONS PASS
+   ================================================================ */
+
+/* ---- Central 3×3 zone (d4–f6, files 3–5, ranks 3–5) ---- */
+.square.central-zone.light {
+  background: #dbbe7a;
+}
+.square.central-zone.dark {
+  background: #a88a4a;
+}
+
+/* ---- e5 center square base ---- */
+.square.center-sq.light { background: #e0c060; }
+.square.center-sq.dark  { background: #c0a040; }
+
+/* Star icon — larger and pulsing */
+.square.center-sq::after,
+.square.center-hold::after {
+  content: '★';
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 11px;
+  opacity: 0.75;
+  pointer-events: none;
+  color: rgba(180,120,0,0.8);
+  animation: starPulse 2.4s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+@keyframes starPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1.0; transform: scale(1.25); }
+}
+
+/* ---- Center hold: gold wash + ring ---- */
+.square.center-hold.light { background: #f5c030; }
+.square.center-hold.dark  { background: #d4960c; }
+.square.center-hold::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 3px;
+  border: 2px solid rgba(255, 200, 50, 0.8);
+  pointer-events: none;
+  z-index: 2;
+  animation: holdRing 1.2s ease-in-out infinite;
+  will-change: opacity, box-shadow;
+}
+@keyframes holdRing {
+  0%, 100% { opacity: 0.7; box-shadow: inset 0 0 6px rgba(255,200,50,0.4); }
+  50%       { opacity: 1.0; box-shadow: inset 0 0 14px rgba(255,200,50,0.8); }
+}
+
+/* ---- Center Victory burst ---- */
+@keyframes centerVictoryBurst {
+  0%   { box-shadow: 0 0 0 0 rgba(255,220,50,0.9),  inset 0 0 0 0 rgba(255,220,50,0.5); }
+  40%  { box-shadow: 0 0 0 18px rgba(255,220,50,0.5), inset 0 0 20px rgba(255,220,50,0.7); }
+  100% { box-shadow: 0 0 0 40px rgba(255,220,50,0),  inset 0 0 0 0 rgba(255,220,50,0); }
+}
+.square.center-victory-burst {
+  animation: centerVictoryBurst 1.2s ease-out forwards;
+  z-index: 5;
+}
+.square.center-victory-static {
+  background: #ffe566 !important;
+  outline: 3px solid #f5c030;
+}
+
+@keyframes centerRipple {
+  0%   { filter: brightness(1.4); }
+  100% { filter: brightness(1); }
+}
+.square.center-ripple-anim {
+  animation: centerRipple 0.8s ease-out forwards;
+}
+
+/* ---- Check pulse animation ---- */
+@keyframes checkPulseRing {
+  0%   { box-shadow: 0 0  0  0 rgba(220,30,30,0.0),  inset 0 0  0 rgba(220,30,30,0.0); }
+  20%  { box-shadow: 0 0  0 10px rgba(220,30,30,0.8), inset 0 0 12px rgba(220,30,30,0.6); }
+  80%  { box-shadow: 0 0  0 10px rgba(220,30,30,0.4), inset 0 0 8px rgba(220,30,30,0.3); }
+  100% { box-shadow: 0 0  0  0 rgba(220,30,30,0.0),  inset 0 0  0 rgba(220,30,30,0.0); }
+}
+.square.check-pulse-anim {
+  animation: checkPulseRing 0.8s ease-out forwards;
+  z-index: 5;
+}
+.square.check-highlight-static {
+  outline: 3px solid rgba(220,30,30,0.9) !important;
+}
+
+/* ---- Checkmate persistent glow ---- */
+.square.checkmate-fx {
+  background: radial-gradient(circle, rgba(200,0,0,0.7) 0%, rgba(120,0,0,0.5) 60%, transparent 100%) !important;
+  animation: checkmateGlow 0.8s ease-in-out infinite alternate;
+}
+@keyframes checkmateGlow {
+  from { filter: brightness(0.9); }
+  to   { filter: brightness(1.2) saturate(1.4); }
+}
+
+/* ---- Minister conversion ---- */
+@keyframes ministerConvert {
+  0%   { background: rgba(80,220,160,0.0); box-shadow: none; }
+  30%  { background: rgba(80,220,160,0.6); box-shadow: 0 0 16px rgba(80,220,160,0.9); }
+  70%  { background: rgba(80,220,160,0.4); }
+  100% { background: rgba(80,220,160,0.0); box-shadow: none; }
+}
+.square.minister-convert-anim::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  animation: ministerConvert 0.9s ease-out forwards;
+  pointer-events: none;
+  z-index: 6;
+  border-radius: 2px;
+}
+.square.convert-highlight-static {
+  outline: 3px solid rgba(80,220,160,0.9) !important;
+}
+
+/* ---- Capture impact ---- */
+@keyframes captureImpact {
+  0%   { box-shadow: inset 0 0 0 0 rgba(220,60,40,0.0); }
+  40%  { box-shadow: inset 0 0 20px 4px rgba(220,60,40,0.7); }
+  100% { box-shadow: inset 0 0 0 0 rgba(220,60,40,0.0); }
+}
+.square.capture-impact-anim {
+  animation: captureImpact 0.35s ease-out forwards;
+}
+
+/* ---- Promotion appear ---- */
+@keyframes promotionAppear {
+  0%   { filter: brightness(1); }
+  40%  { filter: brightness(2.0) saturate(2); }
+  100% { filter: brightness(1); }
+}
+.square.promotion-appear-anim {
+  animation: promotionAppear 0.6s ease-out forwards;
+}
+.square.promote-highlight-static {
+  outline: 3px solid rgba(160,60,240,0.9) !important;
+}
+
+/* ---- Enhanced selected piece glow ---- */
+.square.selected::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--sel-overlay);
+  pointer-events: none;
+  z-index: 1;
+  animation: selectedGlow 1.4s ease-in-out infinite alternate;
+}
+@keyframes selectedGlow {
+  from { box-shadow: inset 0 0 6px rgba(20,220,60,0.3); }
+  to   { box-shadow: inset 0 0 14px rgba(20,220,60,0.6); }
+}
+
+/* ---- Legal move dot pulse ---- */
+.square.can-move::after {
+  content: '';
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: var(--move-dot-color);
+  pointer-events: none;
+  z-index: 2;
+  animation: moveDotPulse 1.2s ease-in-out infinite;
+}
+@keyframes moveDotPulse {
+  0%, 100% { transform: scale(1);    opacity: 0.7; }
+  50%       { transform: scale(1.15); opacity: 1.0; }
+}
+
+/* ---- Capture ring pulse ---- */
+.square.can-capture::before {
+  animation: captureRingPulse 1.0s ease-in-out infinite;
+}
+@keyframes captureRingPulse {
+  0%, 100% { border-color: rgba(220,40,40,0.55); }
+  50%       { border-color: rgba(220,40,40,0.85); }
+}
+
+/* ---- Shield overlays ---- */
+/* Base: invisible by default */
+.shield-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  animation: shieldAppear 0.3s ease-out forwards;
+}
+@keyframes shieldAppear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Shield glow on protected piece */
+.shield-glow {
+  position: absolute;
+  inset: 2px;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 3;
+  animation: shieldGlowPulse 2s ease-in-out infinite;
+}
+.shield-glow.shield-white {
+  border: 1px solid rgba(100, 200, 255, 0.55);
+  box-shadow: inset 0 0 6px rgba(100, 200, 255, 0.3);
+}
+.shield-glow.shield-black {
+  border: 1px solid rgba(255, 160, 80, 0.55);
+  box-shadow: inset 0 0 6px rgba(255, 160, 80, 0.3);
+}
+@keyframes shieldGlowPulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1.0; }
+}
+
+/* Shield arc — top (front for White) */
+.shield-overlay.sd-top {
+  top: 0; left: 0; right: 0;
+  height: 28%;
+  background: linear-gradient(to bottom, rgba(100,200,255,0.30), transparent);
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
+  opacity: 0;
+}
+.shield-overlay.shield-black.sd-top {
+  background: linear-gradient(to bottom, rgba(255,160,80,0.30), transparent);
+}
+
+/* Shield arc — bottom (front for Black) */
+.shield-overlay.sd-bottom {
+  bottom: 0; left: 0; right: 0;
+  height: 28%;
+  background: linear-gradient(to top, rgba(100,200,255,0.30), transparent);
+  clip-path: polygon(15% 0, 85% 0, 100% 100%, 0% 100%);
+  opacity: 0;
+}
+.shield-overlay.shield-black.sd-bottom {
+  background: linear-gradient(to top, rgba(255,160,80,0.30), transparent);
+}
+
+/* Shield arc — top-left (FrontLeft for White) */
+.shield-overlay.sd-topleft {
+  top: 0; left: 0;
+  width: 50%; height: 50%;
+  background: radial-gradient(circle at 0% 0%, rgba(100,200,255,0.35) 0%, transparent 70%);
+  opacity: 0;
+}
+.shield-overlay.shield-black.sd-topleft {
+  background: radial-gradient(circle at 0% 0%, rgba(255,160,80,0.35) 0%, transparent 70%);
+}
+
+/* Shield arc — top-right (FrontRight for White) */
+.shield-overlay.sd-topright {
+  top: 0; right: 0;
+  width: 50%; height: 50%;
+  background: radial-gradient(circle at 100% 0%, rgba(100,200,255,0.35) 0%, transparent 70%);
+  opacity: 0;
+}
+.shield-overlay.shield-black.sd-topright {
+  background: radial-gradient(circle at 100% 0%, rgba(255,160,80,0.35) 0%, transparent 70%);
+}
+
+/* Shield arc — bottom-left (FrontLeft for Black) */
+.shield-overlay.sd-bottomleft {
+  bottom: 0; left: 0;
+  width: 50%; height: 50%;
+  background: radial-gradient(circle at 0% 100%, rgba(100,200,255,0.35) 0%, transparent 70%);
+  opacity: 0;
+}
+.shield-overlay.shield-black.sd-bottomleft {
+  background: radial-gradient(circle at 0% 100%, rgba(255,160,80,0.35) 0%, transparent 70%);
+}
+
+/* Shield arc — bottom-right (FrontRight for Black) */
+.shield-overlay.sd-bottomright {
+  bottom: 0; right: 0;
+  width: 50%; height: 50%;
+  background: radial-gradient(circle at 100% 100%, rgba(100,200,255,0.35) 0%, transparent 70%);
+  opacity: 0;
+}
+.shield-overlay.shield-black.sd-bottomright {
+  background: radial-gradient(circle at 100% 100%, rgba(255,160,80,0.35) 0%, transparent 70%);
+}
+
+/* Shield arc — sides */
+.shield-overlay.sd-left {
+  left: 0; top: 0; bottom: 0;
+  width: 28%;
+  background: linear-gradient(to right, rgba(100,200,255,0.25), transparent);
+  opacity: 0;
+}
+.shield-overlay.sd-right {
+  right: 0; top: 0; bottom: 0;
+  width: 28%;
+  background: linear-gradient(to left, rgba(100,200,255,0.25), transparent);
+  opacity: 0;
+}
+
+/* Playtest debug mode — stronger shield indicators */
+.shield-overlay.shield-debug {
+  filter: saturate(2) brightness(1.4);
+}
+.shield-glow.shield-debug-glow {
+  border-width: 2px !important;
+  box-shadow: inset 0 0 10px rgba(100,200,255,0.5) !important;
+}
+
+/* Flying piece (animating) */
+.flying-piece {
+  font-size: clamp(22px, calc(var(--sq) * 0.56), 36px);
+  font-weight: 900;
+  font-family: var(--font-board);
+  line-height: 1;
+  /* Shadows to match board pieces */
+}
+.flying-piece.white-piece {
+  color: var(--white-piece);
+  text-shadow: 0 0 3px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8);
+}
+.flying-piece.black-piece {
+  color: var(--black-piece);
+  text-shadow: 0 0 3px rgba(255,255,255,0.3), 0 1px 4px rgba(0,0,0,0.5);
+}
+
+/* ================================================================
+   prefers-reduced-motion — remove all animations
+   ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .square.center-sq::after,
+  .square.center-hold::after {
+    animation: none !important;
+  }
+  .square.center-hold::before {
+    animation: none !important;
+  }
+  .square.selected::before {
+    animation: none !important;
+  }
+  .square.can-move::after {
+    animation: none !important;
+  }
+  .square.can-capture::before {
+    animation: none !important;
+  }
+  .shield-overlay,
+  .shield-glow {
+    animation: none !important;
+    opacity: 0.6 !important;
+  }
+  .checkmate-fx {
+    animation: none !important;
+  }
+}
