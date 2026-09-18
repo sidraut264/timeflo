@@ -1,7 +1,7 @@
 import { GameState, GameStatus } from '../GameState';
 import { Player } from '../Player';
 import { Board } from '../Board';
-import { AIConfig } from './AIConfig';
+import { AIConfig, AIDifficulty } from './AIConfig';
 import { ShieldSystem } from '../ShieldSystem';
 
 export class MoveEvaluator {
@@ -62,7 +62,11 @@ export class MoveEvaluator {
       score += AIConfig.CHECK_BONUS;
     }
 
-    // 4. Royal Guard Shields
+    if (AIConfig.difficulty === AIDifficulty.Easy) {
+      return score;
+    }
+
+    // 4. Royal Guard Shields (Medium/Hard only)
     // Evaluate shields for maximizing player
     const myShields = ShieldSystem.getShieldInfo(state, maximizingPlayer);
     for (const shield of myShields) {

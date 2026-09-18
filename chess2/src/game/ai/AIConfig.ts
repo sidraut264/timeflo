@@ -1,9 +1,20 @@
+export enum AIDifficulty {
+  Easy = 1,
+  Medium = 2,
+  Hard = 3
+}
+
 export const AIConfig = {
   // Delay for presentation purposes so AI doesn't feel instantaneous
   MOVE_DELAY_MS: 400,
   
-  // The depth of the search tree (1 = evaluate all moves, 2 = evaluate my moves + opponent best reply)
-  SEARCH_DEPTH: 2,
+  // Current difficulty (Default: Medium)
+  difficulty: AIDifficulty.Medium,
+
+  // Helper to get search depth based on difficulty
+  getSearchDepth(): number {
+    return this.difficulty;
+  },
 
   // Base piece values for heuristic evaluation
   PIECE_VALUES: {

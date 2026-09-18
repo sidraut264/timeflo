@@ -117,6 +117,31 @@ document.getElementById('play-computer-black-btn')?.addEventListener('click', ()
   startNewGame('Computer', Player.White);
 });
 
+const diffBtns = [
+  document.getElementById('diff-easy-btn'),
+  document.getElementById('diff-medium-btn'),
+  document.getElementById('diff-hard-btn')
+];
+
+diffBtns.forEach(btn => {
+  btn?.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const diffVal = parseInt(target.getAttribute('data-diff') || '2', 10);
+    
+    // Update config
+    AIConfig.difficulty = diffVal;
+    
+    // Update UI active state
+    diffBtns.forEach(b => b?.classList.remove('active'));
+    target.classList.add('active');
+    
+    // If currently in a computer game, reset it
+    if (currentGameMode === 'Computer') {
+      startNewGame('Computer', computerSide);
+    }
+  });
+});
+
 // 6. Initialize Playtest UI Hooks
 const playtestUI = new PlaytestUI(
   () => gameState,

@@ -26,17 +26,19 @@ export class ComputerPlayer {
     const allMoves = this.getAllLegalMoves(state, aiPlayer);
     if (allMoves.length === 0) return null;
 
+    const depth = AIConfig.getSearchDepth();
+
     for (const move of allMoves) {
       // 1. Clone state and apply the candidate move
       const clonedState = state.clone();
       const success = clonedState.makeMove(move.from, move.to, move.promotionType);
       
-      if (!success) continue; // Should always be true if generated via getLegalMoves
+      if (!success) continue;
 
-      // 2. Evaluate resulting state
+      // 2. Evaluate resulting state using Alpha-Beta Pruning
       let score = 0;
-      if (AIConfig.SEARCH_DEPTH > 1 && !clonedState.isGameOver()) {
-        score = this.evaluateMin(clonedState, aiPlayer, AIConfig.SEARCH_DEPTH - 1);
+      if (depth > 1 && !clonedState.isGameOver()) {
+        score = this.alphaBeta(clonedState, depth - 1, -Infinity, Infinity, false, aiPlayer);
       } else {
         score = MoveEvaluator.evaluate(clonedState, aiPlayer);
       }
@@ -64,51 +66,74 @@ export class ComputerPlayer {
   }
 
   /**
-   * Helper function for the "Min" step of minimax.
-   * Assumes it is the opponent's turn. Returns the minimum score possible for the maximizing player.
+   * Minimax with Alpha-Beta Pruning.
    */
-  private static evaluateMin(state: GameState, maximizingPlayer: Player, depth: number): number {
+  private static alphaBeta(
+    state: GameState,
+    depth: number,
+    alpha: number,
+    beta: number,
+    isMaximizingPlayer: boolean,
+    maximizingPlayer: Player
+  ): number {
     if (depth === 0 || state.isGameOver()) {
       return MoveEvaluator.evaluate(state, maximizingPlayer);
     }
 
-    const opponent = maximizingPlayer === Player.White ? Player.Black : Player.White;
-    const opponentMoves = this.getAllLegalMoves(state, opponent);
-    
-    // If the opponent has no moves (e.g. checkmate or stalemate), evaluate directly
-    if (opponentMoves.length === 0) {
+    const currentPlayer = isMaximizingPlayer ? maximizingPlayer : (maximizingPlayer === Player.White ? Player.Black : Player.White);
+    const moves = this.getAllLegalMoves(state, currentPlayer);
+
+    if (moves.length === 0) {
       return MoveEvaluator.evaluate(state, maximizingPlayer);
     }
 
-    let minScore = Infinity;
-
-    // Preserve the tactical bonus if our previous move put the opponent in check
-    let checkBonus = 0;
-    if (state.isKingInCheck(opponent)) {
-      checkBonus = AIConfig.CHECK_BONUS;
-    }
-
-    for (const move of opponentMoves) {
-      const clonedState = state.clone();
-      clonedState.makeMove(move.from, move.to, move.promotionType);
-      
-      let score = 0;
-      if (depth > 1) {
-         // evaluateMax if we went deeper than depth 2
-         // For a simple depth-2 search, depth is 1 here, so we evaluate.
-         score = MoveEvaluator.evaluate(clonedState, maximizingPlayer);
-      } else {
-         score = MoveEvaluator.evaluate(clonedState, maximizingPlayer);
+    if (isMaximizingPlayer) {
+      let maxScore = -Infinity;
+      for (const move of moves) {
+        const clonedState = state.clone();
+        clonedState.makeMove(move.from, move.to, move.promotionType);
+        
+        let score = this.alphaBeta(clonedState, depth - 1, alpha, beta, false, maximizingPlayer);
+        
+        if (score > maxScore) {
+          maxScore = score;
+        }
+        if (maxScore > alpha) {
+          alpha = maxScore;
+        }
+        if (beta <= alpha) {
+          break; // Beta cut-off
+        }
       }
+      return maxScore;
+    } else {
+      let minScore = Infinity;
       
-      score += checkBonus;
-
-      if (score < minScore) {
-        minScore = score;
+      // Preserve the tactical bonus if the maximizing player's previous move put the opponent in check
+      let checkBonus = 0;
+      if (state.isKingInCheck(currentPlayer)) {
+        checkBonus = AIConfig.CHECK_BONUS;
       }
-    }
 
-    return minScore;
+      for (const move of moves) {
+        const clonedState = state.clone();
+        clonedState.makeMove(move.from, move.to, move.promotionType);
+        
+        let score = this.alphaBeta(clonedState, depth - 1, alpha, beta, true, maximizingPlayer);
+        score += checkBonus;
+        
+        if (score < minScore) {
+          minScore = score;
+        }
+        if (minScore < beta) {
+          beta = minScore;
+        }
+        if (beta <= alpha) {
+          break; // Alpha cut-off
+        }
+      }
+      return minScore;
+    }
   }
 
   /**
