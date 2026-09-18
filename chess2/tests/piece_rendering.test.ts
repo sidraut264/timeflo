@@ -137,8 +137,8 @@ describe('PieceRenderer — SVG Output', () => {
         const svg = renderPieceSVG(type, owner);
         // Check for proper SVG opening tag
         expect(svg).toMatch(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
-        // Check for viewBox
-        expect(svg).toContain('viewBox="0 0 40 48"');
+        // Check for viewBox (standard pieces use 64x64, custom use 40x48)
+        expect(svg).toMatch(/viewBox="0 0 (40 48|64 64)"/);
         // Must be properly closed
         expect(svg).toContain('</svg>');
       });
