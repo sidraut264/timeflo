@@ -8,7 +8,7 @@
       transition: left ${this.MOVE_DURATION}ms cubic-bezier(0.25,0.1,0.25,1),
                   top  ${this.MOVE_DURATION}ms cubic-bezier(0.25,0.1,0.25,1);
       will-change: left, top;
-    `,document.body.appendChild(s),requestAnimationFrame(()=>{requestAnimationFrame(()=>{s.style.left=`${o.left+o.width/2}px`,s.style.top=`${o.top+o.height/2}px`})}),setTimeout(()=>{s.remove(),this.unlock(),i()},this.MOVE_DURATION+20)}animateMoveElement(e,t,n,r){if(v.isReducedMotion()){this.lock(),requestAnimationFrame(()=>{this.unlock(),r()});return}this.lock();let i=e.getBoundingClientRect(),a=t.getBoundingClientRect();n.style.cssText=`
+    `,document.body.appendChild(s),requestAnimationFrame(()=>{requestAnimationFrame(()=>{s.style.left=`${o.left+o.width/2}px`,s.style.top=`${o.top+o.height/2}px`})}),setTimeout(()=>{s.remove(),this.unlock(),i()},this.MOVE_DURATION+20)}animateMoveElement(e,t,n,r){if(v.isReducedMotion()){this.lock(),requestAnimationFrame(()=>{this.unlock(),r()});return}this.lock();let i=e.getBoundingClientRect(),a=t.getBoundingClientRect(),o=e.querySelector(`.piece`);o&&(o.style.opacity=`0`),n.style.cssText=`
       position: fixed;
       left: ${i.left+i.width/2}px;
       top:  ${i.top+i.height/2}px;

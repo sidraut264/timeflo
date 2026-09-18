@@ -107,6 +107,12 @@ export class AnimationManager {
     const fromRect = fromEl.getBoundingClientRect();
     const toRect   = toEl.getBoundingClientRect();
 
+    // Hide original piece on the board during animation
+    const originalPiece = fromEl.querySelector<HTMLElement>('.piece');
+    if (originalPiece) {
+      originalPiece.style.opacity = '0';
+    }
+
     flyEl.style.cssText = `
       position: fixed;
       left: ${fromRect.left + fromRect.width / 2}px;
