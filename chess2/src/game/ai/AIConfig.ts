@@ -24,6 +24,16 @@ export const AIConfig = {
   // Bonus for converting a minister (since it steals an enemy pawn)
   MINISTER_CONVERSION_BONUS: 250,
 
-  // Bonus for being in Center Hold
-  CENTER_HOLD_BONUS: 2000, // Very high but less than a checkmate
+  // Bonus when the center is held
+  CENTER_HOLD_BONUS: 2000,
+
+  // Bonus for King explicitly on e5
+  KING_ON_CENTER_BONUS: 3000,
+
+  // Check evaluations
+  CHECK_BONUS: 500,
+  CHECK_PENALTY: 500,
+
+  // Shield protection evaluation (per protected target)
+  SHIELD_PROTECTION_BONUS: 50,
 };

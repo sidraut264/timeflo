@@ -82,6 +82,12 @@ export class ComputerPlayer {
 
     let minScore = Infinity;
 
+    // Preserve the tactical bonus if our previous move put the opponent in check
+    let checkBonus = 0;
+    if (state.isKingInCheck(opponent)) {
+      checkBonus = AIConfig.CHECK_BONUS;
+    }
+
     for (const move of opponentMoves) {
       const clonedState = state.clone();
       clonedState.makeMove(move.from, move.to, move.promotionType);
@@ -94,6 +100,8 @@ export class ComputerPlayer {
       } else {
          score = MoveEvaluator.evaluate(clonedState, maximizingPlayer);
       }
+      
+      score += checkBonus;
 
       if (score < minScore) {
         minScore = score;

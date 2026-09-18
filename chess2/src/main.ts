@@ -28,6 +28,8 @@ function checkComputerTurn() {
   if (gameState.isGameOver()) return;
 
   if (gameState.currentPlayer === computerSide) {
+    if (aiThinkTimer !== null) return; // Prevent duplicate timers
+
     // Block human input
     boardRenderer.inputBlocked = true;
 
@@ -46,6 +48,9 @@ function checkComputerTurn() {
 
     // Delay slightly for UX, then calculate move
     aiThinkTimer = window.setTimeout(() => {
+      aiThinkTimer = null; // Clear timer reference
+      if (gameState.isGameOver() || currentGameMode !== 'Computer') return; // Guard against resets
+
       const move = ComputerPlayer.chooseMove(gameState, computerSide!);
       
       if (move) {
@@ -74,7 +79,10 @@ function checkComputerTurn() {
 }
 
 function startNewGame(mode: GameMode, cpuSide: Player | null) {
-  if (aiThinkTimer) clearTimeout(aiThinkTimer);
+  if (aiThinkTimer) {
+    clearTimeout(aiThinkTimer);
+    aiThinkTimer = null;
+  }
   
   gameState.reset();
   boardRenderer.setGameState(gameState);
@@ -113,7 +121,10 @@ document.getElementById('play-computer-black-btn')?.addEventListener('click', ()
 const playtestUI = new PlaytestUI(
   () => gameState,
   (newState: GameState) => {
-    if (aiThinkTimer) clearTimeout(aiThinkTimer);
+    if (aiThinkTimer) {
+      clearTimeout(aiThinkTimer);
+      aiThinkTimer = null;
+    }
     gameState = newState;
     boardRenderer.setGameState(gameState);
     boardRenderer.render();

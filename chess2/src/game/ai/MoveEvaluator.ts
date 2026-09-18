@@ -2,6 +2,7 @@ import { GameState, GameStatus } from '../GameState';
 import { Player } from '../Player';
 import { Board } from '../Board';
 import { AIConfig } from './AIConfig';
+import { ShieldSystem } from '../ShieldSystem';
 
 export class MoveEvaluator {
   /**
@@ -32,9 +33,14 @@ export class MoveEvaluator {
         if (piece.type === 'King') {
           const centerFile = Board.CENTER_SQUARE.file;
           const centerRank = Board.CENTER_SQUARE.rank;
-          const distanceToCenter = Math.max(Math.abs(file - centerFile), Math.abs(rank - centerRank));
-          const centerBonus = Math.max(0, AIConfig.CENTER_CONTROL_BONUS - distanceToCenter * 5);
-          score += centerBonus * multiplier;
+          if (file === centerFile && rank === centerRank) {
+            // King is exactly on e5
+            score += AIConfig.KING_ON_CENTER_BONUS * multiplier;
+          } else {
+            const distanceToCenter = Math.max(Math.abs(file - centerFile), Math.abs(rank - centerRank));
+            const centerBonus = Math.max(0, AIConfig.CENTER_CONTROL_BONUS - distanceToCenter * 5);
+            score += centerBonus * multiplier;
+          }
         }
       }
     }
@@ -46,6 +52,28 @@ export class MoveEvaluator {
       } else {
         score -= AIConfig.CENTER_HOLD_BONUS;
       }
+    }
+
+    // 3. King Safety / Checks
+    if (state.isKingInCheck(maximizingPlayer)) {
+      score -= AIConfig.CHECK_PENALTY;
+    }
+    if (state.isKingInCheck(opponent)) {
+      score += AIConfig.CHECK_BONUS;
+    }
+
+    // 4. Royal Guard Shields
+    // Evaluate shields for maximizing player
+    const myShields = ShieldSystem.getShieldInfo(state, maximizingPlayer);
+    for (const shield of myShields) {
+      // shield.targets contains all protected squares/pieces, including the guard itself
+      score += shield.targets.length * AIConfig.SHIELD_PROTECTION_BONUS;
+    }
+
+    // Evaluate shields for opponent
+    const oppShields = ShieldSystem.getShieldInfo(state, opponent);
+    for (const shield of oppShields) {
+      score -= shield.targets.length * AIConfig.SHIELD_PROTECTION_BONUS;
     }
 
     return score;
