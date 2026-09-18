@@ -46,7 +46,6 @@ export class AnimationManager {
     onComplete: () => void
   ): void {
     if (EffectsManager.isReducedMotion()) {
-      // Instant — just call onComplete immediately
       this.lock();
       requestAnimationFrame(() => { this.unlock(); onComplete(); });
       return;
@@ -57,7 +56,6 @@ export class AnimationManager {
     const fromRect = fromEl.getBoundingClientRect();
     const toRect   = toEl.getBoundingClientRect();
 
-    // Create flying piece element
     const fly = document.createElement('span');
     fly.className = `piece ${pieceClass} flying-piece`;
     fly.textContent = pieceSymbol;
@@ -74,7 +72,6 @@ export class AnimationManager {
     `;
     document.body.appendChild(fly);
 
-    // Trigger transition on next frame
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         fly.style.left = `${toRect.left + toRect.width / 2}px`;
@@ -88,6 +85,60 @@ export class AnimationManager {
       onComplete();
     }, this.MOVE_DURATION + 20);
   }
+
+  /**
+   * Animates a pre-built SVG piece element from fromEl to toEl.
+   * Used by BoardRenderer when SVG piece visuals are enabled.
+   */
+  public animateMoveElement(
+    fromEl: HTMLElement,
+    toEl: HTMLElement,
+    flyEl: HTMLElement,
+    onComplete: () => void
+  ): void {
+    if (EffectsManager.isReducedMotion()) {
+      this.lock();
+      requestAnimationFrame(() => { this.unlock(); onComplete(); });
+      return;
+    }
+
+    this.lock();
+
+    const fromRect = fromEl.getBoundingClientRect();
+    const toRect   = toEl.getBoundingClientRect();
+
+    flyEl.style.cssText = `
+      position: fixed;
+      left: ${fromRect.left + fromRect.width / 2}px;
+      top:  ${fromRect.top  + fromRect.height / 2}px;
+      transform: translate(-50%, -50%) scale(1.08);
+      pointer-events: none;
+      z-index: 9999;
+      width: ${fromRect.width * 0.82}px;
+      height: ${fromRect.height * 0.82}px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+      transition: left ${this.MOVE_DURATION}ms cubic-bezier(0.25,0.1,0.25,1),
+                  top  ${this.MOVE_DURATION}ms cubic-bezier(0.25,0.1,0.25,1),
+                  transform ${this.MOVE_DURATION}ms cubic-bezier(0.25,0.1,0.25,1);
+      will-change: left, top;
+    `;
+    document.body.appendChild(flyEl);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        flyEl.style.left = `${toRect.left + toRect.width / 2}px`;
+        flyEl.style.top  = `${toRect.top  + toRect.height / 2}px`;
+        flyEl.style.transform = 'translate(-50%, -50%) scale(1.0)';
+      });
+    });
+
+    setTimeout(() => {
+      flyEl.remove();
+      this.unlock();
+      onComplete();
+    }, this.MOVE_DURATION + 20);
+  }
+
 
   // ── Shield overlay rendering ───────────────────────────────────────────────
   /**

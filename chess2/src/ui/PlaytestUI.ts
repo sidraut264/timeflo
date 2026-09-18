@@ -7,6 +7,7 @@ import { ScenarioLoader } from '../game/scenarios/ScenarioLoader';
 import { SCENARIO_PRESETS } from '../game/scenarios/ScenarioPresets';
 import type { ScenarioDefinition } from '../game/scenarios/ScenarioDefinition';
 import { BoardRenderer } from './BoardRenderer';
+import { createPieceElement, getPromoSVG } from './PieceRenderer';
 
 export class PlaytestUI {
   private active: boolean = false;
@@ -22,6 +23,8 @@ export class PlaytestUI {
     this.bindControls();
     this.populatePresets();
     this.bindSettings();
+    this.initPaletteIcons();
+    this.initPromoModalIcons();
     
     // Inject hook into BoardRenderer
     this.boardRenderer.setPlaytestInterceptor((file: number, rank: number) => {
@@ -36,6 +39,68 @@ export class PlaytestUI {
     setInterval(() => {
       if (this.active) this.updateInspector();
     }, 200);
+  }
+
+  /** Injects SVG piece visuals into the playtest palette buttons */
+  private initPaletteIcons(): void {
+    const paletteMap: Record<string, { type: PieceType; player: Player | null }> = {
+      'King-White':       { type: PieceType.King,       player: Player.White },
+      'Queen-White':      { type: PieceType.Queen,      player: Player.White },
+      'Rook-White':       { type: PieceType.Rook,       player: Player.White },
+      'Bishop-White':     { type: PieceType.Bishop,     player: Player.White },
+      'Knight-White':     { type: PieceType.Knight,     player: Player.White },
+      'Pawn-White':       { type: PieceType.Pawn,       player: Player.White },
+      'RoyalGuard-White': { type: PieceType.RoyalGuard, player: Player.White },
+      'Minister-White':   { type: PieceType.Minister,   player: Player.White },
+      'King-Black':       { type: PieceType.King,       player: Player.Black },
+      'Queen-Black':      { type: PieceType.Queen,      player: Player.Black },
+      'Rook-Black':       { type: PieceType.Rook,       player: Player.Black },
+      'Bishop-Black':     { type: PieceType.Bishop,     player: Player.Black },
+      'Knight-Black':     { type: PieceType.Knight,     player: Player.Black },
+      'Pawn-Black':       { type: PieceType.Pawn,       player: Player.Black },
+      'RoyalGuard-Black': { type: PieceType.RoyalGuard, player: Player.Black },
+      'Minister-Black':   { type: PieceType.Minister,   player: Player.Black },
+    };
+
+    document.querySelectorAll<HTMLElement>('.palette-btn[data-type][data-player]').forEach(btn => {
+      const t = btn.dataset.type;
+      const p = btn.dataset.player;
+      if (!t || p === undefined) return;
+      if (t === 'Eraser') return;
+      const key = p ? `${t}-${p}` : t;
+      const entry = paletteMap[key];
+      if (!entry) {
+        // Diplomat
+        if (t === 'Diplomat') {
+          btn.textContent = '';
+          btn.appendChild(createPieceElement(PieceType.Diplomat, null));
+        }
+        return;
+      }
+      btn.textContent = '';
+      btn.appendChild(createPieceElement(entry.type, entry.player));
+    });
+  }
+
+  /** Injects SVG piece visuals into the promotion modal buttons */
+  private initPromoModalIcons(): void {
+    const promoTypes: Record<string, PieceType> = {
+      Queen: PieceType.Queen, Rook: PieceType.Rook,
+      Bishop: PieceType.Bishop, Knight: PieceType.Knight,
+    };
+    document.querySelectorAll<HTMLElement>('.promotion-btn').forEach(btn => {
+      const typeName = btn.dataset.type;
+      if (!typeName) return;
+      const pieceType = promoTypes[typeName];
+      if (!pieceType) return;
+      // Note: Promotion modal shows pieces for the current player.
+      // We'll render White as placeholder; the symbol dynamically updates are handled
+      // by the modal subtitle. The icon itself shows the piece type clearly.
+      const symbolEl = btn.querySelector('.promo-symbol');
+      if (symbolEl) {
+        symbolEl.innerHTML = getPromoSVG(pieceType, Player.White);
+      }
+    });
   }
 
   private bindToggle(): void {

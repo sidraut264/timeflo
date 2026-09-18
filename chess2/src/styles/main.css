@@ -1240,3 +1240,130 @@ input:checked ~ .toggle-label {
     animation: none !important;
   }
 }
+
+/* ================================================================
+   PIECE VISUAL REDESIGN — SVG Piece System
+   ================================================================ */
+
+/* ---- SVG piece container ---- */
+.piece.piece-svg {
+  display: block;
+  width: 86%;
+  height: 86%;
+  position: relative;
+  z-index: 3;
+  transition: transform 120ms ease, filter 120ms ease;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+/* Ensure squares use flex to center SVG pieces */
+.square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.piece.piece-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* ---- Piece type sizing adjustments ---- */
+.piece-pawn       { width: 68%;  height: 68%;  }
+.piece-rook       { width: 80%;  height: 80%;  }
+.piece-bishop     { width: 76%;  height: 76%;  }
+.piece-knight     { width: 80%;  height: 80%;  }
+.piece-queen      { width: 85%;  height: 85%;  }
+.piece-king       { width: 90%;  height: 90%;  }
+.piece-minister   { width: 85%;  height: 85%;  }
+.piece-royalguard { width: 88%;  height: 88%;  }
+.piece-diplomat   { width: 80%;  height: 80%;  }
+
+/* ---- Selected piece lift effect ---- */
+.square.selected .piece.piece-svg {
+  transform: translateY(-3px) scale(1.04);
+  filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+}
+
+/* ---- Hover lift ---- */
+.square:hover .piece.piece-svg {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+}
+
+/* ---- Subtle passive identity for special pieces ---- */
+/* Minister: very faint gold shimmer */
+.piece-minister svg {
+  filter: drop-shadow(0 0 2px rgba(200,160,60,0.2));
+}
+.square:hover .piece-minister svg {
+  filter: drop-shadow(0 0 4px rgba(200,160,60,0.35));
+}
+
+/* Royal Guard: very faint blue shield shimmer */
+.piece-royalguard svg {
+  filter: drop-shadow(0 0 2px rgba(100,180,255,0.2));
+}
+.square:hover .piece-royalguard svg {
+  filter: drop-shadow(0 0 4px rgba(100,180,255,0.35));
+}
+
+/* Diplomat: very faint neutral glow */
+.diplomat-piece svg {
+  filter: drop-shadow(0 0 3px rgba(120,150,200,0.25));
+}
+
+/* ---- Promotion modal SVG pieces ---- */
+.promotion-btn .promo-symbol svg {
+  width: 40px;
+  height: 40px;
+  display: block;
+  margin: 0 auto;
+}
+.promotion-btn .promo-symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+}
+
+/* ---- Flying piece during movement animation ---- */
+.flying-piece.piece-svg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flying-piece.piece-svg svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- Palette piece buttons in Playtest ---- */
+.palette-btn .piece.piece-svg {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+/* Remove old text-based piece font styling when SVG is used */
+.piece.piece-svg {
+  font-size: unset;
+  font-family: unset;
+  font-weight: unset;
+  line-height: unset;
+  color: unset;
+  text-shadow: none;
+}
+
+/* ---- Accessibility: visually hidden piece labels ---- */
+.piece-label-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}

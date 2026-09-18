@@ -5,30 +5,8 @@ import { PieceType } from '../game/Piece';
 import { Player } from '../game/Player';
 import { EffectsManager } from './EffectsManager';
 import { AnimationManager } from './AnimationManager';
+import { createPieceElement, createFlyingPieceElement } from './PieceRenderer';
 
-// Piece symbols using Unicode chess pieces for visual richness
-const PIECE_SYMBOLS: Record<string, Record<string, string>> = {
-  white: {
-    [PieceType.King]:       'K',
-    [PieceType.Queen]:      'Q',
-    [PieceType.Rook]:       'R',
-    [PieceType.Bishop]:     'B',
-    [PieceType.Knight]:     'N',
-    [PieceType.Pawn]:       'P',
-    [PieceType.Minister]:   'M',
-    [PieceType.RoyalGuard]: 'G',
-  },
-  black: {
-    [PieceType.King]:       'K',
-    [PieceType.Queen]:      'Q',
-    [PieceType.Rook]:       'R',
-    [PieceType.Bishop]:     'B',
-    [PieceType.Knight]:     'N',
-    [PieceType.Pawn]:       'P',
-    [PieceType.Minister]:   'M',
-    [PieceType.RoyalGuard]: 'G',
-  },
-};
 
 const TYPE_NAMES: Record<string, string> = {
   [PieceType.King]:       'King',
@@ -295,24 +273,17 @@ export class BoardRenderer {
     // Piece
     const piece = this.gameState.board.getPiece({ file, rank });
     if (piece) {
-      const pieceEl = document.createElement('span');
-      pieceEl.className = 'piece';
+      const pieceEl = createPieceElement(piece.type, piece.owner);
 
       if (piece.type === PieceType.Diplomat) {
-        pieceEl.classList.add('diplomat-piece');
-        pieceEl.textContent = 'D';
         sq.setAttribute('aria-label', `Diplomat at ${coordStr({ file, rank })} (neutral)`);
       } else {
-        const owner = piece.owner === Player.White ? 'white' : 'black';
-        pieceEl.classList.add(`${owner}-piece`);
-        pieceEl.textContent = PIECE_SYMBOLS[owner]?.[piece.type] ?? '?';
-
-        const playerName = owner.charAt(0).toUpperCase() + owner.slice(1);
+        const ownerName = piece.owner === Player.White ? 'White' : 'Black';
         sq.setAttribute('aria-label',
-          `${playerName} ${TYPE_NAMES[piece.type] ?? piece.type} at ${coordStr({ file, rank })}`
+          `${ownerName} ${TYPE_NAMES[piece.type] ?? piece.type} at ${coordStr({ file, rank })}`
         );
 
-        // Check indicator (persistent visual — separate from the pulse animation)
+        // Check indicator
         if (piece.type === PieceType.King && this.gameState.isKingInCheck(piece.owner)) {
           sq.classList.add('in-check');
           sq.setAttribute('aria-label', sq.getAttribute('aria-label') + ' (in CHECK)');
@@ -536,21 +507,20 @@ export class BoardRenderer {
       const movingPiece = this.gameState.board.getPiece(fromPos);
 
       if (fromEl && toEl && movingPiece && !EffectsManager.isReducedMotion()) {
-        const owner = movingPiece.owner === Player.White ? 'white' : 'black';
-        const symbol = PIECE_SYMBOLS[owner]?.[movingPiece.type] ?? '?';
-        const pieceClass = `${owner}-piece`;
+        const flyEl = createFlyingPieceElement(movingPiece.type, movingPiece.owner);
 
         const success = this.gameState.makeMove(fromPos, clickedPos);
         if (success) {
           this.selectedSquare = null;
           this.currentLegalMoves = [];
           // Animate then render
-          this.anim.animateMove(fromEl, toEl, symbol, pieceClass, () => {
+          this.anim.animateMoveElement(fromEl, toEl, flyEl, () => {
             this.render();
           });
         }
         return;
       }
+
 
       // Fallback: instant move (reduced-motion or no elements found)
       const success = this.gameState.makeMove(fromPos, clickedPos);
