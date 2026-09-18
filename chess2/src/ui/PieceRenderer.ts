@@ -267,75 +267,193 @@ function pawnSVG(owner: Player): string {
 }
 
 
+// ── Shared furniture for the custom pieces ───────────────────────────────────
+// Every stock piece stands on the same flared, ridged plinth. The custom pieces
+// reuse that exact footprint so they read as members of the same set rather
+// than imports from a different one. Only the silhouette above the collar is
+// allowed to be new — that is where meaning lives.
+
+const PLINTH_PATH =
+  'M 12.5 56 C 13 47.6 16.6 43.6 21.6 41.5 L 42.4 41.5 C 47.4 43.6 51 47.6 51.5 56 Z';
+
+function plinth(body: string, stroke: string): string {
+  return `
+    <path d="${PLINTH_PATH}" fill="${body}" stroke="${stroke}" stroke-width="2"
+          stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M 14.4 51.4 H 49.6 M 16.8 46.6 H 47.2" fill="none" stroke="${stroke}"
+          stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.85"/>`;
+}
+
+// Draws an arc of olive stem with leaves splayed outward along it.
+// Angles are in degrees, 0 = east, increasing clockwise (SVG y grows downward).
+function oliveArc(
+  cx: number, cy: number, r: number,
+  fromDeg: number, toDeg: number, leafCount: number,
+  stem: string, leafFill: string, stroke: string,
+): string {
+  const pt = (deg: number, rad: number) => {
+    const a = (deg * Math.PI) / 180;
+    return `${(cx + rad * Math.cos(a)).toFixed(2)} ${(cy + rad * Math.sin(a)).toFixed(2)}`;
+  };
+  const sweep = toDeg > fromDeg ? 1 : 0;
+  let out = `<path d="M ${pt(fromDeg, r)} A ${r} ${r} 0 0 ${sweep} ${pt(toDeg, r)}"
+    fill="none" stroke="${stem}" stroke-width="1.7" stroke-linecap="round"/>`;
+  for (let i = 0; i < leafCount; i++) {
+    const t = fromDeg + ((toDeg - fromDeg) * (i + 0.5)) / leafCount;
+    const a = (t * Math.PI) / 180;
+    const lx = cx + (r + 2.7) * Math.cos(a);
+    const ly = cy + (r + 2.7) * Math.sin(a);
+    out += `<ellipse cx="${lx.toFixed(2)}" cy="${ly.toFixed(2)}" rx="1.5" ry="3.1"
+      fill="${leafFill}" stroke="${stroke}" stroke-width="0.8"
+      transform="rotate(${(t - 90).toFixed(1)} ${lx.toFixed(2)} ${ly.toFixed(2)})"/>`;
+  }
+  return out;
+}
+
 // ── Minister (unique Chess 2 piece) ──────────────────────────────────────────
-// Visual concept: Royal Commander / Tactician — carries a command staff
+// Concept: the voice of the crown. A robed official in a wrapped turban with a
+// swept plume of office, holding an open decree across the chest. The plume
+// breaks the silhouette to one side, which is what separates it from the
+// Bishop's symmetrical mitre at a glance.
 function ministerSVG(owner: Player): string {
   const c = colors(owner);
-  const accentColor = owner === Player.White ? '#c8a060' : '#8070d0';
-  return svgWrap(`
-    ${shadow(c)}
-    ${rim(c, 38, 28)}
-    <rect x="6" y="32" width="28" height="7" rx="2" fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="0.8"/>
-    <path d="M10 32 C9 24 11 18 16 14 C18 12 20 12 22 12 C26 13 29 18 31 24 L31 32 Z"
-      fill="${c.body}" stroke="${c.stroke}" stroke-width="0.8" stroke-linejoin="round"/>
-    <rect x="12" y="28" width="16" height="4" rx="1" fill="${c.rim}" stroke="${c.stroke}" stroke-width="0.5"/>
-    <path d="M16 13 L18 8 L20 5 L22 8 L24 13"
-      fill="${c.body}" stroke="${c.stroke}" stroke-width="0.7" stroke-linejoin="round"/>
-    <path d="M14 9 L26 9" stroke="${c.stroke}" stroke-width="1.2" stroke-linecap="round"/>
-    <path d="M16 7 L24 7" stroke="${accentColor}" stroke-width="1.2" stroke-linecap="round"/>
-    <rect x="18.5" y="5" width="3" height="5" rx="0.5" fill="${accentColor}" stroke="${c.stroke}" stroke-width="0.5"/>
-    <rect x="27" y="14" width="3" height="18" rx="1" fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="0.7"/>
-    <ellipse cx="28.5" cy="13" rx="3" ry="2" fill="${accentColor}" stroke="${c.stroke}" stroke-width="0.6"/>
-    <path d="M11 21 L13 19 L15 21 L13 23 Z" fill="${accentColor}" opacity="0.7"/>
-    <circle cx="15" cy="17" r="2" fill="${c.highlight}" opacity="0.4"/>
+  const gold = owner === Player.White ? '#c9a227' : '#b9a3f0';
+  return svgWrap64(`
+    ${shadow64(c)}
+    ${plinth(c.body, c.stroke)}
+
+    <!-- robe -->
+    <path d="M 22.6 41.5 C 21.6 34.2 23.4 27.6 27 23.6 L 37 23.6 C 40.6 27.6 42.4 34.2 41.4 41.5 Z"
+          fill="${c.body}" stroke="${c.stroke}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M 27.4 26.8 C 26 32 25.4 37 25.6 41.2 M 36.6 26.8 C 38 32 38.6 37 38.4 41.2"
+          fill="none" stroke="${c.stroke}" stroke-width="1.3" stroke-linecap="round" stroke-opacity="0.45"/>
+
+    <!-- sash of office -->
+    <path d="M 27.6 24.8 C 31 30.2 35 34.6 39.6 37.6" fill="none" stroke="${gold}"
+          stroke-width="2.6" stroke-linecap="round"/>
+
+    <!-- decree, held open across the chest -->
+    <rect x="22.4" y="30.4" width="19.2" height="5.6" rx="2.2"
+          fill="${c.highlight}" stroke="${c.stroke}" stroke-width="1.5"/>
+    <path d="M 26.6 32.4 H 37.4 M 26.6 34.2 H 34.4" fill="none" stroke="${c.stroke}"
+          stroke-width="0.9" stroke-linecap="round" stroke-opacity="0.55"/>
+    <circle cx="22.6" cy="33.2" r="3.2" fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="1.5"/>
+    <circle cx="41.4" cy="33.2" r="3.2" fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="1.5"/>
+    <circle cx="22.6" cy="33.2" r="1.1" fill="${c.highlight}" stroke="none" opacity="0.8"/>
+    <circle cx="41.4" cy="33.2" r="1.1" fill="${c.highlight}" stroke="none" opacity="0.8"/>
+
+    <!-- head -->
+    <circle cx="32" cy="18.6" r="6.1" fill="${c.body}" stroke="${c.stroke}" stroke-width="2"/>
+
+    <!-- plume, swept back from the turban jewel -->
+    <path d="M 34.4 11.6 C 40.6 9.4 45.6 5.4 47.6 1.2 C 49 8.2 43.2 14 36.4 16 Z"
+          fill="${gold}" stroke="${c.stroke}" stroke-width="1.3" stroke-linejoin="round"/>
+
+    <!-- wrapped turban -->
+    <path d="M 25 19 C 23.2 8.4 40.8 8.4 39 19 C 34.6 16.2 29.4 16.2 25 19 Z"
+          fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M 26.6 15 C 30.2 13 33.8 13 37.4 15" fill="none" stroke="${c.stroke}"
+          stroke-width="1.1" stroke-linecap="round" stroke-opacity="0.5"/>
+    <circle cx="32" cy="11.8" r="2.6" fill="${gold}" stroke="${c.stroke}" stroke-width="1.2"/>
   `);
 }
 
-// ── Royal Guard (unique Chess 2 piece) ─────────────────────────────────────
-// Visual concept: Shield-bearing armored protector
+// ── Royal Guard (unique Chess 2 piece) ───────────────────────────────────────
+// Concept: a body between the king and the board. Closed great helm, plated
+// cuirass, halberd planted behind the shoulder, and a tower shield braced in
+// front that overlaps the plinth — the piece is literally standing behind cover.
 function royalGuardSVG(owner: Player): string {
   const c = colors(owner);
-  const shieldColor = owner === Player.White ? '#c0d8f0' : '#4060a0';
-  const shieldHighlight = owner === Player.White ? '#e8f4ff' : '#6080c0';
-  return svgWrap(`
-    ${shadow(c)}
-    ${rim(c, 38, 30)}
-    <rect x="5" y="32" width="30" height="7" rx="2" fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="0.9"/>
-    <path d="M11 32 C10 26 11 20 15 16 L15 13 C15 11 17 10 20 10 C23 10 25 11 25 13 L25 16 C29 20 30 26 29 32 Z"
-      fill="${c.body}" stroke="${c.stroke}" stroke-width="0.8" stroke-linejoin="round"/>
-    <path d="M15 13 L14 11 L20 9 L26 11 L25 13"
-      fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="0.7" stroke-linejoin="round"/>
-    <ellipse cx="20" cy="9" rx="4" ry="2.5" fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="0.7"/>
-    <ellipse cx="20" cy="7.5" rx="3.5" ry="2" fill="${c.rim}" stroke="${c.stroke}" stroke-width="0.6"/>
-    <path d="M5 15 C5 12 7 10 9.5 10 L9.5 30 C7 30 5 28 5 25 Z"
-      fill="${shieldColor}" stroke="${c.stroke}" stroke-width="0.9" stroke-linejoin="round"/>
-    <path d="M5.5 14.5 C5.5 12 7 10.5 9.5 10.5 L9.5 29 C7 29 5.5 27 5.5 24 Z"
-      fill="${shieldHighlight}" opacity="0.45"/>
-    <path d="M7 17 L7 22 M7 19.5 L9 19.5" stroke="${c.stroke}" stroke-width="0.8" opacity="0.6" stroke-linecap="round"/>
-    <rect x="12" y="28" width="16" height="5" rx="1" fill="${c.rim}" stroke="${c.stroke}" stroke-width="0.5"/>
-    <circle cx="18" cy="19" r="2.5" fill="${c.highlight}" opacity="0.35"/>
+  const steel      = owner === Player.White ? '#a8bacf' : '#5d6f96';
+  const steelLight = owner === Player.White ? '#e8f0f8' : '#8fa1c6';
+  const crest      = owner === Player.White ? '#b4442f' : '#7a4fd0';
+  return svgWrap64(`
+    ${shadow64(c)}
+
+    <!-- halberd, planted behind the shoulder -->
+    <path d="M 45.8 49.6 L 39.8 11" fill="none" stroke="${c.stroke}"
+          stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M 39.2 4 L 42.8 11 L 39.4 15.8 L 35.9 11.2 Z" fill="${steel}"
+          stroke="${c.stroke}" stroke-width="1.5" stroke-linejoin="round"/>
+
+    ${plinth(c.body, c.stroke)}
+
+    <!-- pauldron -->
+    <path d="M 38.2 26.8 C 43 27.8 45.2 30.6 45.4 34.6 C 43 33 40.8 32.2 38.8 32 Z"
+          fill="${c.body}" stroke="${c.stroke}" stroke-width="1.8" stroke-linejoin="round"/>
+
+    <!-- cuirass -->
+    <path d="M 24.4 41.5 C 23.4 35 24 30 25.6 26.6 L 38.4 26.6 C 40 30 40.6 35 39.6 41.5 Z"
+          fill="${c.bodyDark}" stroke="${c.stroke}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M 25.1 37.4 H 38.9 M 24.7 33.2 H 39.3" fill="none" stroke="${c.stroke}"
+          stroke-width="1.4" stroke-linecap="round" stroke-opacity="0.8"/>
+
+    <!-- crest -->
+    <path d="M 25.4 14.8 C 26 7.6 29 3.8 32 3.2 C 35 3.8 38 7.6 38.6 14.8 C 35 12.2 29 12.2 25.4 14.8 Z"
+          fill="${crest}" stroke="${c.stroke}" stroke-width="1.6" stroke-linejoin="round"/>
+
+    <!-- great helm -->
+    <path d="M 25.6 26.8 L 38.4 26.8 L 39.4 17.4 C 39.4 11.2 24.6 11.2 24.6 17.4 Z"
+          fill="${c.body}" stroke="${c.stroke}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M 26.4 20.8 H 37.6" fill="none" stroke="${c.stroke}" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M 29 23.4 V 25.8 M 32 23.4 V 25.8 M 35 23.4 V 25.8" fill="none" stroke="${c.stroke}"
+          stroke-width="1.3" stroke-linecap="round" stroke-opacity="0.7"/>
+
+    <!-- tower shield, braced in front -->
+    <path d="M 7.4 23.6 C 7.4 21.4 8.8 20.2 10.8 20.2 L 22 20.2 C 24 20.2 25.4 21.4 25.4 23.6
+             L 25.4 38.4 C 25.4 45.8 20.8 50.8 16.4 52.6 C 12 50.8 7.4 45.8 7.4 38.4 Z"
+          fill="${steel}" stroke="${c.stroke}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M 9.8 23.8 C 9.8 22.8 10.6 22.4 11.4 22.4 L 16.4 22.4 L 16.4 49.8
+             C 13 47.8 9.8 44 9.8 38.4 Z"
+          fill="${steelLight}" stroke="none" opacity="0.5"/>
+    <path d="M 16.4 24.6 V 46.4 M 10.6 30.8 H 22.2" fill="none" stroke="${c.stroke}"
+          stroke-width="2.2" stroke-linecap="round" stroke-opacity="0.75"/>
+    <circle cx="10.6" cy="24.4" r="1.3" fill="${c.stroke}" opacity="0.5"/>
+    <circle cx="22.2" cy="24.4" r="1.3" fill="${c.stroke}" opacity="0.5"/>
   `);
 }
 
-// ── Diplomat (neutral piece) ────────────────────────────────────────────────
-// Visual concept: Circular diplomatic seal / medallion — no ownership coloring
+// ── Diplomat (neutral piece) ─────────────────────────────────────────────────
+// Concept: belongs to neither player, so the figure is split down the middle —
+// ivory on one side, charcoal on the other, seam dead centre. An olive wreath
+// closes over the head. No owner colours are used anywhere.
 function diplomatSVG(): string {
-  const ring   = '#8090a8';
-  const inner  = '#c8d8e8';
-  const accent = '#6878a0';
-  const text   = '#3a4868';
-  return svgWrap(`
-    <ellipse cx="20" cy="45" rx="12" ry="2" fill="rgba(50,60,80,0.3)"/>
-    <rect x="9" y="37" width="22" height="5" rx="2" fill="#7080a0" stroke="#3a4868" stroke-width="0.6"/>
-    <circle cx="20" cy="24" r="14" fill="${inner}" stroke="${ring}" stroke-width="1.5"/>
-    <circle cx="20" cy="24" r="11" fill="none" stroke="${accent}" stroke-width="1" stroke-dasharray="3 2"/>
-    <circle cx="20" cy="24" r="8" fill="#dce8f0" stroke="${accent}" stroke-width="0.8"/>
-    <path d="M16 22 C16 19 18 17 20 17 C22 17 24 19 24 22 L24 26 L20 28 L16 26 Z"
-      fill="${accent}" stroke="${text}" stroke-width="0.5"/>
-    <path d="M18 22 L20 21 L22 22 L22 26 L20 27 L18 26 Z" fill="${inner}" opacity="0.7"/>
-    <circle cx="20" cy="12" r="2" fill="${accent}" stroke="${text}" stroke-width="0.5"/>
-    <path d="M17 37 L17 29" stroke="${ring}" stroke-width="0.8" opacity="0.4"/>
-    <path d="M23 37 L23 29" stroke="${ring}" stroke-width="0.8" opacity="0.4"/>
+  const stroke = '#2f3442';
+  const light  = '#efe8d9';
+  const dark   = '#353a4c';
+  const gold   = '#c9a227';
+  const leaf   = '#7f9d5c';
+  const stem   = '#5d7742';
+  return svgWrap64(`
+    <ellipse cx="32" cy="58" rx="20" ry="3.5" fill="rgba(30,36,50,0.4)"/>
+    <path d="${PLINTH_PATH}" fill="${light}" stroke="${stroke}" stroke-width="2"
+          stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M 32 41.5 L 42.4 41.5 C 47.4 43.6 51 47.6 51.5 56 L 32 56 Z"
+          fill="${dark}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M 14.4 51.4 H 49.6 M 16.8 46.6 H 47.2" fill="none" stroke="${stroke}"
+          stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.55"/>
+
+    <!-- robe, split down the seam: the piece answers to neither side -->
+    <path d="M 32 23.6 L 27 23.6 C 23.4 27.6 21.6 34.2 22.6 41.5 L 32 41.5 Z"
+          fill="${light}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M 32 23.6 L 37 23.6 C 40.6 27.6 42.4 34.2 41.4 41.5 L 32 41.5 Z"
+          fill="${dark}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
+
+    <!-- treaty sash, knotted at the seam -->
+    <path d="M 24.4 33.4 C 29 36.2 35 36.2 39.6 33.4" fill="none" stroke="${gold}"
+          stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="32" cy="35.4" r="2.3" fill="${gold}" stroke="${stroke}" stroke-width="1.1"/>
+
+    <!-- head, split the same way -->
+    <path d="M 32 12.5 A 6.1 6.1 0 0 0 32 24.7 Z" fill="${light}" stroke="${stroke}"
+          stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M 32 12.5 A 6.1 6.1 0 0 1 32 24.7 Z" fill="${dark}" stroke="${stroke}"
+          stroke-width="1.8" stroke-linejoin="round"/>
+
+    <!-- olive wreath, closing over the head -->
+    ${oliveArc(32, 19.6, 12.6, 118, 266, 5, stem, leaf, stroke)}
+    ${oliveArc(32, 19.6, 12.6, 62, -86, 5, stem, leaf, stroke)}
+    <circle cx="32" cy="6.8" r="2.4" fill="${gold}" stroke="${stroke}" stroke-width="1.2"/>
   `);
 }
 

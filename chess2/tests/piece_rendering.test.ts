@@ -96,7 +96,7 @@ describe('PieceRenderer — SVG Output', () => {
 
     test('Minister SVG contains command staff element', () => {
       const minister = renderPieceSVG(PieceType.Minister, Player.White);
-      expect(minister).toContain('<rect');
+      expect(minister).toContain('<circle');
       expect(minister).toContain('<path');
     });
 
