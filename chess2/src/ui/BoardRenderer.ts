@@ -62,6 +62,9 @@ export class BoardRenderer {
   private prevWhiteInCheck = false;
   private prevBlackInCheck = false;
 
+  public inputBlocked = false;
+  public onMoveMade?: () => void;
+
   constructor(containerId: string, gameState: GameState) {
     const el = document.getElementById(containerId);
     if (!el) throw new Error(`Container #${containerId} not found`);
@@ -133,6 +136,7 @@ export class BoardRenderer {
           this.currentLegalMoves = [];
           if (success) {
             this.render();
+            this.onMoveMade?.();
             // Trigger promotion glow after render
             requestAnimationFrame(() => {
               const sq = this.getSquareEl(toPos.file, toPos.rank);
@@ -512,6 +516,8 @@ export class BoardRenderer {
 
   // ── Square click handler ─────────────────────────────────────────────────
   private handleSquareClick(file: number, rank: number): void {
+    if (this.inputBlocked) return;
+
     // Playtest editor intercept
     if (this.playtestInterceptor && this.playtestInterceptor(file, rank)) {
       return;
@@ -551,6 +557,7 @@ export class BoardRenderer {
           // Animate then render
           this.anim.animateMoveElement(fromEl, toEl, flyEl, () => {
             this.render();
+            this.onMoveMade?.();
           });
         }
         return;
@@ -563,6 +570,7 @@ export class BoardRenderer {
         this.selectedSquare = null;
         this.currentLegalMoves = [];
         this.render();
+        this.onMoveMade?.();
         return;
       }
     }
