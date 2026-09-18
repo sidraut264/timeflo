@@ -8,30 +8,46 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/chess2/dist/assets/index-DnvoVfsa.js"></script>
-    <link rel="stylesheet" crossorigin href="/chess2/dist/assets/index-AqoVxz8w.css">
+    <script type="module" crossorigin src="/chess2/dist/assets/index-BYCCkMMI.js"></script>
+    <link rel="stylesheet" crossorigin href="/chess2/dist/assets/index-CpB_ZDFY.css">
   </head>
   <body>
     <div id="app">
-      <!-- Arcade Back Button -->
-      <a href="../../index.html" class="back-btn">← ARCADE</a>
+
 
       <!-- Header -->
-      <header class="app-header">
-        <div class="header-content">
-          <div class="title-area">
-            <h1 class="game-title">Chess 2</h1>
-            <p class="game-subtitle">The Variant</p>
-          </div>
+      <header class="game-header" role="banner">
+
+        <!-- Left: Back navigation -->
+        <nav class="game-header-nav" aria-label="Back navigation">
+          <a href="../../index.html" class="back-btn" aria-label="Back to Arcade">
+            <span class="back-arrow" aria-hidden="true">&#8592;</span>
+            <span class="back-label">Arcade</span>
+          </a>
+        </nav>
+
+        <!-- Center: Game identity -->
+        <div class="game-identity">
+          <h1 class="game-title">Chess 2</h1>
+          <p class="game-subtitle">The Variant</p>
+          <p class="game-tagline" aria-label="9 by 9, control the center">9&thinsp;&times;&thinsp;9&ensp;&bull;&ensp;Control the Center</p>
+        </div>
+
+        <!-- Right: Playtest toggle -->
+        <div class="game-header-controls">
           <div class="playtest-toggle-container">
             <label class="toggle-switch">
               <input type="checkbox" id="playtest-toggle" aria-label="Toggle Playtest Mode">
               <span class="slider"></span>
             </label>
-            <span class="toggle-label">Playtest Mode</span>
+            <span class="toggle-label">Playtest</span>
           </div>
         </div>
+
       </header>
+
+      <!-- Header separator -->
+      <div class="header-separator" aria-hidden="true"></div>
 
       <!-- Main layout -->
       <main class="game-layout">
