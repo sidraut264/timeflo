@@ -389,32 +389,67 @@ export class BoardRenderer {
 
   // ── Status panel ─────────────────────────────────────────────────────────
   private renderStatusPanel(): void {
-    const turnPlayerEl = document.getElementById('turn-player');
-    if (turnPlayerEl) {
-      if (this.gameState.isGameOver()) {
-        turnPlayerEl.textContent = '—';
-        turnPlayerEl.className = 'turn-player';
-      } else {
-        const isWhite = this.gameState.currentPlayer === Player.White;
-        turnPlayerEl.textContent = isWhite ? 'White' : 'Black';
-        turnPlayerEl.className = 'turn-player ' + (isWhite ? 'white-text' : 'black-text');
-      }
-    }
+    const isGameOver = this.gameState.isGameOver();
+    const activePlayer = this.gameState.currentPlayer;
 
-    if (!this.gameState.isGameOver()) {
-      const inCheck = this.gameState.isKingInCheck(this.gameState.currentPlayer);
-      const hasHold = this.gameState.centerHold !== null;
+    const updatePanel = (player: Player, panelId: string) => {
+      const statusEl = document.getElementById(`status-${panelId}`);
+      const statusText = statusEl?.querySelector('.status-text');
+      const safeEl = document.getElementById(`king-safe-${panelId}`);
+      const checkEl = document.getElementById(`king-check-${panelId}`);
+      const holdEl = document.getElementById(`center-hold-${panelId}`);
+      const overEl = document.getElementById(`game-over-${panelId}`);
 
-      if (inCheck) {
-        const p = this.gameState.currentPlayer === Player.White ? 'White' : 'Black';
-        this.setMessage(`⚠ ${p} King is in CHECK!`, 'msg-check');
-      } else if (hasHold) {
-        const h = this.gameState.centerHold!.player === Player.White ? 'White' : 'Black';
-        this.setMessage(`★ ${h} King is holding the center!`, 'msg-center');
+      if (!statusEl || !statusText || !safeEl || !checkEl || !holdEl || !overEl) return;
+
+      // Active / Waiting
+      if (isGameOver) {
+        statusEl.className = 'player-status waiting';
+        statusText.textContent = 'GAME OVER';
+      } else if (activePlayer === player) {
+        statusEl.className = 'player-status active';
+        statusText.textContent = 'ACTIVE';
       } else {
-        this.clearMessage();
+        statusEl.className = 'player-status waiting';
+        statusText.textContent = 'WAITING';
       }
-    }
+
+      // King Check Status
+      if (!isGameOver && this.gameState.isKingInCheck(player)) {
+        safeEl.hidden = true;
+        checkEl.hidden = false;
+      } else {
+        safeEl.hidden = false;
+        checkEl.hidden = true;
+      }
+
+      // Center Hold Status
+      if (!isGameOver && this.gameState.centerHold?.player === player) {
+        holdEl.hidden = false;
+      } else {
+        holdEl.hidden = true;
+      }
+
+      // Game Over Status
+      if (isGameOver) {
+        overEl.hidden = false;
+        if (this.gameState.winner === player) {
+          overEl.textContent = this.gameState.status === GameStatus.CenterVictory ? 'CENTER VICTORY' : 'VICTORY';
+          overEl.style.color = '#e8c87a';
+        } else if (this.gameState.winner) {
+          overEl.textContent = this.gameState.status === GameStatus.Checkmate ? 'CHECKMATE' : 'DEFEATED';
+          overEl.style.color = 'var(--text-muted)';
+        } else {
+          overEl.textContent = 'DRAW';
+          overEl.style.color = 'var(--text-muted)';
+        }
+      } else {
+        overEl.hidden = true;
+      }
+    };
+
+    updatePanel(Player.White, 'white');
+    updatePanel(Player.Black, 'black');
   }
 
   // ── Move history ─────────────────────────────────────────────────────────

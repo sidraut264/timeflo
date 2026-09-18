@@ -50,14 +50,19 @@
       <!-- Main layout -->
       <main class="game-layout">
 
-        <!-- Left panel: status + move history -->
-        <aside class="side-panel left-panel" aria-label="Game status and move history">
-          <section class="status-section" aria-live="polite" aria-atomic="true">
-            <div id="turn-indicator" class="turn-indicator" role="status">
-              <span class="turn-label">Turn</span>
-              <span id="turn-player" class="turn-player white-text">White</span>
+        <!-- Left panel: White Player + move history -->
+        <aside class="side-panel left-panel" aria-label="White player and game status">
+          <section id="player-white" class="player-panel" aria-live="polite" aria-atomic="true">
+            <h2 class="player-name white-text">WHITE</h2>
+            <div id="status-white" class="player-status active">
+              <span class="status-dot"></span>
+              <span class="status-text">ACTIVE</span>
             </div>
-            <div id="game-message" class="game-message" role="alert" aria-live="assertive"></div>
+            <div class="player-details">
+              <div class="detail-row king-status">KING <span id="king-safe-white" class="val val-safe">SAFE</span><span id="king-check-white" class="val val-warn" hidden>⚠ CHECK</span></div>
+              <div id="center-hold-white" class="detail-row val-hold" hidden>★ CENTER HOLD</div>
+              <div id="game-over-white" class="detail-row val-over" hidden></div>
+            </div>
           </section>
 
           <section class="history-section">
@@ -174,8 +179,21 @@
           </div>
         </section>
 
-        <!-- Right panel: legend -->
-        <aside class="side-panel right-panel" aria-label="Piece legend">
+        <!-- Right panel: Black Player + legend -->
+        <aside class="side-panel right-panel" aria-label="Black player and piece legend">
+          <section id="player-black" class="player-panel" aria-live="polite" aria-atomic="true">
+            <h2 class="player-name black-text">BLACK</h2>
+            <div id="status-black" class="player-status waiting">
+              <span class="status-dot"></span>
+              <span class="status-text">WAITING</span>
+            </div>
+            <div class="player-details">
+              <div class="detail-row king-status">KING <span id="king-safe-black" class="val val-safe">SAFE</span><span id="king-check-black" class="val val-warn" hidden>⚠ CHECK</span></div>
+              <div id="center-hold-black" class="detail-row val-hold" hidden>★ CENTER HOLD</div>
+              <div id="game-over-black" class="detail-row val-over" hidden></div>
+            </div>
+          </section>
+
           <section>
             <h2 class="panel-heading">Pieces</h2>
             <ul class="legend-list">
