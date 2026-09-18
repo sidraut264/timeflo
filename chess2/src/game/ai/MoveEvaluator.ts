@@ -42,6 +42,13 @@ export class MoveEvaluator {
             score += centerBonus * multiplier;
           }
         }
+
+        // Slight positional bonus for advancing forward to break deterministic infinite loops
+        if (piece.type !== 'King' && piece.type !== 'Diplomat') {
+          // White pushes from 0 -> 8. Black pushes from 8 -> 0.
+          const advanceRanks = piece.owner === Player.White ? rank : (8 - rank);
+          score += (advanceRanks * AIConfig.POSITIONAL_ADVANCEMENT_BONUS) * multiplier;
+        }
       }
     }
 

@@ -28,9 +28,17 @@ function coordStr(pos: Position): string {
   return String.fromCharCode('a'.charCodeAt(0) + pos.file) + (pos.rank + 1);
 }
 
+export enum BoardOrientation {
+  White = 'White',
+  Black = 'Black'
+}
+
 export class BoardRenderer {
   private container: HTMLElement;
   private gameState: GameState;
+  
+  // Controls how the board is rotated visually
+  public orientation: BoardOrientation = BoardOrientation.White;
 
   // UI-only state
   private selectedSquare: Position | null = null;
@@ -77,6 +85,13 @@ export class BoardRenderer {
   }
 
   // ── Accessors and Hooks ─────────────────────────────────────────────────
+  public setOrientation(orientation: BoardOrientation): void {
+    if (this.orientation !== orientation) {
+      this.orientation = orientation;
+      this.render();
+    }
+  }
+
   public setGameState(newState: GameState): void {
     this.gameState = newState;
     this.selectedSquare = null;
@@ -221,12 +236,41 @@ export class BoardRenderer {
 
     const centerHoldPlayer = this.gameState.centerHold?.player ?? null;
 
-    for (let rank = Board.RANKS - 1; rank >= 0; rank--) {
-      for (let file = 0; file < Board.FILES; file++) {
+    // Determine iteration order based on orientation
+    const ranks = this.orientation === BoardOrientation.White 
+      ? [8, 7, 6, 5, 4, 3, 2, 1, 0]
+      : [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+    const files = this.orientation === BoardOrientation.White
+      ? [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      : [8, 7, 6, 5, 4, 3, 2, 1, 0];
+
+    for (const rank of ranks) {
+      for (const file of files) {
         const sq = this.createSquare(file, rank, centerHoldPlayer);
         this.container.appendChild(sq);
       }
     }
+
+    // Update coordinate labels dynamically
+    this.updateCoordinateLabels(ranks, files);
+  }
+
+  private updateCoordinateLabels(ranks: number[], files: number[]): void {
+    const fileLabelsTop = document.querySelector('.file-labels.top');
+    const fileLabelsBottom = document.querySelector('.file-labels.bottom');
+    const rankLabelsLeft = document.querySelectorAll('.rank-labels')[0];
+    const rankLabelsRight = document.querySelectorAll('.rank-labels')[1];
+
+    const fileHtml = `<div class="rank-label-spacer"></div>` + 
+      files.map(f => `<span>${String.fromCharCode('a'.charCodeAt(0) + f)}</span>`).join('');
+    
+    if (fileLabelsTop) fileLabelsTop.innerHTML = fileHtml;
+    if (fileLabelsBottom) fileLabelsBottom.innerHTML = fileHtml;
+
+    const rankHtml = ranks.map(r => `<span>${r + 1}</span>`).join('');
+    if (rankLabelsLeft) rankLabelsLeft.innerHTML = rankHtml;
+    if (rankLabelsRight) rankLabelsRight.innerHTML = rankHtml;
   }
 
   private createSquare(file: number, rank: number, centerHoldPlayer: Player | null): HTMLElement {
@@ -310,7 +354,8 @@ export class BoardRenderer {
       this.container,
       this.gameState,
       (file, rank) => this.getSquareEl(file, rank),
-      this.isPlaytestActive
+      this.isPlaytestActive,
+      this.orientation
     );
   }
 

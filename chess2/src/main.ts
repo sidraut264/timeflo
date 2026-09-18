@@ -1,7 +1,7 @@
 import './styles/main.css';
 import { GameState } from './game/GameState';
 import { Player } from './game/Player';
-import { BoardRenderer } from './ui/BoardRenderer';
+import { BoardRenderer, BoardOrientation } from './ui/BoardRenderer';
 import { PlaytestUI } from './ui/PlaytestUI';
 import { ComputerPlayer } from './game/ai/ComputerPlayer';
 import { AIConfig } from './game/ai/AIConfig';
@@ -97,6 +97,14 @@ function startNewGame(mode: GameMode, cpuSide: Player | null) {
     const txt = el.querySelector('.status-text');
     if (txt && txt.textContent === 'THINKING...') txt.textContent = 'WAITING';
   });
+  // Orientation handling
+  if (mode === 'Computer' && cpuSide === Player.White) {
+    // Human is Black, orient towards Black
+    boardRenderer.orientation = BoardOrientation.Black;
+  } else {
+    // Default to White orientation (Local or Human is White)
+    boardRenderer.orientation = BoardOrientation.White;
+  }
 
   boardRenderer.render();
   checkComputerTurn();

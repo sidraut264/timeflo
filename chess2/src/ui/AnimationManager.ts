@@ -160,7 +160,8 @@ export class AnimationManager {
     container: HTMLElement,
     gameState: GameState,
     squareFn: (file: number, rank: number) => HTMLElement | null,
-    playtestMode: boolean
+    playtestMode: boolean,
+    orientation: string
   ): void {
     // Remove existing shield overlays
     container.querySelectorAll('.shield-overlay, .shield-glow').forEach(el => el.remove());
@@ -186,7 +187,7 @@ export class AnimationManager {
         // Directional shield arcs for each protected direction
         for (const dir of target.protectedDirections) {
           const arcEl = document.createElement('div');
-          const dirClass = AnimationManager.dirToClass(dir, info.guardOwner);
+          const dirClass = AnimationManager.dirToClass(dir, info.guardOwner, orientation);
           arcEl.className = `shield-overlay ${ownerClass} ${dirClass}`;
           if (playtestMode) arcEl.classList.add('shield-debug');
           sq.appendChild(arcEl);
@@ -196,9 +197,15 @@ export class AnimationManager {
   }
 
   // Maps a RelativeDirection to a CSS class name for its directional arc
-  private static dirToClass(dir: RelativeDirection, owner: Player): string {
+  private static dirToClass(dir: RelativeDirection, owner: Player, orientation: string): string {
     // "Front" is owner-relative. For White, Front = up (high rank) → CSS class indicates screen direction.
-    const isWhite = owner === Player.White;
+    let isWhite = owner === Player.White;
+    
+    // If the board is flipped to Black perspective, we effectively reverse the visual screen direction mapping
+    if (orientation === 'Black') {
+      isWhite = !isWhite;
+    }
+
     switch (dir) {
       case RelativeDirection.Front:     return isWhite ? 'sd-top'    : 'sd-bottom';
       case RelativeDirection.FrontLeft: return isWhite ? 'sd-topleft' : 'sd-bottomright';

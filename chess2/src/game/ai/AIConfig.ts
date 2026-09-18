@@ -41,6 +41,9 @@ export const AIConfig = {
   // Bonus for King explicitly on e5
   KING_ON_CENTER_BONUS: 3000,
 
+  // Tiny bonus to encourage pieces to advance and avoid repetitive horizontal loops
+  POSITIONAL_ADVANCEMENT_BONUS: 10,
+
   // Check evaluations
   CHECK_BONUS: 500,
   CHECK_PENALTY: 500,
