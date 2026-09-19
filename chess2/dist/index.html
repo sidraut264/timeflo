@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/chess2/dist/assets/index-B6Oxc9ar.js"></script>
-    <link rel="stylesheet" crossorigin href="/chess2/dist/assets/index-CRmC56uT.css">
+    <script type="module" crossorigin src="/chess2/dist/assets/index-D-OggYRR.js"></script>
+    <link rel="stylesheet" crossorigin href="/chess2/dist/assets/index-BsTWLEiV.css">
   </head>
   <body>
     <div id="app">
@@ -181,6 +181,30 @@
               <button id="diff-medium-btn" class="btn btn-secondary active" data-diff="2">Medium</button>
               <button id="diff-hard-btn" class="btn btn-secondary" data-diff="3">Hard</button>
             </div>
+          </div>
+          
+          <!-- Online Multiplayer Controls -->
+          <div class="controls-row online-controls-row">
+            <div class="online-controls">
+              <span class="cpu-label">Play Online:</span>
+              <button id="create-game-btn" class="btn btn-secondary">Create Game</button>
+              <div class="join-group">
+                <input type="text" id="join-room-input" class="room-input" placeholder="ROOM CODE" maxlength="6" aria-label="Room code">
+                <button id="join-game-btn" class="btn btn-secondary">Join Game</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Room UI -->
+          <div id="active-room-ui" class="active-room-ui" hidden>
+            <div class="room-info">
+              <span class="room-label">ROOM CODE:</span>
+              <span id="active-room-code" class="room-code-display"></span>
+              <button id="copy-code-btn" class="btn btn-small">Copy Code</button>
+              <button id="copy-link-btn" class="btn btn-small">Copy Link</button>
+            </div>
+            <div id="room-status-message" class="room-status-msg">Waiting for opponent...</div>
+            <button id="leave-game-btn" class="btn btn-cancel">Leave Game</button>
           </div>
         </section>
 

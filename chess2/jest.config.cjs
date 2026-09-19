@@ -8,4 +8,7 @@ module.exports = {
   transform: {
     ...tsJestTransformCfg,
   },
+  moduleNameMapper: {
+    '^.*/config$': '<rootDir>/tests/mockConfig.ts'
+  },
 };

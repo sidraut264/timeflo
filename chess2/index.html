@@ -180,6 +180,30 @@
               <button id="diff-hard-btn" class="btn btn-secondary" data-diff="3">Hard</button>
             </div>
           </div>
+          
+          <!-- Online Multiplayer Controls -->
+          <div class="controls-row online-controls-row">
+            <div class="online-controls">
+              <span class="cpu-label">Play Online:</span>
+              <button id="create-game-btn" class="btn btn-secondary">Create Game</button>
+              <div class="join-group">
+                <input type="text" id="join-room-input" class="room-input" placeholder="ROOM CODE" maxlength="6" aria-label="Room code">
+                <button id="join-game-btn" class="btn btn-secondary">Join Game</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Room UI -->
+          <div id="active-room-ui" class="active-room-ui" hidden>
+            <div class="room-info">
+              <span class="room-label">ROOM CODE:</span>
+              <span id="active-room-code" class="room-code-display"></span>
+              <button id="copy-code-btn" class="btn btn-small">Copy Code</button>
+              <button id="copy-link-btn" class="btn btn-small">Copy Link</button>
+            </div>
+            <div id="room-status-message" class="room-status-msg">Waiting for opponent...</div>
+            <button id="leave-game-btn" class="btn btn-cancel">Leave Game</button>
+          </div>
         </section>
 
         <!-- Right panel: Black Player + legend -->
