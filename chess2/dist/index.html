@@ -8,17 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/chess2/dist/assets/index-9DKFLwO9.js"></script>
-    <link rel="stylesheet" crossorigin href="/chess2/dist/assets/index-BsTWLEiV.css">
+    <script type="module" crossorigin src="/chess2/dist/assets/index-CxBSVIyT.js"></script>
+    <link rel="stylesheet" crossorigin href="/chess2/dist/assets/index-DsiqI_-c.css">
   </head>
   <body>
     <div id="app">
 
-
-      <!-- Header -->
+      <!-- ===================== HEADER ===================== -->
       <header class="game-header" role="banner">
-
-        <!-- Left: Back navigation -->
         <nav class="game-header-nav" aria-label="Back navigation">
           <a href="../../index.html" class="back-btn" aria-label="Back to Arcade">
             <span class="back-arrow" aria-hidden="true">&#8592;</span>
@@ -26,34 +23,29 @@
           </a>
         </nav>
 
-        <!-- Center: Game identity -->
         <div class="game-identity">
           <h1 class="game-title">Chess 2</h1>
           <p class="game-subtitle">The Variant</p>
-          <p class="game-tagline" aria-label="9 by 9, control the center">9&thinsp;&times;&thinsp;9&ensp;&bull;&ensp;Control the Center</p>
         </div>
 
-        <!-- Right: Playtest toggle -->
         <div class="game-header-controls">
           <div class="playtest-toggle-container">
-            <label class="toggle-switch">
+            <label class="toggle-switch" title="Toggle Playtest Mode">
               <input type="checkbox" id="playtest-toggle" aria-label="Toggle Playtest Mode">
               <span class="slider"></span>
             </label>
-            <span class="toggle-label">Playtest</span>
+            <span class="toggle-label">Dev</span>
           </div>
         </div>
-
       </header>
 
-      <!-- Header separator -->
-      <div class="header-separator" aria-hidden="true"></div>
-
-      <!-- Main layout -->
+      <!-- ===================== MAIN LAYOUT ===================== -->
       <main class="game-layout">
 
-        <!-- Left panel: White Player + move history -->
-        <aside class="side-panel left-panel" aria-label="White player and game status">
+        <!-- ======= LEFT PANEL ======= -->
+        <aside class="side-panel left-panel" aria-label="White player status">
+
+          <!-- Player status -->
           <section id="player-white" class="player-panel" aria-live="polite" aria-atomic="true">
             <h2 class="player-name white-text">WHITE</h2>
             <div id="status-white" class="player-status active">
@@ -67,12 +59,13 @@
             </div>
           </section>
 
+          <!-- Move history -->
           <section class="history-section">
             <h2 class="panel-heading">Move History</h2>
             <ol id="move-history-list" class="move-history-list" aria-label="Move history"></ol>
           </section>
 
-          <!-- Playtest Editor Panel (Hidden by default) -->
+          <!-- Playtest Editor Panel (Dev mode only) -->
           <section id="playtest-editor-panel" class="playtest-section" aria-hidden="true" hidden>
             <h2 class="panel-heading">Scenario Editor</h2>
             
@@ -146,8 +139,58 @@
           </section>
         </aside>
 
-        <!-- Board area -->
+        <!-- ======= BOARD + CONTROLS ======= -->
         <section class="board-section" aria-label="Chess board">
+
+          <!-- ---- Mode Selector ---- -->
+          <div class="mode-selector" role="group" aria-label="Game mode">
+            <button id="mode-local-btn" class="mode-btn active" aria-pressed="true">Local</button>
+            <button id="mode-computer-btn" class="mode-btn" aria-pressed="false">Computer</button>
+            <button id="mode-online-btn" class="mode-btn" aria-pressed="false">Online</button>
+          </div>
+
+          <!-- ---- Computer Settings (shown only in Computer mode) ---- -->
+          <div id="computer-settings" class="mode-panel" hidden>
+            <div class="settings-row">
+              <span class="setting-label">Play as</span>
+              <div class="seg-control">
+                <button id="play-computer-white-btn" class="seg-btn active" aria-pressed="true">White</button>
+                <button id="play-computer-black-btn" class="seg-btn" aria-pressed="false">Black</button>
+              </div>
+            </div>
+            <div class="settings-row">
+              <span class="setting-label">Difficulty</span>
+              <div class="seg-control">
+                <button id="diff-easy-btn" class="seg-btn" data-diff="1" aria-pressed="false">Easy</button>
+                <button id="diff-medium-btn" class="seg-btn active" data-diff="2" aria-pressed="true">Medium</button>
+                <button id="diff-hard-btn" class="seg-btn" data-diff="3" aria-pressed="false">Hard</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---- Online Settings (shown only in Online mode) ---- -->
+          <div id="online-panel" class="mode-panel" hidden>
+            <!-- Pre-game online controls -->
+            <div id="online-pregame" class="online-pregame">
+              <button id="create-game-btn" class="btn btn-primary">Create Game</button>
+              <div class="join-group">
+                <input type="text" id="join-room-input" class="room-input" placeholder="ROOM CODE" maxlength="6" aria-label="Room code">
+                <button id="join-game-btn" class="btn btn-primary">Join</button>
+              </div>
+            </div>
+            <!-- Active room UI -->
+            <div id="active-room-ui" class="active-room-banner" hidden>
+              <div class="room-code-block">
+                <span class="room-label">ROOM</span>
+                <span id="active-room-code" class="room-code-display"></span>
+                <button id="copy-code-btn" class="btn-icon" title="Copy room code" aria-label="Copy room code">⎘</button>
+                <button id="copy-link-btn" class="btn-icon" title="Copy link" aria-label="Copy shareable link">🔗</button>
+              </div>
+              <div id="room-status-message" class="room-status-msg">Waiting for opponent...</div>
+              <button id="leave-game-btn" class="btn btn-ghost btn-sm">Leave</button>
+            </div>
+          </div>
+
           <!-- File labels (top) -->
           <div class="file-labels top" aria-hidden="true"></div>
 
@@ -163,53 +206,17 @@
           <!-- File labels (bottom) -->
           <div class="file-labels bottom" aria-hidden="true"></div>
 
-          <!-- Controls -->
-          <div class="controls-row">
-            <button id="reset-btn" class="btn btn-reset" aria-label="Reset game to starting position">
-              ↺ Local Game
+          <!-- ---- Action Bar ---- -->
+          <div class="action-bar">
+            <button id="reset-btn" class="btn btn-ghost" aria-label="Start a new local game">
+              ↺ New Game
             </button>
-            <div class="cpu-controls">
-              <span class="cpu-label">Play vs Computer:</span>
-              <button id="play-computer-white-btn" class="btn btn-secondary">As White</button>
-              <button id="play-computer-black-btn" class="btn btn-secondary">As Black</button>
-            </div>
-            
-            <!-- Difficulty Selector -->
-            <div class="difficulty-controls">
-              <span class="cpu-label">Difficulty:</span>
-              <button id="diff-easy-btn" class="btn btn-secondary" data-diff="1">Easy</button>
-              <button id="diff-medium-btn" class="btn btn-secondary active" data-diff="2">Medium</button>
-              <button id="diff-hard-btn" class="btn btn-secondary" data-diff="3">Hard</button>
-            </div>
-          </div>
-          
-          <!-- Online Multiplayer Controls -->
-          <div class="controls-row online-controls-row">
-            <div class="online-controls">
-              <span class="cpu-label">Play Online:</span>
-              <button id="create-game-btn" class="btn btn-secondary">Create Game</button>
-              <div class="join-group">
-                <input type="text" id="join-room-input" class="room-input" placeholder="ROOM CODE" maxlength="6" aria-label="Room code">
-                <button id="join-game-btn" class="btn btn-secondary">Join Game</button>
-              </div>
-            </div>
           </div>
 
-          <!-- Active Room UI -->
-          <div id="active-room-ui" class="active-room-ui" hidden>
-            <div class="room-info">
-              <span class="room-label">ROOM CODE:</span>
-              <span id="active-room-code" class="room-code-display"></span>
-              <button id="copy-code-btn" class="btn btn-small">Copy Code</button>
-              <button id="copy-link-btn" class="btn btn-small">Copy Link</button>
-            </div>
-            <div id="room-status-message" class="room-status-msg">Waiting for opponent...</div>
-            <button id="leave-game-btn" class="btn btn-cancel">Leave Game</button>
-          </div>
         </section>
 
-        <!-- Right panel: Black Player + legend -->
-        <aside class="side-panel right-panel" aria-label="Black player and piece legend">
+        <!-- ======= RIGHT PANEL ======= -->
+        <aside class="side-panel right-panel" aria-label="Black player status and piece legend">
           <section id="player-black" class="player-panel" aria-live="polite" aria-atomic="true">
             <h2 class="player-name black-text">BLACK</h2>
             <div id="status-black" class="player-status waiting">
@@ -223,6 +230,7 @@
             </div>
           </section>
 
+          <!-- Piece legend -->
           <section>
             <h2 class="panel-heading">Pieces</h2>
             <ul class="legend-list">
@@ -238,6 +246,7 @@
             </ul>
           </section>
 
+          <!-- Highlight legend -->
           <section class="rules-section">
             <h2 class="panel-heading">Highlights</h2>
             <ul class="highlight-legend">
@@ -250,6 +259,7 @@
             </ul>
           </section>
 
+          <!-- Victory rules -->
           <section class="rules-section">
             <h2 class="panel-heading">Victory</h2>
             <ul class="rules-list">
@@ -258,7 +268,7 @@
             </ul>
           </section>
 
-          <!-- Playtest State Inspector (Hidden by default) -->
+          <!-- Playtest Inspector (Dev mode only) -->
           <section id="playtest-inspector-panel" class="playtest-section" aria-hidden="true" hidden>
             <h2 class="panel-heading">State Inspector</h2>
             <div class="inspector-content">
