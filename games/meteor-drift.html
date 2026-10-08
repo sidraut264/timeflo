@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b18">
+  <title>Meteor Drift — Timeflo</title>
+  <style>
+    :root { color-scheme: dark; --bg:#080b18; --text:#edf4ff; --muted:#96a7c1; --cyan:#72f4df; --gold:#ffda84; --line:#263148; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100svh; font-family:Inter,ui-sans-serif,system-ui,sans-serif; color:var(--text); background:radial-gradient(ellipse at 75% 15%,#202145 0,transparent 45%),var(--bg); }
+    button,a { -webkit-tap-highlight-color:transparent; }
+    button { font:inherit; cursor:pointer; }
+    button:focus-visible,a:focus-visible,canvas:focus-visible { outline:3px solid var(--gold); outline-offset:4px; }
+    .page { max-width:1070px; margin:auto; padding:26px 28px 22px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
+    .back { text-decoration:none; color:var(--muted); font-size:13px; display:inline-flex; align-items:center; gap:9px; }
+    .back:hover { color:var(--cyan); }
+    .edition { color:var(--muted); font-size:10px; letter-spacing:2px; text-transform:uppercase; }
+    main { display:grid; grid-template-columns:minmax(0,1fr) 285px; gap:42px; align-items:center; }
+    .cockpit { width:min(100%,560px); margin:auto; }
+    .hud { display:flex; justify-content:space-between; gap:12px; margin:0 4px 12px; }
+    .stat { min-width:0; }
+    .stat span { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:1.7px; margin-bottom:5px; }
+    .stat strong { font-size:23px; font-variant-numeric:tabular-nums; font-weight:600; }
+    .stat:last-child { text-align:right; }
+    #hull { color:var(--cyan); letter-spacing:4px; }
+    .screen { position:relative; border:1px solid #34405d; border-radius:20px; overflow:hidden; background:#080e20; box-shadow:0 24px 80px #0005,0 0 70px #4858ab10; }
+    canvas { display:block; width:100%; height:auto; aspect-ratio:6/7; touch-action:none; }
+    .sector { position:absolute; left:20px; top:18px; font:10px ui-monospace,monospace; letter-spacing:1.5px; color:#8eaccb; pointer-events:none; }
+    .sector b { color:var(--cyan); font-weight:400; }
+    .overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:24px; background:linear-gradient(#080e2080,#080e20e8); text-align:center; backdrop-filter:blur(3px); }
+    .overlay[hidden] { display:none; }
+    .overlay-inner { max-width:335px; }
+    .orb { width:69px; height:69px; display:grid; place-items:center; margin:0 auto 24px; border:1px solid #72f4df50; border-radius:50%; background:#72f4df0a; color:var(--cyan); font-size:32px; }
+    .eyebrow { color:var(--cyan); letter-spacing:2.7px; font-size:10px; text-transform:uppercase; }
+    .overlay h2 { margin:12px 0; font-size:clamp(27px,5vw,38px); font-weight:600; letter-spacing:-1.5px; }
+    .overlay p { color:#afbed4; font-size:14px; line-height:1.7; margin:0 0 25px; }
+    .primary { background:var(--cyan); color:#0b2530; border:0; border-radius:10px; min-height:48px; padding:12px 27px; font-weight:700; box-shadow:0 5px 25px #72f4df18; }
+    .primary:hover { background:#a0ffef; }
+    .overlay small { display:block; margin-top:17px; color:#90a2bb; font-size:11px; }
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; }
+    .direction-group { display:flex; gap:8px; }
+    .control { min-width:49px; min-height:43px; color:#b3c4dc; background:#10182a; border:1px solid var(--line); border-radius:9px; padding:10px 15px; font-size:13px; }
+    .direction { touch-action:none; user-select:none; font-size:19px; line-height:1; }
+    .control:hover,.control.active { color:var(--cyan); border-color:#72f4df70; background:#152836; }
+    .control:disabled { opacity:.35; cursor:default; }
+    .aside-kicker { display:flex; align-items:center; gap:9px; color:var(--cyan); text-transform:uppercase; font-size:10px; letter-spacing:2px; }
+    .aside-kicker:before { content:""; width:6px; height:6px; background:var(--cyan); border-radius:50%; }
+    h1 { font-size:60px; font-weight:500; line-height:1; letter-spacing:-4px; margin:21px 0; }
+    h1 span { display:block; color:var(--cyan); }
+    .intro { color:var(--muted); font-size:14px; line-height:1.8; max-width:270px; }
+    .divider { width:38px; height:1px; background:#4b586f; margin:28px 0; }
+    .guide { display:grid; grid-template-columns:30px 1fr; gap:17px 8px; font-size:12px; line-height:1.6; color:var(--muted); }
+    .guide .icon { font-size:20px; color:var(--gold); }
+    .guide b { display:block; color:#dce8fc; font-weight:500; }
+    .keys { display:flex; gap:6px; align-items:center; margin-top:28px; color:var(--muted); font-size:11px; }
+    kbd { min-width:26px; padding:5px 7px; background:#141c2e; border:1px solid #2b3750; border-bottom-width:3px; border-radius:5px; font:11px ui-monospace,monospace; text-align:center; color:#d9e6fc; }
+    .hint { font-size:11px; color:#7d90ae; line-height:1.7; margin-top:10px; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    footer { color:#627591; font:9px ui-monospace,monospace; letter-spacing:1.5px; text-transform:uppercase; margin-top:22px; }
+    @media (min-width:761px) and (max-height:850px) { .cockpit { max-width:440px; } .page { padding-top:18px; } header { margin-bottom:18px; } }
+    @media (max-width:760px) { .page { max-width:550px; padding:18px 16px; } header { margin-bottom:22px; } main { display:flex; flex-direction:column; gap:22px; } aside { width:100%; order:-1; } h1 { font-size:36px; letter-spacing:-2px; margin:10px 0 0; } h1 span { display:inline; } .intro { max-width:none; margin:10px 0 0; font-size:12px; } .aside-kicker,.divider,.guide,.keys,.hint,footer { display:none; } .hud { margin-bottom:10px; } .stat strong { font-size:20px; } .screen { border-radius:15px; } .edition { font-size:8px; letter-spacing:1px; } }
+    @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto !important; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header><a class="back" href="../arcade.html"><span aria-hidden="true">←</span> Back to arcade</a><span class="edition">Timeflo / Flight no. 014</span></header>
+    <main>
+      <section class="cockpit" aria-label="Meteor Drift game">
+        <div class="hud">
+          <div class="stat"><span>Score</span><strong id="score">0000</strong></div>
+          <div class="stat"><span>Personal best</span><strong id="best">0000</strong></div>
+          <div class="stat"><span>Hull</span><strong id="hull" aria-label="3 lives">●●●</strong></div>
+        </div>
+        <div class="screen">
+          <canvas id="game" width="600" height="700" tabindex="0" aria-label="Meteor Drift. Move left and right with the arrow keys or A and D. Drag across the flight area on touch devices. Avoid meteors and collect gold stars. Press P or Escape to pause."></canvas>
+          <div class="sector">SECTOR <b id="sector">01</b><span id="chain"></span></div>
+          <div class="overlay" id="overlay">
+            <div class="overlay-inner">
+              <div class="orb" id="overlayIcon" aria-hidden="true">✧</div>
+              <div class="eyebrow" id="overlayLabel">Deep space, clear mind</div>
+              <h2 id="overlayTitle">Find your flow.</h2>
+              <p id="overlayText">Weave through the meteor field. Gather gold stars. Keep your three hull lights glowing.<br>Move with ← → or A / D, or drag on the flight area.</p>
+              <button class="primary" id="start">Launch flight <span aria-hidden="true">↗</span></button>
+              <small id="overlayHint">Hold the arrow buttons below to steer, too.</small>
+            </div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="direction-group" aria-label="Steering controls">
+            <button class="control direction" id="left" aria-label="Steer left">←</button>
+            <button class="control direction" id="right" aria-label="Steer right">→</button>
+          </div>
+          <div class="direction-group"><button class="control" id="pause" disabled>Pause</button><button class="control" id="restart">Restart</button></div>
+        </div>
+        <p class="sr-only" role="status" id="status"></p>
+      </section>
+      <aside>
+        <div class="aside-kicker">One more flight</div>
+        <h1>Meteor<span>Drift.</span></h1>
+        <p class="intro">A little stardust. A little instinct.<br>Leave everything else on Earth.</p>
+        <div class="divider"></div>
+        <div class="guide">
+          <span class="icon" aria-hidden="true">✧</span><div><b>Follow the gold</b>Each star earns 150 points. Every five stars raises your bonus, up to ×5.</div>
+          <span class="icon" style="color:#ed987c" aria-hidden="true">◈</span><div><b>Give rocks some room</b>You have three lives. A hit resets your star bonus and briefly protects your ship.</div>
+          <span class="icon" style="color:var(--cyan)" aria-hidden="true">↗</span><div><b>Stay in the current</b>Earn 10 points each second. Every 18 seconds brings a faster sector.</div>
+        </div>
+        <div class="keys"><kbd>←</kbd><kbd>→</kbd><span>or</span><kbd>A</kbd><kbd>D</kbd><span>to steer</span></div>
+        <p class="hint">Drag to steer on touch screens.<br>P / Esc pauses. Your best saves on this device.</p>
+        <footer>Somewhere beyond the ordinary</footer>
+      </aside>
+    </main>
+  </div>
+  <script>
+    (() => {
+      'use strict';
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const $ = id => document.getElementById(id);
+      const W = 600, H = 700, storageKey = 'timeflo-meteor-drift-best';
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const random = (min, max) => min + Math.random() * (max - min);
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const keys = new Set(), heldButtons = new Map();
+      let best = 0;
+      try { best = Math.max(0, Number(localStorage.getItem(storageKey)) || 0); } catch (_) { /* Storage is optional. */ }
+      let state = 'ready', elapsed = 0, score = 0, lives = 3, starsCaught = 0, multiplier = 1;
+      let meteorTimer = 0.7, starTimer = 1, invincible = 0, shake = 0, lastTime = 0, visualTime = 0;
+      let meteors = [], collectibles = [], particles = [], labels = [];
+      let pointerId = null, pointerX = null;
+      const ship = { x:W / 2, y:H - 86, radius:14, tilt:0 };
+      const backdropStars = Array.from({ length:100 }, () => ({ x:random(0,W), y:random(0,H), size:random(.5,1.8), depth:random(.2,1) }));
+      $('best').textContent = String(best).padStart(4, '0');
+
+      function announce(message) { $('status').textContent = message; }
+      function resetInput() {
+        keys.clear(); heldButtons.clear(); pointerId = null; pointerX = null;
+        $('left').classList.remove('active'); $('right').classList.remove('active');
+      }
+      function syncHUD() {
+        $('score').textContent = String(Math.floor(score)).padStart(4, '0');
+        $('best').textContent = String(best).padStart(4, '0');
+        $('hull').textContent = '●'.repeat(lives) + '○'.repeat(3 - lives);
+        $('hull').setAttribute('aria-label', `${lives} ${lives === 1 ? 'life' : 'lives'}`);
+        $('hull').style.color = lives === 1 ? '#ff9b87' : '#72f4df';
+        $('sector').textContent = String(1 + Math.floor(elapsed / 18)).padStart(2, '0');
+        $('chain').textContent = multiplier > 1 ? `  /  STAR BONUS ×${multiplier}` : '';
+      }
+      function begin() {
+        elapsed = 0; score = 0; lives = 3; starsCaught = 0; multiplier = 1;
+        meteors = []; collectibles = []; particles = []; labels = [];
+        meteorTimer = .7; starTimer = 1; invincible = 0; shake = 0;
+        ship.x = W / 2; ship.tilt = 0;
+        resetInput(); state = 'playing'; $('overlay').hidden = true;
+        $('pause').disabled = false; $('pause').textContent = 'Pause';
+        lastTime = performance.now(); syncHUD(); canvas.focus({ preventScroll:true });
+        announce('Flight started. Three lives.');
+      }
+      function showOverlay(label, title, text, button, hint, icon) {
+        $('overlayLabel').textContent = label; $('overlayTitle').textContent = title;
+        $('overlayText').textContent = text; $('start').textContent = button;
+        $('overlayHint').textContent = hint; $('overlayIcon').textContent = icon;
+        $('overlay').hidden = false; $('start').focus({ preventScroll:true });
+      }
+      function pause() {
+        if (state !== 'playing') return;
+        state = 'paused'; resetInput(); $('pause').textContent = 'Resume';
+        showOverlay('Take a breath', 'Holding orbit.', 'Your flight is right where you left it. Ready when you are.', 'Resume flight ↗', 'P or Esc also resumes your flight.', 'Ⅱ');
+        announce('Flight paused.');
+      }
+      function resume() {
+        if (state !== 'paused') return;
+        resetInput(); state = 'playing'; lastTime = performance.now();
+        $('overlay').hidden = true; $('pause').textContent = 'Pause';
+        canvas.focus({ preventScroll:true }); announce('Flight resumed.');
+      }
+      function end() {
+        state = 'over'; resetInput(); const finalScore = Math.floor(score);
+        const isRecord = finalScore > best;
+        if (isRecord) {
+          best = finalScore;
+          try { localStorage.setItem(storageKey, String(best)); } catch (_) { /* Keep the session best when storage is unavailable. */ }
+        }
+        $('pause').disabled = true; syncHUD();
+        showOverlay(isRecord ? 'New personal best' : 'Transmission complete', 'Beautiful flight.', `${finalScore.toLocaleString()} points · ${Math.floor(elapsed)} seconds in the stars. You reached sector ${1 + Math.floor(elapsed / 18)}.`, 'Fly again ↗', 'A fresh flight. A little further this time.', '✧');
+        announce(`Flight over. ${finalScore} points. ${isRecord ? 'New personal best.' : ''}`);
+      }
+      function burst(x, y, color, count) {
+        if (reducedMotion) return;
+        for (let i = 0; i < count; i++) {
+          const angle = random(0, Math.PI * 2), speed = random(40,200);
+          particles.push({ x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:random(.25,.65),max:.65,color });
+        }
+      }
+      function spawnMeteor(level) {
+        const r = random(18,36);
+        meteors.push({ x:random(r + 12,W - r - 12), y:-r - 30, radius:r, speed:random(145,205) + Math.min(level - 1,15) * 18, vx:random(-22,22), angle:random(0,7), spin:random(-1.1,1.1), shape:Array.from({ length:9 }, () => random(.75,1.05)) });
+      }
+      function update(dt) {
+        elapsed += dt; score += dt * 10;
+        const level = 1 + Math.floor(elapsed / 18);
+        const left = keys.has('arrowleft') || keys.has('a') || [...heldButtons.values()].includes(-1);
+        const right = keys.has('arrowright') || keys.has('d') || [...heldButtons.values()].includes(1);
+        const direction = Number(right) - Number(left);
+        const previousX = ship.x;
+        if (direction) ship.x += direction * 365 * dt;
+        else if (pointerX !== null) ship.x += clamp(pointerX - ship.x, -460 * dt, 460 * dt);
+        ship.x = clamp(ship.x, 24,W - 24);
+        ship.tilt += (clamp((ship.x - previousX) / dt / 1000,-.35,.35) - ship.tilt) * Math.min(1,dt * 10);
+        invincible = Math.max(0, invincible - dt); shake = Math.max(0, shake - dt * 25);
+        meteorTimer -= dt; starTimer -= dt;
+        if (meteorTimer <= 0) { spawnMeteor(level); meteorTimer += Math.max(.26,.83 - (level - 1) * .052); }
+        if (starTimer <= 0) { collectibles.push({ x:random(35,W - 35), y:-25, phase:random(0,7), speed:185 + Math.min(level,15) * 9 }); starTimer += random(1.05,1.6); }
+        for (const meteor of meteors) {
+          meteor.x += meteor.vx * dt; meteor.y += meteor.speed * dt; meteor.angle += meteor.spin * dt;
+          if (invincible === 0 && Math.hypot(meteor.x - ship.x,meteor.y - ship.y) < meteor.radius * .8 + ship.radius) {
+            lives--; starsCaught = 0; multiplier = 1; invincible = 1.7; shake = reducedMotion ? 0 : 7;
+            burst(ship.x,ship.y,'#ff9b87',24); meteor.y = H + 100;
+            if (lives === 0) { end(); return; }
+            announce(`Meteor hit. ${lives} ${lives === 1 ? 'life' : 'lives'} remaining.`);
+          }
+        }
+        for (const star of collectibles) {
+          star.y += star.speed * dt;
+          if (Math.hypot(star.x - ship.x,star.y - ship.y) < 28) {
+            const reward = 150 * multiplier;
+            score += reward; starsCaught++; multiplier = Math.min(5,1 + Math.floor(starsCaught / 5));
+            burst(star.x,star.y,'#ffda84',12); labels.push({ x:star.x,y:star.y,text:`+${reward}`,life:.8 }); star.y = H + 100;
+          }
+        }
+        meteors = meteors.filter(m => m.y < H + 65);
+        collectibles = collectibles.filter(s => s.y < H + 35);
+        for (const particle of particles) { particle.x += particle.vx * dt; particle.y += particle.vy * dt; particle.life -= dt; }
+        particles = particles.filter(p => p.life > 0);
+        for (const label of labels) { label.y -= 30 * dt; label.life -= dt; }
+        labels = labels.filter(l => l.life > 0);
+      }
+      function starPath(x,y,r,rotation) {
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+          const a = rotation + i * Math.PI / 4, radius = i % 2 ? r * .35 : r;
+          const px = x + Math.cos(a) * radius, py = y + Math.sin(a) * radius;
+          if (i === 0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.closePath();
+      }
+      function draw() {
+        ctx.clearRect(0,0,W,H);
+        const sky = ctx.createLinearGradient(0,0,W,H); sky.addColorStop(0,'#10152d'); sky.addColorStop(.5,'#090f22'); sky.addColorStop(1,'#0c1d2c'); ctx.fillStyle = sky; ctx.fillRect(0,0,W,H);
+        const nebula = ctx.createRadialGradient(480,120,10,480,120,350); nebula.addColorStop(0,'#473c6b30'); nebula.addColorStop(1,'#473c6b00'); ctx.fillStyle = nebula; ctx.fillRect(0,0,W,H);
+        ctx.strokeStyle = '#536c9610'; ctx.lineWidth = 1;
+        for (let x = 60; x < W; x += 80) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+        for (const star of backdropStars) {
+          const y = (star.y + visualTime * 22 * star.depth) % H;
+          ctx.globalAlpha = .2 + star.depth * .55; ctx.fillStyle = '#c4d9f4'; ctx.fillRect(star.x,y,star.size,star.size + (state === 'playing' ? star.depth * 2 : 0));
+        }
+        ctx.globalAlpha = 1;
+        ctx.save();
+        if (shake) ctx.translate(random(-shake,shake),random(-shake,shake));
+        for (const meteor of meteors) {
+          ctx.save(); ctx.translate(meteor.x,meteor.y);
+          const tail = ctx.createLinearGradient(0,-meteor.radius * 3,0,meteor.radius); tail.addColorStop(0,'#ed987c00'); tail.addColorStop(1,'#ed987c19');
+          ctx.fillStyle = tail; ctx.beginPath(); ctx.moveTo(-meteor.radius * .7,0); ctx.lineTo(0,-meteor.radius * 3.8); ctx.lineTo(meteor.radius * .7,0); ctx.fill();
+          ctx.rotate(meteor.angle); ctx.beginPath();
+          meteor.shape.forEach((scale,i) => { const angle = i / meteor.shape.length * Math.PI * 2; const x = Math.cos(angle)*meteor.radius*scale,y = Math.sin(angle)*meteor.radius*scale; if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+          ctx.closePath(); ctx.fillStyle = '#453345'; ctx.strokeStyle = '#c3837899'; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.arc(-meteor.radius * .24,-meteor.radius * .14,meteor.radius * .25,0,Math.PI * 2); ctx.fillStyle = '#211f32'; ctx.fill();
+          ctx.beginPath(); ctx.arc(meteor.radius * .28,meteor.radius * .3,meteor.radius * .14,0,Math.PI * 2); ctx.fill(); ctx.restore();
+        }
+        for (const star of collectibles) {
+          ctx.shadowColor = '#ffda84'; ctx.shadowBlur = 18; ctx.fillStyle = '#ffda84'; starPath(star.x,star.y,13,visualTime + star.phase); ctx.fill(); ctx.shadowBlur = 0;
+          ctx.strokeStyle = '#ffda8435'; ctx.beginPath(); ctx.arc(star.x,star.y,22,0,Math.PI * 2); ctx.stroke();
+        }
+        if (state !== 'over') {
+          ctx.save(); ctx.translate(ship.x,ship.y); ctx.rotate(ship.tilt);
+          ctx.globalAlpha = invincible > 0 ? .5 + Math.sin(visualTime * 30) * .25 : 1;
+          const flameLength = state === 'playing' ? 25 + (reducedMotion ? 0 : Math.sin(visualTime * 40) * 7) : 18;
+          const flame = ctx.createLinearGradient(0,10,0,flameLength + 16); flame.addColorStop(0,'#72f4dfbb'); flame.addColorStop(1,'#72f4df00');
+          ctx.fillStyle = flame; ctx.beginPath(); ctx.moveTo(-8,13); ctx.quadraticCurveTo(-7,flameLength,0,flameLength+16); ctx.quadraticCurveTo(7,flameLength,8,13); ctx.fill();
+          ctx.shadowColor = '#72f4df'; ctx.shadowBlur = 16; ctx.fillStyle = '#c5fff5'; ctx.strokeStyle = '#72f4df'; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(0,-24); ctx.lineTo(19,18); ctx.lineTo(0,10); ctx.lineTo(-19,18); ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.shadowBlur = 0; ctx.fillStyle = '#26495c'; ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(5,7); ctx.lineTo(-5,7); ctx.closePath(); ctx.fill();
+          if (invincible > 0) { ctx.strokeStyle = '#72f4df80'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0,0,35,0,Math.PI*2); ctx.stroke(); }
+          ctx.restore();
+        }
+        for (const p of particles) { ctx.globalAlpha = clamp(p.life / p.max,0,1); ctx.fillStyle = p.color; ctx.fillRect(p.x-2,p.y-2,3,3); }
+        ctx.globalAlpha = 1; ctx.textAlign = 'center'; ctx.font = 'bold 15px ui-monospace, monospace';
+        for (const label of labels) { ctx.globalAlpha = Math.min(1,label.life * 2); ctx.fillStyle = '#ffda84'; ctx.fillText(label.text,label.x,label.y); }
+        ctx.globalAlpha = 1; ctx.restore();
+        const vignette = ctx.createLinearGradient(0,H-100,0,H); vignette.addColorStop(0,'#060a1700'); vignette.addColorStop(1,'#060a1799'); ctx.fillStyle = vignette; ctx.fillRect(0,H-100,W,100);
+      }
+      function frame(time) {
+        const dt = Math.min(.06,Math.max(0,(time - lastTime) / 1000)); lastTime = time;
+        if (state === 'playing') {
+          let remaining = dt;
+          while (remaining > 0 && state === 'playing') { const step = Math.min(remaining,1/120); update(step); remaining -= step; }
+          visualTime += dt; syncHUD();
+        } else if (state === 'ready' && !reducedMotion) visualTime += dt * .4;
+        draw(); requestAnimationFrame(frame);
+      }
+      $('start').addEventListener('click',() => state === 'paused' ? resume() : begin());
+      $('restart').addEventListener('click',begin);
+      $('pause').addEventListener('click',() => state === 'playing' ? pause() : resume());
+      window.addEventListener('keydown',event => {
+        if (event.target instanceof HTMLElement && event.target.closest('a')) return;
+        const key = event.key.toLowerCase();
+        if (['arrowleft','arrowright','a','d'].includes(key) && state === 'playing') { event.preventDefault(); keys.add(key); pointerX = null; }
+        if ((key === 'p' || key === 'escape') && !event.repeat) { event.preventDefault(); if (state === 'playing') pause(); else if (state === 'paused') resume(); }
+        if ((key === ' ' || key === 'enter') && event.target === canvas && !event.repeat && state !== 'playing') { event.preventDefault(); state === 'paused' ? resume() : begin(); }
+      });
+      window.addEventListener('keyup',event => keys.delete(event.key.toLowerCase()));
+      function pointerPosition(event) { const rect = canvas.getBoundingClientRect(); return (event.clientX - rect.left) / rect.width * W; }
+      canvas.addEventListener('pointerdown',event => {
+        if (state !== 'playing' || pointerId !== null) return;
+        event.preventDefault(); pointerId = event.pointerId; pointerX = pointerPosition(event); canvas.setPointerCapture(pointerId);
+      });
+      canvas.addEventListener('pointermove',event => { if (event.pointerId === pointerId && state === 'playing') pointerX = pointerPosition(event); });
+      function releasePointer(event) { if (event.pointerId === pointerId) { pointerId = null; pointerX = null; } }
+      canvas.addEventListener('pointerup',releasePointer); canvas.addEventListener('pointercancel',releasePointer); canvas.addEventListener('lostpointercapture',releasePointer);
+      for (const [id,direction] of [['left',-1],['right',1]]) {
+        const button = $(id);
+        button.addEventListener('pointerdown',event => { if (state !== 'playing') return; event.preventDefault(); heldButtons.set(event.pointerId,direction); pointerX = null; button.classList.add('active'); button.setPointerCapture(event.pointerId); });
+        const release = event => { heldButtons.delete(event.pointerId); button.classList.remove('active'); };
+        button.addEventListener('pointerup',release); button.addEventListener('pointercancel',release); button.addEventListener('lostpointercapture',release);
+        button.addEventListener('keydown',event => { if ((event.key === ' ' || event.key === 'Enter') && state === 'playing') { event.preventDefault(); keys.add(direction === -1 ? 'arrowleft' : 'arrowright'); button.classList.add('active'); } });
+        button.addEventListener('keyup',event => { if (event.key === ' ' || event.key === 'Enter') { keys.delete(direction === -1 ? 'arrowleft' : 'arrowright'); button.classList.remove('active'); } });
+        button.addEventListener('blur',() => { keys.delete(direction === -1 ? 'arrowleft' : 'arrowright'); button.classList.remove('active'); });
+      }
+      window.addEventListener('blur',() => { pause(); resetInput(); });
+      document.addEventListener('visibilitychange',() => { if (document.hidden) { pause(); resetInput(); } });
+      syncHUD(); requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>

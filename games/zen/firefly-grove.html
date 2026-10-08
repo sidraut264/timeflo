@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gather fireflies and bring a quiet moonlit pond into bloom. A gentle, untimed garden game.">
+  <title>Firefly Grove · Timeflo</title>
+  <style>
+    :root { color-scheme: dark; --ink: #e6eedc; --muted: #a4b7a5; --line: #b9d2a522; --lime: #d0e3a0; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0b1715; color: var(--ink); font-family: system-ui, sans-serif; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: -1; background: radial-gradient(ellipse at 45% 0%, #23423880, transparent 65%); }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible, a:focus-visible { outline: 2px solid #edf5b9; outline-offset: 5px; }
+    button:disabled { cursor: default; }
+    .shell { width: min(1200px, 100%); margin: auto; padding: 28px 34px 24px; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding-bottom: 28px; font-size: 11px; letter-spacing: .15em; text-transform: uppercase; }
+    nav a { color: var(--muted); text-decoration: none; }
+    nav a:hover { color: var(--ink); }
+    .brand { color: #cee2b2; }
+    header { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 30px; gap: 20px; }
+    .eyebrow { margin: 0 0 12px; color: #bace9e; font-size: 10px; letter-spacing: .24em; text-transform: uppercase; }
+    h1 { font: normal clamp(38px, 5vw, 64px)/1 Georgia, serif; letter-spacing: -.04em; margin: 0 0 12px; }
+    .subtitle { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.7; }
+    .night-label { border: 1px solid var(--line); border-radius: 50%; height: 78px; width: 78px; display: grid; place-content: center; text-align: center; flex: 0 0 auto; color: #bed4b4; font-size: 10px; letter-spacing: .12em; gap: 3px; }
+    .night-label strong { font: 25px Georgia, serif; letter-spacing: 0; }
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1fr) 245px; border: 1px solid var(--line); border-radius: 20px; overflow: hidden; background: #10221e; }
+    .scene { position: relative; min-height: 510px; isolation: isolate; overflow: hidden; background: #102724; }
+    .landscape { position: absolute; width: 100%; height: 100%; inset: 0; pointer-events: none; }
+    .scene-caption { position: absolute; top: 23px; left: 25px; color: #b0c5b8; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; z-index: 1; pointer-events: none; }
+    .scene-caption span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #d6e4ad; margin-right: 8px; box-shadow: 0 0 12px #e2efbb; }
+    .firefly { position: absolute; z-index: 3; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: transparent; transform: translate(-50%, -50%); animation: wander var(--duration) ease-in-out infinite alternate; }
+    .firefly::after { content: ''; display: block; margin: auto; height: 7px; width: 7px; border-radius: 50%; background: #f5efb6; box-shadow: 0 0 9px 3px #e8eaa384, 0 0 29px 9px #dfe78d25; transition: transform .2s; }
+    .firefly:hover::after, .firefly:focus-visible::after { transform: scale(1.6); }
+    .firefly:disabled { opacity: 0; pointer-events: none; }
+    @keyframes wander { from { transform: translate(-65%, -65%); } to { transform: translate(-20%, -15%); } }
+    .lily { position: absolute; transform: translate(-50%, -50%); width: 72px; height: 65px; border: none; background: transparent; padding: 4px; z-index: 2; color: #cfdfb4; }
+    .lily .pad { position: absolute; inset: 20px 0 1px; background: #3d6656; border: 1px solid #78957570; border-radius: 50%; box-shadow: 0 9px 0 -5px #99c1a017, 0 17px 0 -9px #99c1a018; transform: rotate(-12deg); }
+    .lily .pad::after { content: ''; position: absolute; left: 50%; top: 50%; width: 43%; height: 1px; background: #233e32; transform: rotate(-30deg); transform-origin: left; }
+    .lily .bud { position: relative; font: 24px Georgia, serif; top: 5px; opacity: .55; }
+    .lily.ready .pad { border-color: #dce5a8; box-shadow: 0 0 25px #d7e3a72b; }
+    .lily.ready .bud { opacity: 1; }
+    .lily svg { width: 62px; height: 62px; position: absolute; top: -4px; left: 5px; overflow: visible; filter: drop-shadow(0 0 10px var(--petal)); }
+    .lily.bloomed .pad { background: #527966; }
+    .bloomed svg { animation: bloom .6s ease-out; }
+    @keyframes bloom { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .scene-hint { position: absolute; bottom: 15px; width: 100%; margin: 0; padding: 0 20px; color: #d0dfc9; font-size: 11px; text-align: center; pointer-events: none; z-index: 4; }
+    aside { padding: 29px 25px; border-left: 1px solid var(--line); display: flex; flex-direction: column; }
+    .aside-label { margin: 0; text-transform: uppercase; letter-spacing: .2em; font-size: 9px; color: #92b39c; }
+    h2 { font: normal 26px/1.2 Georgia, serif; margin: 12px 0; }
+    .instruction { font-size: 12px; line-height: 1.8; color: var(--muted); margin: 0 0 25px; }
+    .jar { display: flex; gap: 12px; margin: 16px 0 8px; }
+    .mote { height: 15px; width: 15px; border: 1px solid #637a62; border-radius: 50%; background: #21362c; transition: background .3s, box-shadow .3s; }
+    .mote.full { background: #ece8ae; box-shadow: 0 0 17px #e6e6a46b; border-color: #faf7c5; }
+    #light-count { color: #b5c6aa; font-size: 11px; margin: 0 0 24px; }
+    .palette { display: flex; gap: 10px; margin: 12px 0 25px; }
+    .color { width: 38px; height: 38px; border-radius: 50%; background: transparent; border: 1px solid transparent; padding: 7px; }
+    .color::before { content: ''; display: block; border-radius: 50%; width: 100%; height: 100%; background: var(--swatch); }
+    .color[aria-pressed="true"] { border-color: #bac8a6; }
+    .progress-label { display: flex; justify-content: space-between; margin: 10px 0; color: #b4c7ac; font-size: 11px; }
+    .progress-track { height: 3px; background: #294135; border-radius: 4px; overflow: hidden; }
+    #progress { height: 100%; width: 0; background: #c3d499; transition: width .5s; }
+    #status { font-size: 12px; line-height: 1.7; color: #dfebcc; margin: 22px 0 0; min-height: 61px; }
+    .field-note { border-top: 1px solid var(--line); margin: auto 0 0; padding-top: 16px; font: italic 14px/1.6 Georgia, serif; color: #97ad97; }
+    .toolbar { display: flex; justify-content: space-between; gap: 15px; align-items: center; margin-top: 18px; }
+    .toolbar p { font-size: 10px; letter-spacing: .05em; color: #8fa58f; margin: 0; }
+    .actions { display: flex; gap: 8px; }
+    .control { border: 1px solid #b4d0ac33; border-radius: 30px; background: transparent; color: #c5d7bb; padding: 10px 17px; font-size: 11px; min-height: 40px; }
+    .control:hover { background: #ffffff09; border-color: #b4d0ac77; }
+    .paused .firefly, .paused .bloomed svg { animation-play-state: paused; }
+    @media (max-width: 760px) {
+      .shell { padding: 20px 18px; } nav { padding-bottom: 20px; } header { margin: 6px 0 24px; }
+      .night-label { width: 61px; height: 61px; } .game-layout { grid-template-columns: 1fr; }
+      .scene { min-height: 430px; } aside { border-left: 0; border-top: 1px solid var(--line); padding: 24px; }
+      aside { display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; } .intro, #status, .field-note { grid-column: 1 / -1; }
+      .instruction { margin-bottom: 20px; } .palette { margin-bottom: 12px; } .progress-block { grid-column: 1 / -1; }
+      #status { min-height: 0; margin: 15px 0; } .field-note { padding-top: 12px; }
+      .toolbar { flex-wrap: wrap; } .toolbar p { order: 2; width: 100%; }
+      .lily { width: 60px; } .lily svg { left: -1px; } .scene-caption { font-size: 8px; left: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav><a href="../../arcade.html">← Game library</a><span class="brand">Timeflo / Zen</span></nav>
+    <header>
+      <div><p class="eyebrow">A little light goes a long way</p><h1>Firefly Grove</h1><p class="subtitle">Let the day go. Bring the pond into bloom.</p></div>
+      <div class="night-label">NIGHT<strong id="night-number">01</strong></div>
+    </header>
+    <div class="game-layout">
+      <section class="scene" id="scene" aria-label="Moonlit pond. Gather three fireflies, then select an empty lily pad.">
+        <div class="scene-caption"><span></span>Somewhere, after the rain</div>
+        <svg class="landscape" viewBox="0 0 1000 640" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#142e30"/><stop offset="1" stop-color="#315449"/></linearGradient>
+            <linearGradient id="water" x2="0" y2="1"><stop stop-color="#2d574b"/><stop offset="1" stop-color="#112c29"/></linearGradient>
+            <radialGradient id="moonlight"><stop stop-color="#e6e9b0" stop-opacity=".18"/><stop offset="1" stop-color="#dce5b0" stop-opacity="0"/></radialGradient>
+            <linearGradient id="reflection" x2="0" y2="1"><stop stop-color="#d9dfa0" stop-opacity=".2"/><stop offset="1" stop-color="#d9dfa0" stop-opacity="0"/></linearGradient>
+          </defs>
+          <path fill="url(#sky)" d="M0 0h1000v640H0z"/>
+          <ellipse cx="710" cy="115" rx="235" ry="210" fill="url(#moonlight)"/>
+          <circle cx="710" cy="115" r="32" fill="#e1e6bb"/><circle cx="722" cy="105" r="29" fill="#254341"/>
+          <g fill="#e2e9c8" opacity=".5"><circle cx="165" cy="97" r="1.5"/><circle cx="315" cy="57" r="1"/><circle cx="498" cy="122" r="1.5"/><circle cx="843" cy="61" r="1.3"/><circle cx="566" cy="54" r="1"/><circle cx="876" cy="155" r="1"/></g>
+          <path fill="#29483c" d="M0 250Q130 130 255 235T500 242T770 231T1000 210V640H0Z"/>
+          <path fill="#18392f" d="M0 300Q130 194 289 290T580 285T880 282T1000 269V640H0Z"/>
+          <path fill="#0d2b24" d="M0 333Q220 266 480 330T1000 308V640H0Z"/>
+          <ellipse cx="505" cy="509" rx="527" ry="190" fill="url(#water)"/>
+          <path d="M690 336L818 585H615Z" fill="url(#reflection)"/>
+          <g fill="none" stroke="#b4cda2" stroke-linecap="round" opacity=".16"><path d="M672 350h65m-85 14h110m-130 22h168m-179 31h146m-321-25h51m-116 68h61m408-1h44m-150 89h90m-582-28h63m57 61h75"/></g>
+          <g fill="#0c2822"><path d="M0 0h57l25 360H40ZM92 0h25l-8 322H80ZM940 0h45l-28 367h-35Z"/><path d="M46 136L170 41l-107 125Zm51 62L9 112l83 52ZM952 155L831 68l112 113Z"/></g>
+          <g fill="#0c2420"><ellipse cx="23" cy="20" rx="190" ry="50"/><ellipse cx="970" cy="10" rx="185" ry="55"/><path d="M0 535Q100 515 183 584L284 640H0Zm1000-18q-119 15-219 123h219Z"/></g>
+          <g fill="none" stroke="#31553c" stroke-width="3"><path d="M43 566q-4-74-24-88m26 101q14-70 42-83m-25 77q-2-44-15-53m890 40q-7-76 24-121m-21 134q-29-61-43-59m59 43q-2-58 18-86"/></g>
+          <g fill="#719071" opacity=".6"><ellipse cx="85" cy="500" rx="5" ry="15" transform="rotate(31 85 500)"/><ellipse cx="961" cy="442" rx="4" ry="14" transform="rotate(20 961 442)"/></g>
+        </svg>
+        <p class="scene-hint" id="scene-hint">Tap the little lights drifting above the water.</p>
+      </section>
+      <aside>
+        <div class="intro"><p class="aside-label">Tonight’s small ritual</p><h2>A pond of your own.</h2><p class="instruction">Gather <strong>3 fireflies</strong>, then touch an empty lily pad to grow a flower. Bloom all six, at your own pace.</p></div>
+        <div><p class="aside-label">Your gathered light</p><div class="jar" aria-hidden="true"><span class="mote"></span><span class="mote"></span><span class="mote"></span></div><p id="light-count">0 / 3 fireflies</p></div>
+        <div><p class="aside-label">Petal color</p><div class="palette" role="group" aria-label="Choose petal color">
+          <button class="color" data-color="0" style="--swatch:#eed6a0" aria-label="Honey petals" aria-pressed="true"></button>
+          <button class="color" data-color="1" style="--swatch:#a9d9c5" aria-label="Mint petals" aria-pressed="false"></button>
+          <button class="color" data-color="2" style="--swatch:#c9b8e8" aria-label="Lilac petals" aria-pressed="false"></button>
+        </div></div>
+        <div class="progress-block"><div class="progress-label"><span>The pond in bloom</span><span id="bloom-count">0 / 6</span></div><div class="progress-track" role="progressbar" aria-label="Flowers bloomed" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0"><div id="progress"></div></div></div>
+        <p id="status" role="status" aria-live="polite">The grove is waiting for your first little light.</p>
+        <p class="field-note">Nothing to chase.<br>Just a little room to grow.</p>
+      </aside>
+    </div>
+    <div class="toolbar"><p>NO TIMER · NO WRONG MOVES · TAP OR USE TAB + ENTER</p><div class="actions"><button class="control" id="pause" aria-pressed="false">Pause grove</button><button class="control" id="new-night">Begin a new night</button></div></div>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const key = 'timeflo-firefly-grove-v1';
+      const colors = ['#eed6a0', '#a9d9c5', '#c9b8e8'];
+      const colorNames = ['honey', 'mint', 'lilac'];
+      const positions = [[22, 66], [49, 62], [77, 69], [33, 82], [61, 82], [83, 89]];
+      const lightPositions = [[14, 38], [31, 29], [47, 42], [63, 31], [83, 42], [23, 50], [57, 51], [89, 54]];
+      const scene = document.getElementById('scene');
+      const status = document.getElementById('status');
+      let state = { flowers: Array(6).fill(null), light: 0, color: 0, night: 1 };
+      let paused = false;
+      let resumeAfterHidden = false;
+      const timers = new Map();
+      const isColor = n => Number.isInteger(n) && n >= 0 && n < colors.length;
+      try {
+        const saved = JSON.parse(localStorage.getItem(key));
+        if (saved && Array.isArray(saved.flowers) && saved.flowers.length === 6 && saved.flowers.every(c => c === null || isColor(c)) && isColor(saved.color) && Number.isInteger(saved.light) && saved.light >= 0 && saved.light <= 3 && Number.isInteger(saved.night) && saved.night > 0) state = saved;
+      } catch (_) { /* The grove also works when browser storage is unavailable. */ }
+      function save() { try { localStorage.setItem(key, JSON.stringify(state)); } catch (_) {} }
+      function say(text) { status.textContent = text; }
+      function flower(color) {
+        return `<svg viewBox="0 0 64 64" aria-hidden="true" style="--petal:${color}"><g fill="${color}" stroke="#ffffff33" stroke-width="1">${Array.from({ length: 7 }, (_, i) => `<ellipse cx="32" cy="22" rx="7" ry="15" transform="rotate(${i * 360 / 7} 32 32)"/>`).join('')}</g><circle cx="32" cy="32" r="7" fill="#f4ecc2"/><circle cx="32" cy="32" r="3" fill="#bdab70"/></svg>`;
+      }
+      const lilies = positions.map(([x, y], i) => {
+        const button = document.createElement('button');
+        button.className = 'lily'; button.style.left = x + '%'; button.style.top = y + '%';
+        button.addEventListener('click', () => {
+          if (paused || state.flowers[i] !== null) return;
+          if (state.light < 3) { say(`Gather ${3 - state.light} more ${state.light === 2 ? 'firefly' : 'fireflies'} to wake this lily pad.`); return; }
+          const hadFocus = document.activeElement === button;
+          state.flowers[i] = state.color; state.light = 0;
+          render(); save();
+          const count = state.flowers.filter(c => c !== null).length;
+          say(count === 6 ? 'Your whole pond is in bloom. Stay a while, or begin a new night.' : `A ${colorNames[state.color]} blossom opens. ${6 - count} more lily pads are waiting.`);
+          // Move focus to an available light after planting with a keyboard.
+          if (hadFocus) {
+            if (count === 6) document.getElementById('new-night').focus();
+            else (lights.find(light => !light.disabled) || document.getElementById('pause')).focus();
+          }
+        });
+        scene.appendChild(button); return button;
+      });
+      const lights = lightPositions.map(([x, y], i) => {
+        const button = document.createElement('button');
+        button.className = 'firefly'; button.style.left = x + '%'; button.style.top = y + '%';
+        button.style.setProperty('--duration', (3.2 + i * .37) + 's');
+        button.setAttribute('aria-label', `Gather firefly ${i + 1}`);
+        button.addEventListener('click', () => {
+          if (paused || button.disabled) return;
+          if (state.flowers.every(c => c !== null)) { say('Every flower is glowing. Take a breath and enjoy your garden.'); return; }
+          if (state.light === 3) { say('Your light is ready. Choose an empty lily pad to grow a flower.'); return; }
+          const hadFocus = document.activeElement === button;
+          state.light++; button.disabled = true;
+          timers.set(button, setTimeout(() => { timers.delete(button); button.disabled = paused; }, 2400));
+          render(); save();
+          say(state.light === 3 ? 'Three little lights. Now choose an empty lily pad.' : `${state.light} of 3 fireflies gathered. A little more light…`);
+          if (hadFocus) {
+            if (state.light === 3) lilies.find((_, n) => state.flowers[n] === null)?.focus();
+            else (lights.find(light => !light.disabled) || document.getElementById('pause')).focus();
+          }
+        });
+        scene.appendChild(button); return button;
+      });
+      function render() {
+        const count = state.flowers.filter(c => c !== null).length;
+        document.getElementById('night-number').textContent = String(state.night).padStart(2, '0');
+        document.getElementById('light-count').textContent = `${state.light} / 3 fireflies`;
+        document.querySelectorAll('.mote').forEach((mote, i) => mote.classList.toggle('full', i < state.light));
+        document.querySelectorAll('.color').forEach((button, i) => button.setAttribute('aria-pressed', String(i === state.color)));
+        lilies.forEach((button, i) => {
+          const c = state.flowers[i];
+          button.disabled = paused || c !== null;
+          button.classList.toggle('bloomed', c !== null);
+          button.classList.toggle('ready', c === null && state.light === 3);
+          button.setAttribute('aria-label', c === null ? `Lily pad ${i + 1}: plant a flower with 3 fireflies` : `Lily pad ${i + 1}: ${colorNames[c]} flower`);
+          // Keep an existing blossom in place so collecting light does not replay its animation.
+          const contentKey = c === null ? 'empty' : String(c);
+          if (button.dataset.content !== contentKey) {
+            button.innerHTML = '<span class="pad"></span>' + (c === null ? '<span class="bud" aria-hidden="true">+</span>' : flower(colors[c]));
+            button.dataset.content = contentKey;
+          }
+        });
+        document.getElementById('bloom-count').textContent = `${count} / 6`;
+        document.getElementById('progress').style.width = (count / 6 * 100) + '%';
+        document.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', count);
+        document.getElementById('scene-hint').textContent = paused ? 'The grove is resting.' : count === 6 ? 'A little light. A whole garden.' : state.light === 3 ? 'Touch a lily pad marked + to make it bloom.' : 'Tap the little lights drifting above the water.';
+      }
+      function setPaused(value) {
+        paused = value; document.body.classList.toggle('paused', paused);
+        document.getElementById('pause').textContent = paused ? 'Resume grove' : 'Pause grove';
+        document.getElementById('pause').setAttribute('aria-pressed', String(paused));
+        lights.forEach(button => { button.disabled = paused || timers.has(button); });
+        render();
+      }
+      document.getElementById('pause').addEventListener('click', () => { setPaused(!paused); say(paused ? 'Rest a moment. Your garden will wait.' : 'Welcome back. The pond is yours.'); });
+      document.querySelectorAll('.color').forEach(button => button.addEventListener('click', () => { state.color = Number(button.dataset.color); render(); save(); }));
+      document.getElementById('new-night').addEventListener('click', () => {
+        timers.forEach(timer => clearTimeout(timer)); timers.clear();
+        state = { flowers: Array(6).fill(null), light: 0, color: state.color, night: state.night + 1 };
+        setPaused(false); save(); say('A fresh night, a quiet pond. Gather your first little light.');
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { resumeAfterHidden = !paused; setPaused(true); }
+        else if (resumeAfterHidden) { setPaused(false); resumeAfterHidden = false; }
+      });
+      render();
+      if (state.flowers.every(c => c !== null)) say('Welcome back. Your whole pond is in bloom. Stay a while, or begin a new night.');
+      else if (state.light === 3) say('Your gathered light is ready. Choose an empty lily pad.');
+      else if (state.flowers.some(c => c !== null)) say('Welcome back. Your blossoms are just as you left them.');
+    })();
+  </script>
+</body>
+</html>

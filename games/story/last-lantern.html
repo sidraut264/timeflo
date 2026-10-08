@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101c27">
+  <title>The Last Lantern — Timeflo</title>
+  <style>
+    :root { color-scheme: dark; --ink: #f4ecda; --muted: #a5b3b6; --gold: #edc68c; --line: rgba(196, 211, 210, .14); --panel: #13232e; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: radial-gradient(ellipse at 12% 0%, #24373d 0, #0f1b25 48%, #0c171f 100%); font: 15px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor: pointer; }
+    button:disabled { cursor: default; opacity: .42; }
+    a { color: inherit; text-decoration: none; }
+    button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
+    [hidden] { display: none !important; }
+    .shell { width: min(1220px, calc(100% - 64px)); margin: auto; padding: 27px 0 36px; }
+    .topline { display: flex; justify-content: space-between; align-items: center; color: #b4c0c2; font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; }
+    .back { display: inline-flex; gap: 10px; align-items: center; padding: 6px 0; }
+    .back:hover { color: var(--gold); }
+    .top-right { display: flex; gap: 24px; align-items: center; }
+    .restart { border: 0; padding: 7px 0; background: none; color: #b4c0c2; font-size: 11px; letter-spacing: 1px; }
+    .restart:hover { color: var(--gold); }
+    .masthead { display: flex; justify-content: space-between; align-items: end; margin: 32px 0 23px; gap: 20px; }
+    .eyebrow { color: var(--gold); font-size: 10px; font-weight: 650; letter-spacing: 2.6px; text-transform: uppercase; }
+    h1, h2, .quote { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
+    h1 { font-size: clamp(32px, 4.2vw, 50px); letter-spacing: -1.5px; line-height: 1.15; margin: 7px 0 0; }
+    .edition { color: #8fa3aa; font-size: 11px; padding-bottom: 3px; text-align: right; line-height: 1.8; }
+    .game { display: grid; grid-template-columns: 1.1fr 1fr; border: 1px solid var(--line); border-radius: 19px; overflow: hidden; background: #12222c; box-shadow: 0 30px 90px #020b1330; }
+    .world { position: relative; display: flex; flex-direction: column; min-height: 515px; background: #162d39; overflow: hidden; }
+    .art { position: relative; flex: 1; min-height: 395px; overflow: hidden; }
+    .art > svg { position: absolute; width: 100%; height: 100%; inset: 0; object-fit: cover; }
+    .art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #11243312 45%, #102330a6); pointer-events: none; }
+    .place-label { position: absolute; z-index: 1; left: 29px; top: 25px; display: flex; align-items: center; gap: 10px; color: #d2dedc; font-size: 10px; letter-spacing: 1.7px; text-transform: uppercase; }
+    .place-label::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 12px #f4c88880; }
+    .scene-caption { position: absolute; z-index: 1; left: 29px; bottom: 27px; right: 20px; }
+    .quote { font-size: 23px; line-height: 1.35; color: #e8e3d7; }
+    .scene-caption small { display: block; margin-top: 7px; color: #9bb0b9; letter-spacing: 1.2px; font-size: 9px; text-transform: uppercase; }
+    .map { display: flex; justify-content: space-between; padding: 18px 18px 17px; background: #10202be8; border-top: 1px solid #d1e0e00c; gap: 2px; }
+    .map button { position: relative; flex: 1; background: transparent; border: 0; color: #91a5ae; font-size: 9px; padding: 7px 2px; letter-spacing: .4px; line-height: 1.5; border-radius: 6px; }
+    .map button span { display: block; font-size: 19px; line-height: 1.2; margin-bottom: 7px; font-weight: 300; }
+    .map button:hover:enabled { background: #d1c7a70a; color: var(--gold); }
+    .map button[aria-current="location"] { color: var(--gold); background: #edc68c09; }
+    .map button[aria-current="location"]::after { content: ""; position: absolute; bottom: 0; left: calc(50% - 8px); width: 16px; height: 1px; background: var(--gold); }
+    .story { padding: 33px 36px 26px; display: flex; flex-direction: column; min-width: 0; }
+    .chapter { font-size: 10px; letter-spacing: 2.2px; color: var(--gold); text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
+    .chapter::before { content: ""; display: block; height: 1px; width: 24px; background: #e2c19660; }
+    h2 { font-size: 31px; line-height: 1.2; margin: 16px 0 15px; letter-spacing: -.5px; outline: none; }
+    .prose { color: #bbc6c7; font-size: 14px; line-height: 1.85; }
+    .prose p { margin: 0 0 12px; }
+    .prose em { color: #ebdeca; font-style: normal; }
+    .choices { margin-top: auto; padding-top: 14px; display: grid; gap: 9px; }
+    .choice { width: 100%; display: flex; align-items: center; gap: 13px; text-align: left; background: #1d303a; color: #ede7dc; border: 1px solid #d0d7cf1c; border-radius: 8px; min-height: 58px; padding: 11px 14px; transition: background .18s, border-color .18s, transform .18s; }
+    .choice:hover { background: #283d45; border-color: #d6b47a80; transform: translateX(2px); }
+    .choice.primary { background: #dfba80; color: #1f2d32; border-color: #dfba80; }
+    .choice.primary:hover { background: #edcd9a; }
+    .choice-num { font-size: 10px; font-weight: 500; opacity: .58; border: 1px solid currentColor; border-radius: 4px; width: 22px; height: 23px; display: grid; place-items: center; flex-shrink: 0; }
+    .choice-copy { flex: 1; font-size: 12px; font-weight: 600; line-height: 1.5; }
+    .choice-copy small { display: block; font-size: 10px; font-weight: 400; opacity: .72; }
+    .choice-arrow { font-size: 18px; opacity: .7; }
+    .keys { font-size: 9px; color: #8499a3; letter-spacing: .5px; margin: 15px 0 0; text-align: center; }
+    .notebook { display: grid; grid-template-columns: 1.1fr 1fr; gap: 30px; padding: 25px 4px 0; }
+    .objective-label { display: flex; gap: 9px; align-items: center; color: #8da2ab; font-size: 9px; text-transform: uppercase; letter-spacing: 1.7px; }
+    .objective-label svg { width: 13px; height: 13px; }
+    .objective-text { font-size: 12px; color: #c8d0ce; margin: 6px 0 10px; }
+    .steps { display: flex; gap: 7px; }
+    .step { height: 3px; flex: 1; max-width: 67px; background: #29414a; border-radius: 2px; }
+    .step.done { background: var(--gold); }
+    .satchel { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; min-height: 35px; margin-top: 7px; }
+    .item { font-size: 10px; border: 1px solid #e5d1ad25; border-radius: 5px; color: #d2be9c; padding: 5px 9px; background: #ecb46105; }
+    .empty { color: #738b98; font-size: 11px; }
+    .journal { margin-top: 25px; border-top: 1px solid var(--line); padding-top: 15px; color: #a6b5b8; font-size: 12px; }
+    .journal summary { cursor: pointer; color: #9cafb5; font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; padding: 3px 0; }
+    .journal ol { margin: 15px 0 0; padding-left: 21px; display: grid; gap: 8px; }
+    .journal li::marker { color: #aa9676; }
+    .foot { display: flex; justify-content: space-between; gap: 15px; color: #6f8793; font-size: 10px; margin-top: 23px; }
+    .scene-detail { opacity: 0; transition: opacity .7s ease; }
+    [data-place="square"] .square-detail, [data-place="workshop"] .workshop-detail, [data-place="orchard"] .orchard-detail, [data-place="dock"] .dock-detail, [data-place="tower"] .tower-detail, [data-place="dawn"] .dawn-detail, [data-place="home"] .home-detail { opacity: 1; }
+    .lantern-glow { animation: breathe 4s ease-in-out infinite; }
+    .spark { animation: drift 7s ease-in-out infinite; }
+    .spark:nth-of-type(2n) { animation-delay: -3s; }
+    .beam { opacity: 0; transition: opacity 1s; }
+    [data-place="dawn"] .beam { opacity: 1; }
+    .house-light { transition: fill 1s; }
+    [data-place="home"] .house-light { fill: #f2c177; }
+    @keyframes breathe { 50% { opacity: .6; } }
+    @keyframes drift { 50% { transform: translate(5px, -12px); opacity: .35; } }
+    @media (max-width: 800px) {
+      .shell { width: min(650px, calc(100% - 34px)); padding-top: 17px; }
+      .masthead { margin: 21px 0 20px; }
+      .game { grid-template-columns: 1fr; }
+      .world { min-height: 330px; }
+      .art { min-height: 260px; }
+      .art > svg { top: -40%; height: 150%; }
+      .place-label { top: 19px; left: 23px; }
+      .scene-caption { left: 23px; bottom: 20px; }
+      .quote { font-size: 21px; }
+      .map { padding: 8px 12px; }
+      .map button { min-height: 54px; }
+      .map button span { margin-bottom: 3px; font-size: 16px; }
+      .story { padding: 27px 26px 24px; min-height: 415px; }
+      .notebook { gap: 25px; }
+      .edition { display: none; }
+      .top-right { gap: 16px; }
+    }
+    @media (max-width: 420px) {
+      .shell { width: calc(100% - 26px); }
+      .topline { font-size: 9px; letter-spacing: 1px; }
+      .top-right > span { display: none; }
+      .story { padding: 25px 21px; }
+      h2 { font-size: 28px; }
+      .notebook { grid-template-columns: 1fr; gap: 20px; }
+      .foot { font-size: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topline">
+      <a class="back" href="../../arcade.html"><span aria-hidden="true">←</span> Back to arcade</a>
+      <div class="top-right"><span>A Timeflo short story</span><button class="restart" id="restart" hidden>Start over ↺</button></div>
+    </header>
+    <div class="masthead">
+      <div><div class="eyebrow">A small light. A long way home.</div><h1>The Last Lantern</h1></div>
+      <div class="edition">AN INTERACTIVE TALE<br>5–10 minutes · Two endings</div>
+    </div>
+    <div class="game">
+      <section class="world" aria-label="Illustration of the island" id="world" data-place="square">
+        <div class="art">
+          <div class="place-label" id="placeLabel">The sleeping village</div>
+          <svg viewBox="0 0 620 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <defs>
+              <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#142734"/><stop offset=".7" stop-color="#34464a"/><stop offset="1" stop-color="#64706a"/></linearGradient>
+              <linearGradient id="sea" x2="0" y2="1"><stop stop-color="#3c555b"/><stop offset="1" stop-color="#132d3b"/></linearGradient>
+              <linearGradient id="hill" x2=".6" y2="1"><stop stop-color="#273d43"/><stop offset="1" stop-color="#101e29"/></linearGradient>
+              <radialGradient id="glow"><stop stop-color="#ffd18b" stop-opacity=".42"/><stop offset=".4" stop-color="#eab476" stop-opacity=".13"/><stop offset="1" stop-color="#edbd7c" stop-opacity="0"/></radialGradient>
+              <linearGradient id="ray"><stop stop-color="#ffe1a4" stop-opacity=".42"/><stop offset="1" stop-color="#ffe1a4" stop-opacity="0"/></linearGradient>
+              <linearGradient id="glass" x2="0" y2="1"><stop stop-color="#efd19a"/><stop offset="1" stop-color="#bd8248"/></linearGradient>
+              <filter id="moonBlur"><feGaussianBlur stdDeviation="8"/></filter>
+            </defs>
+            <rect width="620" height="500" fill="url(#sky)"/>
+            <circle cx="399" cy="93" r="47" fill="#dfd8b7" opacity=".04" filter="url(#moonBlur)"/>
+            <circle cx="399" cy="93" r="23" fill="#d2d4b9"/>
+            <circle cx="410" cy="85" r="23" fill="#20323c"/>
+            <g fill="#d4d4bd" opacity=".6"><circle cx="82" cy="89" r="1"/><circle cx="155" cy="47" r="1.2"/><circle cx="241" cy="114" r="1"/><circle cx="306" cy="49" r=".8"/><circle cx="512" cy="78" r="1"/><circle cx="555" cy="146" r=".7"/><circle cx="64" cy="158" r=".7"/><circle cx="331" cy="156" r="1"/><circle cx="476" cy="40" r=".8"/></g>
+            <path d="M0 249L43 203 105 224 155 196 205 231 253 204 323 259Z" fill="#273d46"/>
+            <path d="M0 267Q157 246 329 256T620 251V500H0Z" fill="url(#sea)"/>
+            <g stroke="#97b0ad" stroke-width="1" opacity=".17"><path d="M339 277h78m23 0h42M302 297h112m26 0h79M373 314h57m15 0h100M374 334h135M447 353h75M431 376h67M470 397h80"/></g>
+            <g class="beam"><path d="M492 192L0 109V218Z" fill="url(#ray)"/><path d="M492 192L620 168V209Z" fill="#f9d599" opacity=".15"/></g>
+            <path d="M0 310Q47 265 110 291Q172 309 218 278Q281 251 333 289Q386 286 422 264L461 246 496 251 547 289 620 283V500H0Z" fill="url(#hill)"/>
+            <path d="M466 257Q415 271 375 325T271 380Q222 395 220 500H271Q256 431 294 405T403 336Q431 290 489 267Z" fill="#67716a" opacity=".24"/>
+            <g id="village">
+              <path d="M39 310V277L66 257 98 277V316Z" fill="#1b3039"/><path d="M30 280L66 252 105 280" fill="none" stroke="#102632" stroke-width="7"/>
+              <rect class="house-light" x="57" y="285" width="10" height="14" fill="#60746d"/>
+              <path d="M121 306V268L153 247 180 268V309Z" fill="#23353c"/><path d="M112 271L153 241 187 270" fill="none" stroke="#102632" stroke-width="7"/>
+              <rect class="house-light" x="138" y="276" width="11" height="14" fill="#778072"/>
+              <path d="M208 305V285L232 268 255 285V307Z" fill="#21383e"/><path d="M201 287L232 262 262 287" fill="none" stroke="#122a34" stroke-width="6"/>
+              <rect class="house-light" x="225" y="287" width="9" height="12" fill="#60746d"/>
+            </g>
+            <g id="lighthouse"><path d="M469 254L480 195H503L514 258Z" fill="#849088"/><path d="M491 196H503L514 258 498 255Z" fill="#536769"/><path d="M476 195V181H507V195Z" fill="#102733"/><path d="M472 181L492 166 511 181Z" fill="#1a303a"/><rect x="482" y="183" width="19" height="10" rx="1" fill="#a8b2a0" opacity=".4"/><rect x="486" y="238" width="10" height="18" rx="5" fill="#203945"/><path d="M470 199H514M467 258H517" stroke="#263e47" stroke-width="4"/></g>
+            <path d="M0 398Q112 350 213 394T411 409Q494 391 620 421V500H0Z" fill="#102530"/>
+            <g class="scene-detail square-detail">
+              <path d="M96 402L109 327H122L132 402Z" fill="#32434a"/><ellipse cx="114" cy="327" rx="20" ry="6" fill="#48585a"/><path d="M93 320Q114 314 135 320L131 328H98Z" fill="#2e434b"/><path d="M110 316V299Q114 289 118 299V316" fill="none" stroke="#526363" stroke-width="3"/>
+              <path d="M294 427v-47q-6-22-20-22t-20 22v47" fill="#263c43"/><circle cx="274" cy="349" r="9" fill="#738578"/><path d="M263 342q10-15 22 2" fill="#394c50"/>
+            </g>
+            <g class="scene-detail workshop-detail">
+              <path d="M53 413V324L147 280 229 322V421Z" fill="#263d44"/><path d="M43 328L147 274 241 326" fill="none" stroke="#112632" stroke-width="12"/>
+              <rect x="78" y="342" width="51" height="47" rx="2" fill="#d0a46b"/><path d="M103 342v47m-25-23h51" stroke="#465050" stroke-width="5"/><rect x="160" y="342" width="42" height="75" rx="3" fill="#182e38"/><circle cx="168" cy="380" r="2" fill="#c3a06d"/><path d="M174 293v-42h18v50" fill="#293d44"/>
+              <circle class="lantern-glow" cx="103" cy="365" r="80" fill="url(#glow)"/>
+            </g>
+            <g class="scene-detail orchard-detail">
+              <path d="M115 420l12-128m-8 74-33-46m38 28 42-47m-41 18-8-41M221 414l-4-99m3 53-38-37m35 20 31-29" fill="none" stroke="#415451" stroke-width="9"/>
+              <g fill="#344c4b"><circle cx="95" cy="307" r="34"/><circle cx="136" cy="279" r="37"/><circle cx="169" cy="310" r="30"/><circle cx="187" cy="319" r="25"/><circle cx="226" cy="303" r="33"/><circle cx="257" cy="328" r="24"/></g>
+              <g fill="#d9b376" class="lantern-glow"><circle cx="88" cy="311" r="4"/><circle cx="119" cy="282" r="4"/><circle cx="144" cy="300" r="3"/><circle cx="163" cy="325" r="4"/><circle cx="208" cy="314" r="3"/><circle cx="237" cy="299" r="4"/><circle cx="254" cy="333" r="3"/></g>
+              <path d="M156 403h28l-4 19h-20Z" fill="#8c7757"/>
+            </g>
+            <g class="scene-detail dock-detail">
+              <path d="M48 385H249L280 400H39Z" fill="#61706a"/><path d="M65 396v40m45-40v45m106-45v42" stroke="#364c50" stroke-width="8"/><path d="M92 337l21-17 22 17v47H92Z" fill="#4d6663"/><circle cx="113" cy="311" r="10" fill="#b5ab8d"/><path d="M98 305q15-19 29 1" fill="#8c8067"/>
+              <path d="M292 395h105l-18 22h-62Z" fill="#6b7365"/><path d="M342 393v-45l27 41" fill="none" stroke="#81918a" stroke-width="3"/>
+            </g>
+            <g class="scene-detail tower-detail"><path d="M68 424l70-166h89l69 166Z" fill="#64736e"/><path d="M185 258h42l69 166h-86Z" fill="#425b5d"/><path d="M122 265v-41h126v41Z" fill="#1d3642"/><path d="M107 223l78-42 78 42Z" fill="#243e48"/><path d="M133 258v-28m25 28v-28m27 28v-28m27 28v-28m23 28v-28" stroke="#728983" stroke-width="4"/><path d="M159 423v-61q24-26 48 0v61Z" fill="#172f3c"/></g>
+            <g class="scene-detail dawn-detail"><circle cx="493" cy="190" r="81" fill="url(#glow)"/><rect x="482" y="183" width="19" height="10" rx="1" fill="#ffda96"/><path d="M291 335h62l-10 12h-40Zm58-41h37l-6 7h-24Z" fill="#b1b7a0"/><path d="M320 335v-19m47-23v-11" stroke="#b1b7a0" stroke-width="2"/></g>
+            <g class="scene-detail home-detail"><g fill="#a9ad92"><circle cx="132" cy="375" r="8"/><circle cx="180" cy="360" r="8"/><circle cx="226" cy="379" r="7"/><circle cx="267" cy="363" r="8"/></g><g fill="#53695f"><path d="M116 416v-24q16-21 32 0v24Z"/><path d="M164 406v-29q16-21 32 0v29Z"/><path d="M212 421v-26q14-18 28 0v26Z"/><path d="M251 411v-29q16-21 32 0v29Z"/></g><g fill="#f8cc7e"><circle cx="153" cy="388" r="4"/><circle cx="202" cy="379" r="4"/><circle cx="244" cy="393" r="4"/><circle cx="287" cy="383" r="4"/></g><circle cx="214" cy="379" r="110" fill="url(#glow)"/></g>
+            <g transform="translate(395 350)">
+              <ellipse cx="40" cy="97" rx="55" ry="12" fill="#081a22" opacity=".6"/>
+              <circle class="lantern-glow" cx="40" cy="42" r="105" fill="url(#glow)"/>
+              <path d="M27 5v-15q13-17 26 0V5" fill="none" stroke="#ab946f" stroke-width="4"/>
+              <path d="M20 16L24 6H56L60 16Z" fill="#bb9c6d"/><path d="M22 21H58L64 81H16Z" fill="url(#glass)"/>
+              <path d="M28 25h24l4 48H24Z" fill="#edbe7b"/><path d="M41 38q-18 28-3 29 16-3 3-29" fill="#ffe6ae" class="lantern-glow"/>
+              <path d="M19 19l-5 64m47-64 5 64M19 20h43M15 82h50" fill="none" stroke="#a38967" stroke-width="4"/><path d="M13 86H67L71 95H9Z" fill="#a9916d"/><path d="M33 83V23m17 60V23" stroke="#987c5a" stroke-width="2" opacity=".65"/>
+            </g>
+            <g fill="#e7bd7a"><circle class="spark" cx="360" cy="352" r="1.4"/><circle class="spark" cx="462" cy="315" r="1"/><circle class="spark" cx="407" cy="293" r="1.2"/><circle class="spark" cx="306" cy="399" r="1"/></g>
+            <path d="M0 474q75-30 132 26H0Zm498 26q56-42 122-20v20Z" fill="#0c1c27"/>
+          </svg>
+          <div class="scene-caption"><div class="quote" id="sceneQuote">Even the smallest light<br>can be a way home.</div><small id="sceneSub">Briar Island · The night before dawn</small></div>
+        </div>
+        <nav class="map" aria-label="Travel around Briar Island" id="map">
+          <button data-travel="square" disabled><span aria-hidden="true">⌂</span>Village</button>
+          <button data-travel="workshop" disabled><span aria-hidden="true">⚒</span>Workshop</button>
+          <button data-travel="orchard" disabled><span aria-hidden="true">♧</span>Orchard</button>
+          <button data-travel="dock" disabled><span aria-hidden="true">≈</span>Docks</button>
+          <button data-travel="tower" disabled><span aria-hidden="true">♜</span>Lighthouse</button>
+        </nav>
+      </section>
+      <section class="story" aria-label="Your story">
+        <div class="chapter" id="chapter">Prologue · The keeping of a promise</div>
+        <h2 id="storyHeading" tabindex="-1">One light remains.</h2>
+        <div class="prose" id="prose"></div>
+        <div class="choices" id="choices" aria-label="Choose what happens next"></div>
+        <p class="keys">Click a choice or press its number · Take your time</p>
+      </section>
+    </div>
+    <div class="notebook">
+      <section aria-label="Current objective">
+        <div class="objective-label"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 3h12v15l-6-4-6 4Z" stroke="currentColor"/></svg>Your next step</div>
+        <p class="objective-text" id="objective">Carry the island’s last flame to the lighthouse.</p>
+        <div class="steps" aria-hidden="true"><span class="step"></span><span class="step"></span><span class="step"></span><span class="step"></span></div>
+      </section>
+      <section aria-label="Your inventory"><div class="objective-label">In your satchel</div><div class="satchel" id="satchel"><span class="item">◈ Last lantern</span></div></section>
+    </div>
+    <details class="journal" id="journal"><summary>Field notes <span id="noteCount">(0)</span></summary><ol id="notes"></ol></details>
+    <footer class="foot"><span id="saveStatus">Your journey saves on this device.</span><span id="endingsCount">0 / 2 endings discovered</span></footer>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const SAVE_KEY = 'timeflo-last-lantern-v1';
+      const ENDINGS_KEY = 'timeflo-last-lantern-endings-v1';
+      const $ = id => document.getElementById(id);
+      const travelPlaces = ['square', 'workshop', 'orchard', 'dock', 'tower'];
+      const itemNames = { wick: '⌁ Copper-thread wick', oil: '◌ Amber oil', lens: '◇ Sea-glass lens', song: '♫ The homeward song' };
+      const fresh = () => ({ version: 1, node: 'square', items: [], notes: ['The lighthouse has gone dark. Find a wick and lamp oil, then climb the tower.'], visited: ['square'], ended: false });
+      let state = fresh();
+      let active = false;
+      let storageAvailable = true;
+      let saved = null;
+      let endings = [];
+      let activeChoices = [];
+      const has = item => state.items.includes(item);
+      function note(message) { if (!state.notes.includes(message)) state.notes.push(message); }
+      function collect(item, message) { if (!has(item)) state.items.push(item); note(message); }
+      const placeInfo = {
+        square: ['The sleeping village', 'Every window holds a story.', 'Briar Island · Village square'],
+        workshop: ['The keeper’s workshop', 'Some promises are made by hand.', 'Briar Island · The old workshop'],
+        orchard: ['The silverleaf orchard', 'The earth remembers the sunlight.', 'Briar Island · Silverleaf grove'],
+        dock: ['The quiet docks', 'No one crosses the dark alone.', 'Briar Island · The eastern shore'],
+        tower: ['The lighthouse', 'What is a light for?', 'Briar Island · Above the tide'],
+        dawn: ['The horizon wakes', 'A light for those still finding home.', 'Ending I · The far light'],
+        home: ['The village wakes', 'A little light, in every hand.', 'Ending II · A thousand small suns']
+      };
+      const choice = (label, target, hint = '', effect = null) => ({ label, target, hint, effect });
+      const nodes = {
+        intro: () => ({ place: 'square', chapter: 'Prologue · The keeping of a promise', title: 'One light remains.',
+          text: ['Tonight, every lamp on Briar Island went dark. Every lamp except the little lantern your grandmother left in your care.', 'Out beyond the reef, fishing boats are waiting for the lighthouse. In the village, people are waiting for morning.', '<em>You have one flame. What will you do with it?</em>'],
+          choices: [ ...(saved ? [choice(saved.ended ? 'Return to your ending' : 'Continue your journey', 'continue', 'Pick up where you left off')] : []), choice(saved ? 'Begin a new story' : 'Take up the lantern', 'new', 'Explore the island. Find what the lighthouse needs.') ] }),
+        square: () => ({ place: 'square', chapter: 'Chapter I · Gather a little light', title: 'The village holds its breath.',
+          text: ['The fountain is silent. Beyond the rooftops, the lighthouse is a pale finger pointing into an empty sky.', has('wick') && has('oil') ? 'Your satchel holds a fresh wick and amber oil. You have everything the old lamp needs. There is still time to visit the docks before you climb.' : 'A note in your grandmother’s handwriting is tucked into the lantern: <em>“A copper-thread wick from my workshop. Amber oil from the orchard. And remember to listen.”</em>', 'Three paths leave the square. The island is small; you can always come back.'],
+          choices: [choice('Visit the keeper’s workshop', 'workshop', has('wick') ? 'The old keeper’s bench' : 'Look for a fresh wick'), choice('Follow the orchard path', 'orchard', has('oil') ? 'Under the silverleaf trees' : 'Find the amber oil'), choice(has('wick') && has('oil') ? 'Climb to the lighthouse' : 'Walk down to the docks', has('wick') && has('oil') ? 'tower' : 'dock', has('wick') && has('oil') ? 'Your lantern is ready' : 'Someone is still awake')] }),
+        workshop: () => ({ place: 'workshop', chapter: 'Chapter I · The keeper’s hands', title: 'A room that remembers.',
+          text: ['The door opens with its familiar sigh. Tools hang neatly above the workbench. Your grandmother’s coat is still on its peg.', has('wick') ? 'The spool rests open where you left it. You run your fingers along the marks in the wood: a lifetime of small repairs.' : 'In a blue tin, you find a spool of copper-thread wick. Beside it lies a letter addressed simply: <em>“To the next keeper.”</em>'],
+          choices: [ ...(!has('wick') ? [choice('Take the wick and read the letter', 'letter', 'A little patience, woven into thread', () => collect('wick', 'Found a copper-thread wick in the keeper’s workshop.'))] : [choice('Read the keeper’s letter again', 'letter')]), choice('Return to the village', 'square', 'Follow another path')] }),
+        letter: () => ({ place: 'workshop', chapter: 'A letter from the keeper', title: '“A flame is a beginning.”',
+          text: ['<em>“My dear, the tower was never the important part. It was the promise it made: there is a shore, and someone is waiting for you.”</em>', '<em>“You may keep that promise from a tower. You may keep it from a doorstep. Do not confuse the lamp with the light.”</em>', 'You fold the letter carefully. The wick feels warm in your pocket.'],
+          choices: [choice(has('oil') ? 'Carry on to the docks' : 'Find oil in the orchard', has('oil') ? 'dock' : 'orchard', has('oil') ? 'See who is still awake' : 'The second thing your lantern needs'), choice('Return to the village', 'square')] }),
+        orchard: () => ({ place: 'orchard', chapter: 'Chapter I · Sunlight in a bottle', title: 'The silverleaf grove.',
+          text: ['Pale leaves turn in the salt wind. Beneath them, amber fruit hangs like a constellation low enough to touch.', has('oil') ? 'The oil press stands quiet. You have taken only what you need; the trees keep the rest of their light.' : 'The orchard’s old hand press is full of ripe fruit. Beside it waits a clean little bottle. Your grandmother always said this oil burned like a summer afternoon.'],
+          choices: [ ...(!has('oil') ? [choice('Press the fruit into lamp oil', 'oil', 'Fill the bottle for your lantern', () => collect('oil', 'Pressed amber oil from the orchard’s fallen fruit.'))] : [choice('Listen to the wind in the leaves', 'leaves')]), choice('Return to the village', 'square')] }),
+        oil: () => ({ place: 'orchard', chapter: 'A little warmth for the road', title: 'Summer, saved for later.',
+          text: ['The handle turns slowly. Golden oil gathers drop by drop until the bottle shines in your hand.', 'You fill the lantern’s reservoir. Its flame straightens, steady and bright. From the eastern shore comes a faint sound: someone singing to the sea.', has('wick') ? '<em>With oil and a new wick, you can relight the lighthouse. But you wonder who is singing.</em>' : '<em>Now you need the copper-thread wick from the workshop.</em>'],
+          choices: [choice('Follow the song to the docks', 'dock', 'Find the voice on the shore'), choice(has('wick') ? 'Climb to the lighthouse' : 'Visit the keeper’s workshop', has('wick') ? 'tower' : 'workshop')] }),
+        leaves: () => ({ place: 'orchard', chapter: 'A moment between footsteps', title: 'Nothing is asking you to hurry.',
+          text: ['The leaves whisper against each other. Far away, water taps the hull of a boat.', 'For a moment, you let the island carry the silence for you. Then you lift the lantern and find the path again.'],
+          choices: [choice('Walk down to the docks', 'dock'), choice('Return to the village', 'square')] }),
+        dock: () => ({ place: 'dock', chapter: 'Chapter II · Someone is waiting', title: 'The ferrykeeper’s song.',
+          text: ['Mara sits beside a boat with a torn mooring line. She is singing an old song, the one people used to sing when the fishing fleet came home.', has('song') ? 'She smiles when you hum the next line. “I have asked the neighbours to meet us by the water. Whatever you decide, you will not be alone.”' : '“The fleet is close,” she says. “But fog swallows the shore. Help me tie this line, and I will help you call them home.”', has('lens') ? 'The sea-glass lens is safe in your satchel, ready to carry the lighthouse beam beyond the reef.' : 'A sea-glass lens hangs from her boat. “You may borrow that, too. It will make the tower’s light reach farther.”'],
+          choices: [ ...(!has('song') ? [choice('Help Mara mend the mooring', 'song', 'Stay a while. Learn the homeward song.', () => collect('song', 'Helped Mara at the docks. She will gather the village; we can guide the fleet with our song.'))] : []), ...(!has('lens') ? [choice('Borrow the sea-glass lens', 'lens', 'Strengthen the lighthouse beam', () => collect('lens', 'Mara lent me a sea-glass lens, strong enough to reach the outer reef.'))] : []), choice(has('wick') && has('oil') ? 'Take the path to the lighthouse' : 'Return to the village', has('wick') && has('oil') ? 'tower' : 'square', has('wick') && has('oil') ? 'Decide where your light belongs' : 'Gather the remaining supplies')] }),
+        song: () => ({ place: 'dock', chapter: 'A kindness, answered', title: 'You remember the words.',
+          text: ['Together, you braid the loose rope into a sturdy knot. Mara sings the first line. You find the second without trying.', '<em>“Follow the shore, follow the sound. The ones who love you can still be found.”</em>', '“There is another way,” she says. “We could share your flame between the village lamps. A line of lights along the beach. I will bring the people; you bring the dawn.”'],
+          choices: [choice('Thank Mara and return to the dock', 'dock', has('lens') ? 'Your friend will be ready' : 'The sea-glass lens is still there'), choice(has('wick') && has('oil') ? 'Climb to the lighthouse' : 'Return to the village', has('wick') && has('oil') ? 'tower' : 'square')] }),
+        lens: () => ({ place: 'dock', chapter: 'A window through the weather', title: 'A piece of the sea.',
+          text: ['Mara lifts the lens from its hook. It is green at the edges, clear at its heart.', '“My father ground this glass,” she says. “He said a good light should reach the person who needs it most.”', has('song') ? 'She squeezes your shoulder. The neighbours will be waiting by the beach if you choose to bring your lantern home.' : 'Behind her, the damaged mooring rope knocks against the jetty. You could stay and help before you leave.'],
+          choices: [choice(has('song') ? 'Continue to the lighthouse' : 'Stay and help Mara', has('song') ? 'tower' : 'song', has('song') ? 'Follow the cliff path' : 'Learn the homeward song', has('song') ? null : () => collect('song', 'Helped Mara at the docks. She will gather the village; we can guide the fleet with our song.')), choice('Return to the village', 'square')] }),
+        tower: () => {
+          if (!has('wick') || !has('oil')) return { place: 'tower', chapter: 'The old lighthouse', title: 'A lamp still waiting.', text: ['The stairs curl upward into the dark. At the top, the great lamp stands cold and patient.', `Your little flame is ready, but the lamp still needs ${!has('wick') && !has('oil') ? '<em>a fresh wick and amber oil</em>' : !has('wick') ? '<em>a copper-thread wick</em>' : '<em>amber oil</em>'}. You can see the village paths from the window.`, 'There is time to fetch what you need.'], choices: [choice(!has('wick') ? 'Visit the keeper’s workshop' : 'Go to the orchard', !has('wick') ? 'workshop' : 'orchard'), choice('Return to the village', 'square')] };
+          return { place: 'tower', chapter: 'Chapter III · The promise you keep', title: 'Where should the light go?',
+            text: ['You set the oil and wick beside the great lamp. Below you, the village curls around the bay. Beyond it, unseen boats wait on the water.', has('lens') ? 'With Mara’s sea-glass lens, the beacon could reach all the way to the outer reef. The tower would guide distant travellers for years to come.' : 'The beacon could guide the fishing fleet through the inner channel. The tower would keep its old promise for another generation.', has('song') ? 'On the beach, Mara is gathering your neighbours. Share the flame with them, and a hundred little lamps will trace the shore while the homeward song carries across the water.' : 'You remember Mara’s song. If you want to find another way, you can still return to the docks and help her.', '<em>The flame is yours to give. This choice will finish your story.</em>'],
+            choices: [choice('Light the beacon', 'dawn', has('lens') ? 'Carry your light far beyond the reef' : 'Become the island’s next lighthouse keeper'), has('song') ? choice('Share the flame with the village', 'home', 'Let everyone become a keeper of the light') : choice('Return to Mara at the docks', 'dock', 'There may be another way')] };
+        },
+        dawn: () => ({ place: 'dawn', chapter: 'Ending I · The far light', title: 'And the sea answered.',
+          text: [has('lens') ? 'You fit the sea-glass lens into place. The flame becomes a golden road across the water, reaching beyond the reef to a ship that had almost given up on shore.' : 'You touch your flame to the waiting wick. The great lamp wakes, and its beam finds the fishing fleet in the inner channel.', 'One boat answers with a bell. Then another. By morning, the harbour is full of voices, and someone has left a warm loaf on the lighthouse steps.', has('song') ? 'Mara comes up the stairs, humming the homeward song. You leave a second chair beside the window. A keeper does not have to keep watch alone.' : 'You hang your grandmother’s coat beside your own. The lamp is lit. The promise is kept.', '<em>Some lights are there so that strangers can find their way home.</em>'],
+          choices: [choice('Tell the story another way', 'new', 'Begin again and discover a different ending'), choice('Return to the arcade', 'arcade')] }),
+        home: () => ({ place: 'home', chapter: 'Ending II · A thousand small suns', title: 'No one held the dark alone.',
+          text: ['You carry the lantern down the stairs. On the beach, Mara holds out an empty lamp. You touch your flame to its wick. Then she turns to her neighbour.', 'Light passes from hand to hand until the whole shore glows. You begin the old song. A hundred voices join you, and across the water the fishing fleet answers.', 'The tower stays dark that night. The island does not. By morning, every boat is home, and no one calls any one person the keeper.', '<em>A flame shared is not a smaller flame. It is a beginning.</em>'],
+          choices: [choice('Tell the story another way', 'new', 'Begin again and discover a different ending'), choice('Return to the arcade', 'arcade')] }),
+        restart: () => ({ place: nodes[state.node]().place, chapter: 'A fresh page', title: 'Begin the journey again?', text: ['Your current journey will be replaced. The endings you have discovered will stay in your collection.'], choices: [choice('Keep my current journey', 'cancel'), choice('Begin a new story', 'new', 'Return to the village with a single flame')] })
+      };
+      function load() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+          const knownNodes = Object.keys(nodes).filter(n => !['intro', 'restart'].includes(n));
+          if (raw && raw.version === 1 && knownNodes.includes(raw.node) && Array.isArray(raw.items) && Array.isArray(raw.notes) && Array.isArray(raw.visited) && raw.items.every(i => Object.hasOwn(itemNames, i)) && raw.notes.every(n => typeof n === 'string') && raw.visited.every(v => travelPlaces.includes(v))) {
+            raw.ended = ['dawn', 'home'].includes(raw.node);
+            if (raw.node === 'home' && (!raw.items.includes('song') || !raw.items.includes('wick') || !raw.items.includes('oil'))) return;
+            if (raw.node === 'dawn' && (!raw.items.includes('wick') || !raw.items.includes('oil'))) return;
+            saved = raw;
+          }
+          const storedEndings = JSON.parse(localStorage.getItem(ENDINGS_KEY) || '[]');
+          if (Array.isArray(storedEndings)) endings = [...new Set(storedEndings.filter(e => ['dawn', 'home'].includes(e)))];
+        } catch (_) { storageAvailable = false; }
+      }
+      function save() {
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+          localStorage.setItem(ENDINGS_KEY, JSON.stringify(endings));
+          saved = JSON.parse(JSON.stringify(state));
+          storageAvailable = true;
+        } catch (_) { storageAvailable = false; }
+      }
+      function render(nodeId = state.node, focus = false) {
+        const data = nodes[nodeId]();
+        $('world').dataset.place = data.place;
+        $('placeLabel').textContent = placeInfo[data.place][0];
+        $('sceneQuote').textContent = placeInfo[data.place][1];
+        $('sceneSub').textContent = placeInfo[data.place][2];
+        $('chapter').textContent = data.chapter;
+        $('storyHeading').textContent = data.title;
+        $('prose').innerHTML = data.text.map(p => `<p>${p}</p>`).join('');
+        $('choices').replaceChildren();
+        activeChoices = data.choices;
+        data.choices.forEach((entry, index) => {
+          const button = document.createElement('button');
+          button.className = `choice${index === 0 ? ' primary' : ''}`;
+          button.dataset.choice = entry.target;
+          button.innerHTML = `<span class="choice-num" aria-hidden="true">${index + 1}</span><span class="choice-copy">${entry.label}${entry.hint ? `<small>${entry.hint}</small>` : ''}</span><span class="choice-arrow" aria-hidden="true">↗</span>`;
+          button.addEventListener('click', () => select(entry));
+          $('choices').append(button);
+        });
+        document.querySelectorAll('[data-travel]').forEach(button => {
+          button.disabled = !active || state.ended || nodeId === 'restart';
+          if (button.dataset.travel === data.place && active) button.setAttribute('aria-current', 'location');
+          else button.removeAttribute('aria-current');
+        });
+        $('restart').hidden = !active || nodeId === 'restart';
+        $('satchel').replaceChildren();
+        ['lantern', ...state.items].forEach(item => {
+          const chip = document.createElement('span'); chip.className = 'item'; chip.textContent = item === 'lantern' ? '◈ Last lantern' : itemNames[item]; $('satchel').append(chip);
+        });
+        const count = (active ? 1 : 0) + Number(has('wick')) + Number(has('oil')) + Number(state.ended);
+        document.querySelectorAll('.step').forEach((el, i) => el.classList.toggle('done', i < count));
+        $('objective').textContent = state.ended ? 'The promise is kept. Discover the other ending on a new journey.' : !active ? 'Carry the island’s last flame to the lighthouse.' : !has('wick') && !has('oil') ? 'Find a copper-thread wick and a bottle of amber oil.' : !has('wick') ? 'Find a copper-thread wick in the keeper’s workshop.' : !has('oil') ? 'Gather amber oil from the silverleaf orchard.' : 'Climb to the lighthouse and decide where your light belongs.';
+        $('notes').replaceChildren();
+        if (active) state.notes.forEach(message => { const li = document.createElement('li'); li.textContent = message; $('notes').append(li); });
+        $('noteCount').textContent = `(${active ? state.notes.length : 0})`;
+        $('saveStatus').textContent = storageAvailable ? active ? 'Journey saved · You can return any time.' : 'Your journey saves on this device.' : 'Saving unavailable · Your journey continues in this tab.';
+        $('endingsCount').textContent = `${endings.length} / 2 endings discovered`;
+        if (focus) $('storyHeading').focus({ preventScroll: true });
+      }
+      function go(node) {
+        state.node = node;
+        const place = nodes[node]().place;
+        if (travelPlaces.includes(place) && !state.visited.includes(place)) state.visited.push(place);
+        if (['dawn', 'home'].includes(node)) {
+          state.ended = true;
+          if (!endings.includes(node)) endings.push(node);
+          note(node === 'dawn' ? 'Lit the lighthouse. The fishing fleet found its way home.' : 'Shared the last flame. The village lit the shore and sang the fleet home.');
+        }
+        save(); render(node, true);
+      }
+      function select(entry) {
+        if (entry.target === 'arcade') { window.location.href = '../../arcade.html'; return; }
+        if (entry.target === 'cancel') { render(state.node, true); return; }
+        if (entry.target === 'new') { state = fresh(); active = true; go('square'); return; }
+        if (entry.target === 'continue') { state = JSON.parse(JSON.stringify(saved)); active = true; render(state.node, true); return; }
+        if (entry.effect) entry.effect();
+        go(entry.target);
+      }
+      $('restart').addEventListener('click', () => render('restart', true));
+      $('map').addEventListener('click', event => {
+        const button = event.target.closest('[data-travel]');
+        if (button && !button.disabled) go(button.dataset.travel);
+      });
+      document.addEventListener('keydown', event => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.repeat || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName)) return;
+        const n = Number(event.key);
+        if (n >= 1 && n <= activeChoices.length && /^\d$/.test(event.key)) { event.preventDefault(); select(activeChoices[n - 1]); }
+      });
+      load(); render('intro');
+    })();
+  </script>
+</body>
+</html>
