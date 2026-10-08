@@ -85,6 +85,7 @@ canvas:active { cursor: grabbing; }
 
 #settingsBtn { position: absolute; top: 18px; right: 18px; z-index: 12; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); background: var(--glass); color: var(--muted); font-size: 18px; cursor: pointer; pointer-events: auto; backdrop-filter: blur(20px); transition: color 0.2s; }
 #settingsBtn:hover { color: var(--text); }
+#settingsBtn { top: 86px; }
 #settingsPanel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 80; padding: 24px 28px; border-radius: 20px; min-width: 260px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 #settingsPanel.visible { opacity: 1; pointer-events: auto; }
 #settingsPanel h3 { font-size: 14px; font-weight: 700; letter-spacing: 2px; margin-bottom: 18px; }
@@ -98,6 +99,27 @@ canvas:active { cursor: grabbing; }
 .disc-name { font-size: 15px; font-weight: 700; margin-top: 3px; }
 
 #debug { position: fixed; top: 18px; left: 18px; z-index: 50; padding: 12px 16px; border-radius: 10px; background: rgba(0,0,0,0.75); font-family: monospace; color: #8f8; font-size: 11px; display: none; }
+#toast { position:fixed; left:50%; bottom:92px; z-index:30; transform:translate(-50%, 14px); padding:10px 16px; border-radius:12px; font-size:11px; letter-spacing:.5px; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; white-space:nowrap; }
+#toast.visible { opacity:1; transform:translate(-50%, 0); }
+#touchControls { display:none; position:fixed; left:20px; bottom:22px; z-index:25; width:126px; height:126px; border-radius:50%; pointer-events:auto; touch-action:none; }
+#touchStick { position:absolute; left:38px; top:38px; width:50px; height:50px; border-radius:50%; background:rgba(168,255,114,.3); border:1px solid rgba(200,255,170,.65); box-shadow:0 0 20px rgba(168,255,114,.15); }
+@media (max-width: 720px), (pointer: coarse) {
+  #touchControls { display:block; }
+  #controls { display:none; }
+  #location { margin-left:auto; min-width:160px; max-width:52vw; }
+  .brand-text .subtitle, .stat:first-child { display:none; }
+  .brand { padding:8px 10px; }
+  .brand-orb { width:24px; height:24px; }
+  .stat { min-width:52px; padding:7px 5px; }
+  #topbar { top:10px; left:10px; right:10px; align-items:flex-start; }
+  #settingsBtn { top:76px; right:10px; }
+  .back-btn { padding:8px !important; font-size:10px !important; }
+  #intro .intro-title { font-size:clamp(28px, 9vw, 42px); letter-spacing:3px; }
+  #intro .intro-tagline { font-size:13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
 </style>
 </head>
 <body>
@@ -129,6 +151,7 @@ canvas:active { cursor: grabbing; }
       <div class="stat glass"><div class="stat-val" id="uiFps">60</div><div class="stat-lbl">FPS</div></div>
       <div class="stat glass"><div class="stat-val" id="uiBiome">Meadow</div><div class="stat-lbl">BIOME</div></div>
       <div class="stat glass"><div class="stat-val" id="uiTime">☀</div><div class="stat-lbl">TIME</div></div>
+      <div class="stat glass"><div class="stat-val" id="uiRegions">0/12</div><div class="stat-lbl">FOUND</div></div>
     </div>
   </div>
   <div id="bottombar">
@@ -138,11 +161,14 @@ canvas:active { cursor: grabbing; }
 </div>
 
 <div id="discovery" class="glass"><div class="disc-tag">NEW REGION</div><div class="disc-name" id="discName"></div></div>
+<div id="toast" class="glass"></div>
+<div id="touchControls" class="glass" aria-label="Movement joystick"><div id="touchStick"></div></div>
 
-<button id="settingsBtn">⚙</button>
-<div id="settingsPanel" class="glass">
+<button id="settingsBtn" aria-label="Open settings" title="Settings">⚙</button>
+<div id="settingsPanel" class="glass" role="dialog" aria-label="Settings">
   <h3>SETTINGS</h3>
   <div class="setting-row"><span>Quality</span><select id="qualSelect"><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="ULTRA">Ultra</option></select></div>
+  <div class="setting-row"><span>Camera motion</span><input id="motionToggle" type="checkbox" checked></div>
   <button id="closeSettings">Close</button>
 </div>
 
@@ -763,8 +789,19 @@ let slimeX = 0, slimeZ = 0;
 let slimeYaw = 0; // facing angle
 let targetYaw = 0;
 let camYaw = 0, camPitch = 0.3; // camera orbit
-const keys = { forward:false, backward:false, left:false, right:false };
+const keys = { forward:false, backward:false, left:false, right:false, shift:false };
+const discoveredBiomes = new Set();
+let touchMoveX = 0, touchMoveZ = 0, cameraMotion = localStorage.getItem('sg_motion') !== 'off';
 let prevTime = performance.now();
+
+$('motionToggle').checked = cameraMotion;
+let toastTimer;
+function showToast(message) {
+  $('toast').textContent = message;
+  $('toast').classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('toast').classList.remove('visible'), 2200);
+}
 
 // Input
 function setKey(key, state) {
@@ -772,8 +809,14 @@ function setKey(key, state) {
   if (['s','S','ArrowDown'].includes(key)) keys.backward = state;
   if (['a','A','ArrowLeft'].includes(key)) keys.left = state;
   if (['d','D','ArrowRight'].includes(key)) keys.right = state;
+  if (key === 'Shift') keys.shift = state;
 }
-window.addEventListener('keydown', e => { setKey(e.key, true); if (e.key === 'F3') $('debug').style.display = $('debug').style.display === 'block' ? 'none' : 'block'; });
+window.addEventListener('keydown', e => {
+  if (['w','a','s','d','W','A','S','D','ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  setKey(e.key, true);
+  if (e.key === 'F3') $('debug').style.display = $('debug').style.display === 'block' ? 'none' : 'block';
+  if (e.key === 'Escape') $('settingsPanel').classList.remove('visible');
+});
 window.addEventListener('keyup', e => setKey(e.key, false));
 let dragging = false, lx = 0, ly = 0;
 canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); dragging = true; lx = e.clientX; ly = e.clientY; });
@@ -785,6 +828,23 @@ canvas.addEventListener('pointermove', e => {
 });
 function endTouch() { dragging = false; keys.forward = keys.backward = keys.left = keys.right = false; }
 canvas.addEventListener('pointerup', endTouch); canvas.addEventListener('pointercancel', endTouch);
+
+// Touch devices get movement and camera controls at the same time.
+const touchControls = $('touchControls'), touchStick = $('touchStick');
+function updateJoystick(e) {
+  const rect = touchControls.getBoundingClientRect();
+  let dx = e.clientX - (rect.left + rect.width / 2);
+  let dy = e.clientY - (rect.top + rect.height / 2);
+  const max = rect.width * .31, len = Math.hypot(dx, dy) || 1;
+  if (len > max) { dx *= max / len; dy *= max / len; }
+  touchStick.style.transform = `translate(${dx}px, ${dy}px)`;
+  touchMoveX = dx / max; touchMoveZ = dy / max;
+}
+touchControls.addEventListener('pointerdown', e => { e.stopPropagation(); touchControls.setPointerCapture(e.pointerId); updateJoystick(e); });
+touchControls.addEventListener('pointermove', e => { if (touchControls.hasPointerCapture(e.pointerId)) updateJoystick(e); });
+function resetJoystick() { touchMoveX = touchMoveZ = 0; touchStick.style.transform = ''; }
+touchControls.addEventListener('pointerup', resetJoystick);
+touchControls.addEventListener('pointercancel', resetJoystick);
 
 // Render Loop Variables
 const _fwd = new THREE.Vector3();
@@ -804,15 +864,23 @@ function animate(time) {
     if (keys.backward) { moveZ += Math.cos(camYaw); moveX += Math.sin(camYaw); }
     if (keys.left) { moveX -= Math.cos(camYaw); moveZ += Math.sin(camYaw); }
     if (keys.right) { moveX += Math.cos(camYaw); moveZ -= Math.sin(camYaw); }
+    if (touchMoveX || touchMoveZ) {
+      moveX += touchMoveX * Math.cos(camYaw) - touchMoveZ * Math.sin(camYaw);
+      moveZ += -touchMoveX * Math.sin(camYaw) + touchMoveZ * Math.cos(camYaw);
+    }
     
     if (moveX !== 0 || moveZ !== 0) {
       const len = Math.sqrt(moveX*moveX + moveZ*moveZ);
+      const inputStrength = Math.min(1, len);
       moveX /= len; moveZ /= len;
       targetYaw = Math.atan2(moveX, moveZ);
       
-      const spd = CFG.moveSpeed * dt;
+      const spd = CFG.moveSpeed * (keys.shift ? 1.55 : 1) * inputStrength * dt;
       slimeX += moveX * spd;
       slimeZ += moveZ * spd;
+      const edge = CFG.worldSize * .5 - 4;
+      slimeX = THREE.MathUtils.clamp(slimeX, -edge, edge);
+      slimeZ = THREE.MathUtils.clamp(slimeZ, -edge, edge);
       distanceTravelled += spd;
     }
   }
@@ -833,7 +901,7 @@ function animate(time) {
   slime.quaternion.slerp(_quat.multiply(new THREE.Quaternion().setFromAxisAngle(_up, slimeYaw)), 15 * dt);
   
   // Animation bounce
-  const moving = keys.forward || keys.backward || keys.left || keys.right;
+  const moving = keys.forward || keys.backward || keys.left || keys.right || touchMoveX || touchMoveZ;
   const bounce = Math.sin(time * (moving ? 0.015 : 0.003)) * (moving ? 0.08 : 0.03);
   slime.scale.set(1 + bounce, 1 - bounce * 0.8, 1 + bounce);
 
@@ -847,7 +915,7 @@ function animate(time) {
   const camTerrY = getHeight(cX, cZ);
   _camPos.set(cX, Math.max(cY, camTerrY + 2.0), cZ);
   
-  camera.position.lerp(_camPos, 1 - Math.exp(-8 * dt));
+  camera.position.lerp(_camPos, cameraMotion ? 1 - Math.exp(-8 * dt) : 1);
   _lookAt.copy(slime.position).y += 2.0;
   camera.lookAt(_lookAt);
 
@@ -883,15 +951,20 @@ function animate(time) {
       $('uiTime').textContent = dayness > 0.3 ? '☀' : (dayness > 0 ? '🌅' : '🌙');
       
       const biome = getBiomeAt(slimeX, slimeZ);
-      if (biome !== currentBiomeIdx && biome > BIOME.BEACH) {
+      if (biome !== currentBiomeIdx) {
         currentBiomeIdx = biome;
         const info = BIOME_INFO[biome];
         $('uiBiome').textContent = info.name;
         $('uiLoc').textContent = info.locs[(Math.abs(Math.floor(slimeX)) + Math.abs(Math.floor(slimeZ))) % info.locs.length];
         
-        $('discName').textContent = $('uiLoc').textContent;
-        $('discovery').classList.add('visible');
-        setTimeout(() => $('discovery').classList.remove('visible'), 3000);
+        if (!discoveredBiomes.has(biome)) {
+          discoveredBiomes.add(biome);
+          $('uiRegions').textContent = `${discoveredBiomes.size}/12`;
+          $('discName').textContent = $('uiLoc').textContent;
+          $('discovery').classList.add('visible');
+          setTimeout(() => $('discovery').classList.remove('visible'), 3000);
+          if (discoveredBiomes.size === 12) showToast('World explorer — all regions discovered!');
+        }
       }
       
       if ($('debug').style.display === 'block') {
@@ -913,6 +986,7 @@ window.addEventListener('resize', () => {
 $('settingsBtn').addEventListener('click', () => $('settingsPanel').classList.add('visible'));
 $('closeSettings').addEventListener('click', () => $('settingsPanel').classList.remove('visible'));
 $('qualSelect').addEventListener('change', () => { localStorage.setItem('sg_quality', $('qualSelect').value); window.location.reload(); });
+$('motionToggle').addEventListener('change', () => { cameraMotion = $('motionToggle').checked; localStorage.setItem('sg_motion', cameraMotion ? 'on' : 'off'); });
 
 // Start
 setLoading('Ready!', 1.0);
@@ -925,6 +999,7 @@ $('enterBtn').addEventListener('click', () => {
   $('intro').classList.remove('visible');
   $('hud').classList.add('visible');
   gameStarted = true;
+  showToast(matchMedia('(pointer: coarse)').matches ? 'Joystick to move • drag the world to look' : 'WASD to explore • drag to look • Shift to sprint');
 });
 
 })();
