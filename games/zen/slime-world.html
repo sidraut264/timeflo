@@ -107,7 +107,7 @@ canvas:active { cursor: grabbing; }
   #touchControls { display:block; }
   #controls { display:none; }
   #location { margin-left:auto; min-width:160px; max-width:52vw; }
-  .brand-text .subtitle, .stat:first-child { display:none; }
+  .brand-text .subtitle, .stat:nth-child(-n+3) { display:none; }
   .brand { padding:8px 10px; }
   .brand-orb { width:24px; height:24px; }
   .stat { min-width:52px; padding:7px 5px; }
@@ -152,6 +152,7 @@ canvas:active { cursor: grabbing; }
       <div class="stat glass"><div class="stat-val" id="uiBiome">Meadow</div><div class="stat-lbl">BIOME</div></div>
       <div class="stat glass"><div class="stat-val" id="uiTime">☀</div><div class="stat-lbl">TIME</div></div>
       <div class="stat glass"><div class="stat-val" id="uiRegions">0/12</div><div class="stat-lbl">FOUND</div></div>
+      <div class="stat glass"><div class="stat-val" id="uiWisps">0/24</div><div class="stat-lbl">WISPS</div></div>
     </div>
   </div>
   <div id="bottombar">
@@ -187,11 +188,11 @@ function yieldFrame() { return new Promise(r => requestAnimationFrame(r)); }
 
 // Constants
 const CFG = {
-  worldSize: 600, // Size of the plane
+  worldSize: 1000, // A broad world with room for long expeditions
   seaLevel: 0.28,
   moveSpeed: 18.0,
   dayLength: 300,
-  noiseScale: 0.006 // Scaled down to make biomes larger
+  noiseScale: 0.0042 // Wide, readable biome regions at the larger scale
 };
 
 const BIOME = { OCEAN:0, BEACH:1, DESERT:2, SAVANNA:3, TROPICAL_RAINFOREST:4, STEPPE:5, TEMPERATE_FOREST:6, SWAMP:7, TUNDRA:8, TAIGA:9, SNOW:10, MOUNTAIN:11 };
@@ -226,10 +227,10 @@ const BIOME_PALETTE = [
 
 // Quality Presets
 const QUALITY_PRESETS = {
-  LOW:    { trees: 400, grass: 1000, flowers: 200, rocks: 200, terrRes: 256, shadow: 1024 },
-  MEDIUM: { trees: 1000, grass: 2500, flowers: 400, rocks: 400, terrRes: 384, shadow: 2048 },
-  HIGH:   { trees: 2000, grass: 6000, flowers: 800, rocks: 600, terrRes: 512, shadow: 2048 },
-  ULTRA:  { trees: 4000, grass: 12000, flowers: 1500, rocks: 1200, terrRes: 1024, shadow: 4096 }
+  LOW:    { trees: 650, grass: 1600, flowers: 300, rocks: 300, terrRes: 256, shadow: 1024 },
+  MEDIUM: { trees: 1600, grass: 4000, flowers: 700, rocks: 650, terrRes: 384, shadow: 2048 },
+  HIGH:   { trees: 3200, grass: 9500, flowers: 1400, rocks: 1000, terrRes: 640, shadow: 2048 },
+  ULTRA:  { trees: 6000, grass: 18000, flowers: 2600, rocks: 1900, terrRes: 1024, shadow: 4096 }
 };
 let qualityLevel = localStorage.getItem('sg_quality') || 'HIGH';
 $('qualSelect').value = qualityLevel;
@@ -744,6 +745,54 @@ for (let i = 0; i < Q.rocks * 3 && rockCount < Q.rocks; i++) {
 rocks.count = rockCount; rocks.instanceMatrix.needsUpdate = true; rocks.instanceColor.needsUpdate = true;
 scene.add(rocks);
 
+// Wildflowers give the grasslands color and make distant regions feel distinct.
+const flowerGeo = new THREE.IcosahedronGeometry(0.12, 0);
+const flowerMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.65, emissive: 0x1a0d12 });
+const flowers = new THREE.InstancedMesh(flowerGeo, flowerMat, Q.flowers);
+let flowerCount = 0;
+for (let i = 0; i < Q.flowers * 5 && flowerCount < Q.flowers; i++) {
+  const x = (rng() - 0.5) * (CFG.worldSize - 30);
+  const z = (rng() - 0.5) * (CFG.worldSize - 30);
+  const biome = getBiomeAt(x, z);
+  if (![BIOME.SAVANNA, BIOME.STEPPE, BIOME.TEMPERATE_FOREST, BIOME.TROPICAL_RAINFOREST].includes(biome)) continue;
+  const y = getHeight(x, z);
+  if (y <= 0) continue;
+  const s = 0.7 + rng() * 1.5;
+  _pos.set(x, y + 0.22 * s, z);
+  _quat.setFromAxisAngle(_up, rng() * Math.PI * 2);
+  _scale.set(s, 1.5 * s, s);
+  _mat4.compose(_pos, _quat, _scale);
+  flowers.setMatrixAt(flowerCount, _mat4);
+  const hues = [0.02, 0.10, 0.55, 0.78, 0.92];
+  flowers.setColorAt(flowerCount, new THREE.Color().setHSL(hues[Math.floor(rng() * hues.length)], 0.8, 0.65));
+  flowerCount++;
+}
+flowers.count = flowerCount;
+flowers.instanceMatrix.needsUpdate = true;
+if (flowers.instanceColor) flowers.instanceColor.needsUpdate = true;
+scene.add(flowers);
+
+// Twenty-four luminous wisps act as small destinations across the expanded map.
+const wispGeo = new THREE.OctahedronGeometry(0.55, 1);
+const wispMat = new THREE.MeshStandardMaterial({ color:0xa8ffef, emissive:0x36d9c1, emissiveIntensity:2.2, roughness:0.18, metalness:0.15 });
+const wispHaloMat = new THREE.MeshBasicMaterial({ color:0x8effdf, transparent:true, opacity:0.14, depthWrite:false });
+const wisps = [];
+for (let attempt = 0; attempt < 1000 && wisps.length < 24; attempt++) {
+  const x = (rng() - 0.5) * (CFG.worldSize - 70);
+  const z = (rng() - 0.5) * (CFG.worldSize - 70);
+  const y = getHeight(x, z);
+  if (y < 1 || Math.hypot(x, z) < 28 || wisps.some(w => Math.hypot(w.x-x, w.z-z) < 35)) continue;
+  const group = new THREE.Group();
+  group.add(new THREE.Mesh(wispGeo, wispMat));
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(1.35, 12, 8), wispHaloMat);
+  group.add(halo);
+  group.position.set(x, y + 2.1, z);
+  group.userData = { baseY:y + 2.1, phase:rng() * Math.PI * 2, collected:false };
+  scene.add(group);
+  wisps.push(group);
+}
+$('uiWisps').textContent = `0/${wisps.length}`;
+
 setLoading('Waking the slime…', 0.85);
 await yieldFrame();
 
@@ -784,7 +833,7 @@ slime.add(smile);
 scene.add(slime);
 
 // Game State
-let gameStarted = false, dayTime = 0.35, distanceTravelled = 0, currentBiomeIdx = -1;
+let gameStarted = false, dayTime = 0.35, distanceTravelled = 0, currentBiomeIdx = -1, collectedWisps = 0;
 let slimeX = 0, slimeZ = 0;
 let slimeYaw = 0; // facing angle
 let targetYaw = 0;
@@ -894,6 +943,20 @@ function animate(time) {
   
   const y = getHeight(slimeX, slimeZ);
   slime.position.set(slimeX, Math.max(y, 0), slimeZ);
+
+  // Animate nearby wisp landmarks and collect them on contact.
+  for (const wisp of wisps) {
+    if (wisp.userData.collected) continue;
+    wisp.position.y = wisp.userData.baseY + Math.sin(time * 0.002 + wisp.userData.phase) * 0.35;
+    wisp.rotation.y += dt * 0.9;
+    if (gameStarted && Math.hypot(wisp.position.x - slimeX, wisp.position.z - slimeZ) < 2.5) {
+      wisp.userData.collected = true;
+      wisp.visible = false;
+      collectedWisps++;
+      $('uiWisps').textContent = `${collectedWisps}/${wisps.length}`;
+      showToast(collectedWisps === wisps.length ? 'All world wisps gathered!' : `Wisp gathered • ${wisps.length - collectedWisps} remain`);
+    }
+  }
   
   // Terrain normal alignment
   getNormal(slimeX, slimeZ, _norm);
@@ -999,7 +1062,7 @@ $('enterBtn').addEventListener('click', () => {
   $('intro').classList.remove('visible');
   $('hud').classList.add('visible');
   gameStarted = true;
-  showToast(matchMedia('(pointer: coarse)').matches ? 'Joystick to move • drag the world to look' : 'WASD to explore • drag to look • Shift to sprint');
+  showToast(matchMedia('(pointer: coarse)').matches ? 'Joystick to move • find the glowing wisps' : 'WASD to explore • Shift to sprint • find the glowing wisps');
 });
 
 })();
