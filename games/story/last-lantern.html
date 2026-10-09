@@ -9,8 +9,8 @@
     :root { color-scheme: dark; --ink: #f4ecda; --muted: #a5b3b6; --gold: #edc68c; --line: rgba(196, 211, 210, .14); --panel: #13232e; }
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; color: var(--ink); background: radial-gradient(ellipse at 12% 0%, #24373d 0, #0f1b25 48%, #0c171f 100%); font: 15px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    button, a { -webkit-tap-highlight-color: transparent; }
-    button { font: inherit; cursor: pointer; }
+    button, a, summary { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; }
     button:disabled { cursor: default; opacity: .42; }
     a { color: inherit; text-decoration: none; }
     button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
@@ -51,8 +51,11 @@
     .prose p { margin: 0 0 12px; }
     .prose em { color: #ebdeca; font-style: normal; }
     .choices { margin-top: auto; padding-top: 14px; display: grid; gap: 9px; }
-    .choice { width: 100%; display: flex; align-items: center; gap: 13px; text-align: left; background: #1d303a; color: #ede7dc; border: 1px solid #d0d7cf1c; border-radius: 8px; min-height: 58px; padding: 11px 14px; transition: background .18s, border-color .18s, transform .18s; }
-    .choice:hover { background: #283d45; border-color: #d6b47a80; transform: translateX(2px); }
+    .choice { position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; gap: 13px; text-align: left; background: #1d303a; color: #ede7dc; border: 1px solid #d0d7cf1c; border-radius: 8px; min-height: 58px; padding: 11px 14px; transition: background .18s, border-color .18s, transform .18s, box-shadow .18s; }
+    .choice::after { content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); transition: left 0.6s ease; pointer-events: none; }
+    .choice:hover::after { left: 100%; }
+    .choice:hover { background: #283d45; border-color: #d6b47a80; transform: translateX(3px); box-shadow: -4px 4px 12px rgba(0,0,0,0.2); }
+    .choice:active { transform: translateX(1px); }
     .choice.primary { background: #dfba80; color: #1f2d32; border-color: #dfba80; }
     .choice.primary:hover { background: #edcd9a; }
     .choice-num { font-size: 10px; font-weight: 500; opacity: .58; border: 1px solid currentColor; border-radius: 4px; width: 22px; height: 23px; display: grid; place-items: center; flex-shrink: 0; }
@@ -86,6 +89,14 @@
     [data-place="home"] .house-light { fill: #f2c177; }
     @keyframes breathe { 50% { opacity: .6; } }
     @keyframes drift { 50% { transform: translate(5px, -12px); opacity: .35; } }
+    @keyframes ripple { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-5px); } }
+    @keyframes mistFlow { 0%, 100% { transform: translateX(0) scale(1); opacity: .24; } 50% { transform: translateX(8px) scale(1.02); opacity: .16; } }
+    @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(2px) rotate(-1deg); } }
+
+    .sea-ripple { animation: ripple 8s ease-in-out infinite; }
+    .mist-flow { animation: mistFlow 12s ease-in-out infinite; transform-origin: center; }
+    .boat { animation: bob 4s ease-in-out infinite; transform-origin: bottom center; }
+
     @media (max-width: 800px) {
       .shell { width: min(650px, calc(100% - 34px)); padding-top: 17px; }
       .masthead { margin: 21px 0 20px; }
@@ -113,18 +124,75 @@
       .notebook { grid-template-columns: 1fr; gap: 20px; }
       .foot { font-size: 9px; }
     }
+
+    /* The illustration carries the motion; the reading surface stays still. */
+    .shell { max-width: 1280px; }
+    .game { border-radius: 5px; grid-template-columns: 1.08fr 1fr; }
+    .world { min-height: 620px; }
+    .story { padding: 34px; min-height: 620px; }
+    .prose { font-size: 16px; line-height: 1.85; color: #cbd3d0; }
+    .choice-copy { font-size: 14px; }
+    .choice-copy small, .keys, .foot, .objective-text, .item-description { font-size: 12px; }
+    .chapter, .objective-label, .journal summary, .map button, .restart { font-size: 11px; }
+    .choice { border-radius: 3px; background: #1a2c35; }
+    .choice::after { display: none; }
+    .choice:hover, .choice:active { transform: none; box-shadow: none; }
+    .choice.primary { background: #294049; color: var(--ink); border-color: #728078; }
+    .choice.primary:hover { background: #344e55; }
+    .foot, .keys, .objective-label, .journal summary { color: #a2b4ba; }
+    .restart, .back, .item, .journal summary { min-height: 44px; }
+    .item { font: inherit; font-size: 12px; }
+    .item[aria-pressed="true"] { border-color: var(--gold); }
+    .item-description { color: #c1c9c5; margin: 8px 0 0; }
+    .exploration { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .explore { background: transparent; color: #cbbb9f; border: 0; border-bottom: 1px solid #cbbb9f50; min-height: 44px; text-align: left; font-size: 13px; padding: 7px 0; }
+    .ending-card { border-block: 1px solid #edc68c44; margin: 16px 0; padding: 14px 0; color: #cfbea0; font-size: 13px; }
+    .ending-card p { margin: 6px 0; }
+    .opening .notebook, .opening #journal, .opening .map, .opening .keys { display: none; }
+    .opening .world { min-height: 590px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    #recovery { color: #edc68c; font-size: 13px; }
+    .dawn-wash { opacity: 0; transition: opacity 3s; }
+    [data-place="dawn"] .dawn-wash, [data-place="home"] .dawn-wash { opacity: .65; }
+    [data-place="dawn"] .house-light { fill: #cfb485; }
+    [data-place="home"] .house-light { fill: #f4cb89; transition-delay: 1s; }
+    [data-place="home"] .house-light:nth-of-type(2) { transition-delay: 2s; }
+    [data-place="dawn"] .beam { transform-origin: 492px 192px; animation: sweep 12s ease-in-out infinite; }
+    @keyframes sweep { 50% { transform: scaleY(.35); opacity: .4; } }
+    .shore-lights { opacity: 0; transition: opacity 3s; }
+    [data-place="home"] .shore-lights { opacity: 1; }
+    .clouds { animation: cloud 45s ease-in-out infinite alternate; }
+    @keyframes cloud { to { transform: translateX(30px); } }
+    .boat, .mist-flow, .sea-ripple, .spark { animation-play-state: paused; }
+    [data-place="dock"] .boat, [data-place="dock"] .sea-ripple, [data-place="tower"] .mist-flow, [data-place="orchard"] .spark, [data-place="dawn"] .sea-ripple { animation-play-state: running; }
+    .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+    .prelude .house-light { animation: windows-darken 3s ease-out both; }
+    @keyframes windows-darken { from { fill: #f4cb89; } to { fill: #60746d; } }
+    .prelude .art > svg { animation: reveal-island 4s ease-out both; }
+    @keyframes reveal-island { from { opacity: .06; } to { opacity: 1; } }
+    @media (max-width: 800px) {
+      .game { grid-template-columns: 1fr; }
+      .world, .opening .world { min-height: 360px; }
+      .art { min-height: 290px; }
+      .art > svg { top: 0; height: 100%; }
+      .story { min-height: 0; padding: 26px; }
+      .top-right { gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+      .topline { gap: 10px; }
+      .back { flex-shrink: 0; }
+    }
+    @media (max-width: 420px) { .story { padding: 23px 18px; } .topline { align-items: start; } .top-right { gap: 2px 12px; } .restart { font-size: 10px; } .foot { flex-wrap: wrap; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   </style>
 </head>
-<body>
+<body class="opening">
   <main class="shell">
     <header class="topline">
       <a class="back" href="../../arcade.html"><span aria-hidden="true">←</span> Back to arcade</a>
-      <div class="top-right"><span>A Timeflo short story</span><button class="restart" id="restart" hidden>Start over ↺</button></div>
+      <div class="top-right"><button class="restart" id="sound" aria-pressed="false">Sound off</button><button class="restart" id="motion" aria-pressed="false">Stillness off</button><button class="restart" id="restart" hidden>Start over ↺</button></div>
     </header>
     <div class="masthead">
       <div><div class="eyebrow">A small light. A long way home.</div><h1>The Last Lantern</h1></div>
-      <div class="edition">AN INTERACTIVE TALE<br>5–10 minutes · Two endings</div>
+      <div class="edition">AN INTERACTIVE TALE<br>10–20 minutes · Two endings</div>
     </div>
     <div class="game">
       <section class="world" aria-label="Illustration of the island" id="world" data-place="square">
@@ -133,7 +201,7 @@
           <svg viewBox="0 0 620 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             <defs>
               <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#142734"/><stop offset=".7" stop-color="#34464a"/><stop offset="1" stop-color="#64706a"/></linearGradient>
-              <linearGradient id="sea" x2="0" y2="1"><stop stop-color="#3c555b"/><stop offset="1" stop-color="#132d3b"/></linearGradient>
+              <linearGradient id="morning" x2="0" y2="1"><stop stop-color="#8d9a94"/><stop offset="1" stop-color="#e4bd83"/></linearGradient><linearGradient id="sea" x2="0" y2="1"><stop stop-color="#3c555b"/><stop offset="1" stop-color="#132d3b"/></linearGradient>
               <linearGradient id="hill" x2=".6" y2="1"><stop stop-color="#273d43"/><stop offset="1" stop-color="#101e29"/></linearGradient>
               <radialGradient id="glow"><stop stop-color="#ffd18b" stop-opacity=".42"/><stop offset=".4" stop-color="#eab476" stop-opacity=".13"/><stop offset="1" stop-color="#edbd7c" stop-opacity="0"/></radialGradient>
               <linearGradient id="ray"><stop stop-color="#ffe1a4" stop-opacity=".42"/><stop offset="1" stop-color="#ffe1a4" stop-opacity="0"/></linearGradient>
@@ -141,16 +209,16 @@
               <filter id="moonBlur"><feGaussianBlur stdDeviation="8"/></filter>
             </defs>
             <rect width="620" height="500" fill="url(#sky)"/>
-            <circle cx="399" cy="93" r="47" fill="#dfd8b7" opacity=".04" filter="url(#moonBlur)"/>
+            <rect class="dawn-wash" width="620" height="300" fill="url(#morning)"/><g class="clouds" fill="none" stroke="#8fa6a3" stroke-width="12" opacity=".08"><path d="M40 142q95-22 170-3m90-21q100-24 190-4"/></g><circle cx="399" cy="93" r="47" fill="#dfd8b7" opacity=".04" filter="url(#moonBlur)"/>
             <circle cx="399" cy="93" r="23" fill="#d2d4b9"/>
             <circle cx="410" cy="85" r="23" fill="#20323c"/>
             <g fill="#d4d4bd" opacity=".6"><circle cx="82" cy="89" r="1"/><circle cx="155" cy="47" r="1.2"/><circle cx="241" cy="114" r="1"/><circle cx="306" cy="49" r=".8"/><circle cx="512" cy="78" r="1"/><circle cx="555" cy="146" r=".7"/><circle cx="64" cy="158" r=".7"/><circle cx="331" cy="156" r="1"/><circle cx="476" cy="40" r=".8"/></g>
             <path d="M0 249L43 203 105 224 155 196 205 231 253 204 323 259Z" fill="#273d46"/>
             <path d="M0 267Q157 246 329 256T620 251V500H0Z" fill="url(#sea)"/>
-            <g stroke="#97b0ad" stroke-width="1" opacity=".17"><path d="M339 277h78m23 0h42M302 297h112m26 0h79M373 314h57m15 0h100M374 334h135M447 353h75M431 376h67M470 397h80"/></g>
+            <g class="sea-ripple" stroke="#97b0ad" stroke-width="1" opacity=".17"><path d="M339 277h78m23 0h42M302 297h112m26 0h79M373 314h57m15 0h100M374 334h135M447 353h75M431 376h67M470 397h80"/></g>
             <g class="beam"><path d="M492 192L0 109V218Z" fill="url(#ray)"/><path d="M492 192L620 168V209Z" fill="#f9d599" opacity=".15"/></g>
             <path d="M0 310Q47 265 110 291Q172 309 218 278Q281 251 333 289Q386 286 422 264L461 246 496 251 547 289 620 283V500H0Z" fill="url(#hill)"/>
-            <path d="M466 257Q415 271 375 325T271 380Q222 395 220 500H271Q256 431 294 405T403 336Q431 290 489 267Z" fill="#67716a" opacity=".24"/>
+            <path class="mist-flow" d="M466 257Q415 271 375 325T271 380Q222 395 220 500H271Q256 431 294 405T403 336Q431 290 489 267Z" fill="#67716a" opacity=".24"/>
             <g id="village">
               <path d="M39 310V277L66 257 98 277V316Z" fill="#1b3039"/><path d="M30 280L66 252 105 280" fill="none" stroke="#102632" stroke-width="7"/>
               <rect class="house-light" x="57" y="285" width="10" height="14" fill="#60746d"/>
@@ -178,11 +246,16 @@
             </g>
             <g class="scene-detail dock-detail">
               <path d="M48 385H249L280 400H39Z" fill="#61706a"/><path d="M65 396v40m45-40v45m106-45v42" stroke="#364c50" stroke-width="8"/><path d="M92 337l21-17 22 17v47H92Z" fill="#4d6663"/><circle cx="113" cy="311" r="10" fill="#b5ab8d"/><path d="M98 305q15-19 29 1" fill="#8c8067"/>
-              <path d="M292 395h105l-18 22h-62Z" fill="#6b7365"/><path d="M342 393v-45l27 41" fill="none" stroke="#81918a" stroke-width="3"/>
+              <g class="boat"><path d="M292 395h105l-18 22h-62Z" fill="#6b7365"/><path d="M342 393v-45l27 41" fill="none" stroke="#81918a" stroke-width="3"/></g>
             </g>
             <g class="scene-detail tower-detail"><path d="M68 424l70-166h89l69 166Z" fill="#64736e"/><path d="M185 258h42l69 166h-86Z" fill="#425b5d"/><path d="M122 265v-41h126v41Z" fill="#1d3642"/><path d="M107 223l78-42 78 42Z" fill="#243e48"/><path d="M133 258v-28m25 28v-28m27 28v-28m27 28v-28m23 28v-28" stroke="#728983" stroke-width="4"/><path d="M159 423v-61q24-26 48 0v61Z" fill="#172f3c"/></g>
             <g class="scene-detail dawn-detail"><circle cx="493" cy="190" r="81" fill="url(#glow)"/><rect x="482" y="183" width="19" height="10" rx="1" fill="#ffda96"/><path d="M291 335h62l-10 12h-40Zm58-41h37l-6 7h-24Z" fill="#b1b7a0"/><path d="M320 335v-19m47-23v-11" stroke="#b1b7a0" stroke-width="2"/></g>
             <g class="scene-detail home-detail"><g fill="#a9ad92"><circle cx="132" cy="375" r="8"/><circle cx="180" cy="360" r="8"/><circle cx="226" cy="379" r="7"/><circle cx="267" cy="363" r="8"/></g><g fill="#53695f"><path d="M116 416v-24q16-21 32 0v24Z"/><path d="M164 406v-29q16-21 32 0v29Z"/><path d="M212 421v-26q14-18 28 0v26Z"/><path d="M251 411v-29q16-21 32 0v29Z"/></g><g fill="#f8cc7e"><circle cx="153" cy="388" r="4"/><circle cx="202" cy="379" r="4"/><circle cx="244" cy="393" r="4"/><circle cx="287" cy="383" r="4"/></g><circle cx="214" cy="379" r="110" fill="url(#glow)"/></g>
+            <g class="scene-detail workshop-detail" stroke="#829088" fill="none" opacity=".6"><path d="M64 401h80m-80 5h68M70 333h60m-60 62h60"/><path d="M169 354h24v19h-24zM174 367l5-6 9 7"/><path d="M62 410h75m-61 0v12m49-12v12" stroke-width="3"/></g>
+            <g class="scene-detail square-detail" stroke="#627773" fill="none"><path d="M67 415l18-6 24 3 19-5 21 7m-63 7 17-6 22 7m-22-7v-5"/><path d="M146 386h12v18h-12zm2 0v-4q4-5 8 0v4"/></g>
+            <g class="scene-detail dock-detail" stroke="#85938a" fill="none" opacity=".6"><path d="M162 370q20 24 55 0m-56 4q20 24 55 0M164 350l45 30m-35-35 45 30m-35-30-20 30m35-30-20 35"/><path d="M53 388h183m-173 5h182"/></g>
+            <g class="scene-detail tower-detail" stroke="#acb2a0" opacity=".3"><path d="M113 325h30m-19 3h25m85 20h19m-22 4h27M135 294h27m-12 3h18"/><path d="M126 401l17-4 17 3m-17-3v12"/></g>
+            <g class="shore-lights" fill="#f4c77c"><circle cx="290" cy="328" r="3"/><circle cx="320" cy="318" r="3"/><circle cx="354" cy="306" r="3"/><circle cx="383" cy="298" r="3"/><circle cx="410" cy="286" r="3"/><path d="M286 338h9m21-10h8m25-12h10m19-9h10" stroke="#edc68c" opacity=".4"/></g>
             <g transform="translate(395 350)">
               <ellipse cx="40" cy="97" rx="55" ry="12" fill="#081a22" opacity=".6"/>
               <circle class="lantern-glow" cx="40" cy="42" r="105" fill="url(#glow)"/>
@@ -208,30 +281,39 @@
         <div class="chapter" id="chapter">Prologue · The keeping of a promise</div>
         <h2 id="storyHeading" tabindex="-1">One light remains.</h2>
         <div class="prose" id="prose"></div>
-        <div class="choices" id="choices" aria-label="Choose what happens next"></div>
-        <p class="keys">Click a choice or press its number · Take your time</p>
+        <div class="exploration" id="exploration"></div><div class="ending-card" id="endingCard" hidden></div><div class="choices" id="choices" aria-label="Choose what happens next"></div>
+        <p class="keys">Choose with 1–9 · Tab to explore · Enter to select</p>
       </section>
     </div>
-    <div class="notebook">
+    <p id="announcement" class="sr-only" role="status" aria-live="polite"></p><div class="notebook">
       <section aria-label="Current objective">
         <div class="objective-label"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 3h12v15l-6-4-6 4Z" stroke="currentColor"/></svg>Your next step</div>
         <p class="objective-text" id="objective">Carry the island’s last flame to the lighthouse.</p>
         <div class="steps" aria-hidden="true"><span class="step"></span><span class="step"></span><span class="step"></span><span class="step"></span></div>
       </section>
-      <section aria-label="Your inventory"><div class="objective-label">In your satchel</div><div class="satchel" id="satchel"><span class="item">◈ Last lantern</span></div></section>
+      <section aria-label="Your inventory"><div class="objective-label">In your satchel</div><div class="satchel" id="satchel"><span class="item">◈ Last lantern</span></div><p id="itemDescription" class="item-description" role="status"></p></section>
     </div>
     <details class="journal" id="journal"><summary>Field notes <span id="noteCount">(0)</span></summary><ol id="notes"></ol></details>
-    <footer class="foot"><span id="saveStatus">Your journey saves on this device.</span><span id="endingsCount">0 / 2 endings discovered</span></footer>
+    <details class="journal" id="collection"><summary>Stories kept</summary><div id="endingCollection" class="satchel"></div></details><p id="recovery" role="status" hidden></p><footer class="foot"><span id="saveStatus">Your journey saves on this device.</span><span id="endingsCount">0 / 2 endings discovered</span></footer>
   </main>
   <script>
     (() => {
       'use strict';
-      const SAVE_KEY = 'timeflo-last-lantern-v1';
+      const LEGACY_KEY = 'timeflo-last-lantern-v1';
+      const SAVE_KEY = 'timeflo-last-lantern-v2';
+      const PREF_KEY = 'timeflo-last-lantern-preferences';
+      let preferences = { seenIntro: false, sound: false, still: false };
+      let recovery = '';
+      let view = 'intro';
+      let reviewing = false;
+      let archiveReturn = null;
+      let endingSnapshots = {};
+      const ARCHIVE_KEY = 'timeflo-last-lantern-archive-v2';
       const ENDINGS_KEY = 'timeflo-last-lantern-endings-v1';
       const $ = id => document.getElementById(id);
       const travelPlaces = ['square', 'workshop', 'orchard', 'dock', 'tower'];
       const itemNames = { wick: '⌁ Copper-thread wick', oil: '◌ Amber oil', lens: '◇ Sea-glass lens', song: '♫ The homeward song' };
-      const fresh = () => ({ version: 1, node: 'square', items: [], notes: ['The lighthouse has gone dark. Find a wick and lamp oil, then climb the tower.'], visited: ['square'], ended: false });
+      const fresh = () => ({ version: 2, memories: [], keepsake: null, node: 'square', items: [], notes: ['The lighthouse has gone dark. Find a wick and lamp oil, then climb the tower.'], visited: ['square'], ended: false });
       let state = fresh();
       let active = false;
       let storageAvailable = true;
@@ -240,7 +322,7 @@
       let activeChoices = [];
       const has = item => state.items.includes(item);
       function note(message) { if (!state.notes.includes(message)) state.notes.push(message); }
-      function collect(item, message) { if (!has(item)) state.items.push(item); note(message); }
+      function collect(item, message) { if (!has(item)) state.items.push(item); note(message); $('announcement').textContent = message; audio.cue('collect'); }
       const placeInfo = {
         square: ['The sleeping village', 'Every window holds a story.', 'Briar Island · Village square'],
         workshop: ['The keeper’s workshop', 'Some promises are made by hand.', 'Briar Island · The old workshop'],
@@ -268,16 +350,16 @@
           text: ['Pale leaves turn in the salt wind. Beneath them, amber fruit hangs like a constellation low enough to touch.', has('oil') ? 'The oil press stands quiet. You have taken only what you need; the trees keep the rest of their light.' : 'The orchard’s old hand press is full of ripe fruit. Beside it waits a clean little bottle. Your grandmother always said this oil burned like a summer afternoon.'],
           choices: [ ...(!has('oil') ? [choice('Press the fruit into lamp oil', 'oil', 'Fill the bottle for your lantern', () => collect('oil', 'Pressed amber oil from the orchard’s fallen fruit.'))] : [choice('Listen to the wind in the leaves', 'leaves')]), choice('Return to the village', 'square')] }),
         oil: () => ({ place: 'orchard', chapter: 'A little warmth for the road', title: 'Summer, saved for later.',
-          text: ['The handle turns slowly. Golden oil gathers drop by drop until the bottle shines in your hand.', 'You fill the lantern’s reservoir. Its flame straightens, steady and bright. From the eastern shore comes a faint sound: someone singing to the sea.', has('wick') ? '<em>With oil and a new wick, you can relight the lighthouse. But you wonder who is singing.</em>' : '<em>Now you need the copper-thread wick from the workshop.</em>'],
+          text: ['The handle turns slowly. Golden oil gathers drop by drop until the bottle shines in your hand.', 'You top up the lantern and stopper the rest for the great lamp. Its flame straightens, steady and bright. From the eastern shore comes a faint sound: someone singing to the sea.', has('wick') ? '<em>With oil and a new wick, you can relight the lighthouse. But you wonder who is singing.</em>' : '<em>Now you need the copper-thread wick from the workshop.</em>'],
           choices: [choice('Follow the song to the docks', 'dock', 'Find the voice on the shore'), choice(has('wick') ? 'Climb to the lighthouse' : 'Visit the keeper’s workshop', has('wick') ? 'tower' : 'workshop')] }),
         leaves: () => ({ place: 'orchard', chapter: 'A moment between footsteps', title: 'Nothing is asking you to hurry.',
           text: ['The leaves whisper against each other. Far away, water taps the hull of a boat.', 'For a moment, you let the island carry the silence for you. Then you lift the lantern and find the path again.'],
           choices: [choice('Walk down to the docks', 'dock'), choice('Return to the village', 'square')] }),
         dock: () => ({ place: 'dock', chapter: 'Chapter II · Someone is waiting', title: 'The ferrykeeper’s song.',
-          text: ['Mara sits beside a boat with a torn mooring line. She is singing an old song, the one people used to sing when the fishing fleet came home.', has('song') ? 'She smiles when you hum the next line. “I have asked the neighbours to meet us by the water. Whatever you decide, you will not be alone.”' : '“The fleet is close,” she says. “But fog swallows the shore. Help me tie this line, and I will help you call them home.”', has('lens') ? 'The sea-glass lens is safe in your satchel, ready to carry the lighthouse beam beyond the reef.' : 'A sea-glass lens hangs from her boat. “You may borrow that, too. It will make the tower’s light reach farther.”'],
+          text: ['Mara holds a frayed rope between her knees. Her song stops whenever she looks toward the reef. Beside her, a child’s red mitten is tucked into a pair of sea boots.', has('song') ? 'She smiles when you hum the next line. “I have asked the neighbours to meet us by the water. Whatever you decide, you will not be alone.”' : '“My brother is out there. First season with his daughter aboard.” She pulls the rope tight. “Help me with this? I need the ferry ready when they reach the channel.”', has('lens') ? 'The sea-glass lens is safe in your satchel, ready to carry the lighthouse beam beyond the reef.' : 'A sea-glass lens hangs from her boat. “You may borrow that, too. It will make the tower’s light reach farther.”'],
           choices: [ ...(!has('song') ? [choice('Help Mara mend the mooring', 'song', 'Stay a while. Learn the homeward song.', () => collect('song', 'Helped Mara at the docks. She will gather the village; we can guide the fleet with our song.'))] : []), ...(!has('lens') ? [choice('Borrow the sea-glass lens', 'lens', 'Strengthen the lighthouse beam', () => collect('lens', 'Mara lent me a sea-glass lens, strong enough to reach the outer reef.'))] : []), choice(has('wick') && has('oil') ? 'Take the path to the lighthouse' : 'Return to the village', has('wick') && has('oil') ? 'tower' : 'square', has('wick') && has('oil') ? 'Decide where your light belongs' : 'Gather the remaining supplies')] }),
         song: () => ({ place: 'dock', chapter: 'A kindness, answered', title: 'You remember the words.',
-          text: ['Together, you braid the loose rope into a sturdy knot. Mara sings the first line. You find the second without trying.', '<em>“Follow the shore, follow the sound. The ones who love you can still be found.”</em>', '“There is another way,” she says. “We could share your flame between the village lamps. A line of lights along the beach. I will bring the people; you bring the dawn.”'],
+          text: ['Together, you braid the loose rope into a sturdy knot. Mara sings the first line. You find the second without trying.', '<em>“Follow the shore, follow the sound. The ones who love you can still be found.”</em>', '“There is another way,” she says. “The tide is turning into the sheltered channel. Lamps along the beach could mark its curve; the song would tell them which shore they hear. We have oil at home, but no flame. I will bring the people; you bring the dawn.”'],
           choices: [choice('Thank Mara and return to the dock', 'dock', has('lens') ? 'Your friend will be ready' : 'The sea-glass lens is still there'), choice(has('wick') && has('oil') ? 'Climb to the lighthouse' : 'Return to the village', has('wick') && has('oil') ? 'tower' : 'square')] }),
         lens: () => ({ place: 'dock', chapter: 'A window through the weather', title: 'A piece of the sea.',
           text: ['Mara lifts the lens from its hook. It is green at the edges, clear at its heart.', '“My father ground this glass,” she says. “He said a good light should reach the person who needs it most.”', has('song') ? 'She squeezes your shoulder. The neighbours will be waiting by the beach if you choose to bring your lantern home.' : 'Behind her, the damaged mooring rope knocks against the jetty. You could stay and help before you leave.'],
@@ -285,8 +367,8 @@
         tower: () => {
           if (!has('wick') || !has('oil')) return { place: 'tower', chapter: 'The old lighthouse', title: 'A lamp still waiting.', text: ['The stairs curl upward into the dark. At the top, the great lamp stands cold and patient.', `Your little flame is ready, but the lamp still needs ${!has('wick') && !has('oil') ? '<em>a fresh wick and amber oil</em>' : !has('wick') ? '<em>a copper-thread wick</em>' : '<em>amber oil</em>'}. You can see the village paths from the window.`, 'There is time to fetch what you need.'], choices: [choice(!has('wick') ? 'Visit the keeper’s workshop' : 'Go to the orchard', !has('wick') ? 'workshop' : 'orchard'), choice('Return to the village', 'square')] };
           return { place: 'tower', chapter: 'Chapter III · The promise you keep', title: 'Where should the light go?',
-            text: ['You set the oil and wick beside the great lamp. Below you, the village curls around the bay. Beyond it, unseen boats wait on the water.', has('lens') ? 'With Mara’s sea-glass lens, the beacon could reach all the way to the outer reef. The tower would guide distant travellers for years to come.' : 'The beacon could guide the fishing fleet through the inner channel. The tower would keep its old promise for another generation.', has('song') ? 'On the beach, Mara is gathering your neighbours. Share the flame with them, and a hundred little lamps will trace the shore while the homeward song carries across the water.' : 'You remember Mara’s song. If you want to find another way, you can still return to the docks and help her.', '<em>The flame is yours to give. This choice will finish your story.</em>'],
-            choices: [choice('Light the beacon', 'dawn', has('lens') ? 'Carry your light far beyond the reef' : 'Become the island’s next lighthouse keeper'), has('song') ? choice('Share the flame with the village', 'home', 'Let everyone become a keeper of the light') : choice('Return to Mara at the docks', 'dock', 'There may be another way')] };
+            text: ['You set the oil and wick beside the great lamp. Below you, the village curls around the bay. Beyond it, unseen boats wait on the water.', has('lens') ? 'With Mara’s sea-glass lens, the beacon could reach all the way to the outer reef. The tower would guide distant travellers for years to come.' : 'The beacon could guide the fishing fleet through the inner channel. The tower would keep its old promise for another generation.', has('song') ? 'On the beach, Mara is gathering your neighbours. Share the flame with them, and a hundred little lamps will trace the shore while the homeward song carries across the water.' : state.visited.includes('dock') ? 'Mara is still at the docks. Before accepting the watch, you could ask what the shore needs.' : 'A song carries up from the docks. Someone is awake down there. You could meet them before accepting the watch.', '<em>The flame is yours to give. This choice will finish your story.</em>'],
+            choices: [choice('Light the beacon', 'dawn', has('lens') ? 'Carry your light far beyond the reef' : 'Become the island’s next lighthouse keeper'), has('song') ? choice('Share the flame with the village', 'home', 'Let everyone become a keeper of the light') : choice(state.visited.includes('dock') ? 'Return to Mara at the docks' : 'Find the singer at the docks', 'dock', 'There may be another way')] };
         },
         dawn: () => ({ place: 'dawn', chapter: 'Ending I · The far light', title: 'And the sea answered.',
           text: [has('lens') ? 'You fit the sea-glass lens into place. The flame becomes a golden road across the water, reaching beyond the reef to a ship that had almost given up on shore.' : 'You touch your flame to the waiting wick. The great lamp wakes, and its beam finds the fishing fleet in the inner channel.', 'One boat answers with a bell. Then another. By morning, the harbour is full of voices, and someone has left a warm loaf on the lighthouse steps.', has('song') ? 'Mara comes up the stairs, humming the homeward song. You leave a second chair beside the window. A keeper does not have to keep watch alone.' : 'You hang your grandmother’s coat beside your own. The lamp is lit. The promise is kept.', '<em>Some lights are there so that strangers can find their way home.</em>'],
@@ -296,56 +378,202 @@
           choices: [choice('Tell the story another way', 'new', 'Begin again and discover a different ending'), choice('Return to the arcade', 'arcade')] }),
         restart: () => ({ place: nodes[state.node]().place, chapter: 'A fresh page', title: 'Begin the journey again?', text: ['Your current journey will be replaced. The endings you have discovered will stay in your collection.'], choices: [choice('Keep my current journey', 'cancel'), choice('Begin a new story', 'new', 'Return to the village with a single flame')] })
       };
-      function load() {
-        try {
-          const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-          const knownNodes = Object.keys(nodes).filter(n => !['intro', 'restart'].includes(n));
-          if (raw && raw.version === 1 && knownNodes.includes(raw.node) && Array.isArray(raw.items) && Array.isArray(raw.notes) && Array.isArray(raw.visited) && raw.items.every(i => Object.hasOwn(itemNames, i)) && raw.notes.every(n => typeof n === 'string') && raw.visited.every(v => travelPlaces.includes(v))) {
-            raw.ended = ['dawn', 'home'].includes(raw.node);
-            if (raw.node === 'home' && (!raw.items.includes('song') || !raw.items.includes('wick') || !raw.items.includes('oil'))) return;
-            if (raw.node === 'dawn' && (!raw.items.includes('wick') || !raw.items.includes('oil'))) return;
-            saved = raw;
-          }
-          const storedEndings = JSON.parse(localStorage.getItem(ENDINGS_KEY) || '[]');
-          if (Array.isArray(storedEndings)) endings = [...new Set(storedEndings.filter(e => ['dawn', 'home'].includes(e)))];
-        } catch (_) { storageAvailable = false; }
+      // Optional discoveries are authored passages, not required fetch quests.
+      const discoveries = {
+        lamp: { place: 'square', label: 'Examine the lamp by the fountain', title: 'A place left for someone.', text: ['An unlit lamp sits on the fountain’s rim. Its handle is wrapped in blue cloth so a small hand can carry it.', 'You used to leave yours here before running to meet your grandmother. She always waited, even when you were late.'], note: 'The fountain lamp still has its cloth handle. Someone has been keeping it ready.' },
+        photograph: { place: 'workshop', label: 'Look behind the faded photograph', title: 'She was not always the keeper.', text: ['In the photograph, your grandmother is laughing beside a half-built ferry. Mara, much younger, holds the other end of a crooked plank.', 'Behind the frame is a brass button from the keeper’s coat. You remember her sewing it on badly, then blaming the needle.'], note: 'Grandmother helped build Mara’s ferry. The tower was only one part of her life.' },
+        roots: { place: 'orchard', label: 'Read the labels on the trees', title: 'An orchard of borrowed names.', text: ['Each tree has a name on a strip of tin. Not a variety: a neighbour. Nessa. Ivo. May.', 'At the oldest trunk, the wire has grown into the bark. Your grandmother’s name is written beside someone you never knew. They planted this row together.'], note: 'Every tree in the silverleaf grove was planted by two neighbours.' },
+        mara: { place: 'dock', label: 'Ask Mara about the red mitten', title: 'The verse she leaves out.', text: ['“My niece’s. She says you can’t tie a proper knot in mittens.” Mara smooths the red wool with her thumb.', '“Your gran taught us that song. Terrible singer. Never remembered the last verse.” She almost laughs. “I remember it. I just want them close enough to hear.”'], note: 'Mara is waiting for her brother and niece. The homeward song was Grandmother’s, too.' },
+        railing: { place: 'tower', label: 'Trace the marks in the railing', title: 'More than one pair of hands.', text: ['Dates and initials crowd the rail. Beneath your grandmother’s careful letters, someone has cut: REST. I HAVE THE NEXT WATCH.', 'You recognise Mara’s untidy capitals. You had thought your grandmother did all of this alone.'], note: 'Mara once shared the lighthouse watch. Accepting it need not mean keeping it alone.' }
+      };
+      const itemDescriptions = {
+        lantern: 'A dent in the brass where you dropped it as a child. She repaired the hinge and never mentioned it again.',
+        wick: 'Copper woven through cotton. Strong enough for the great lamp; it will not collapse when the wind catches.',
+        oil: 'A small reserve of summer. There is enough left in the bottle to wake the lighthouse.',
+        lens: 'Clear at its heart, green at the edges. Mara’s father ground it to carry a beacon beyond the outer reef.',
+        song: '“Follow the shore, follow the sound.” A familiar rhythm that tells the boats where people are waiting.',
+        button: 'A brass button from her coat. Small enough to keep close, heavy enough to notice when you reach into your pocket.'
+      };
+      nodes.prelude = () => ({ place: 'square', chapter: 'Briar Island · Before the tide turns', title: 'She always left a light on.', text: ['For the boats. For late visitors. For you, long after you stopped coming home before dark.', 'Tonight the windows are black. In your hands, her old lantern is still warm.'], choices: [choice('Step into the story', 'intro', 'There is no hurry'), choice('Skip the opening', 'intro')] });
+      for (const [id, memory] of Object.entries(discoveries)) {
+        nodes[id] = () => ({ place: memory.place, chapter: 'An island remembered', title: memory.title, text: memory.text, choices: id === 'photograph' && !state.keepsake ? [
+          choice('Carry the brass button', 'workshop', 'Keep something of her close', () => { state.keepsake = 'carry'; note('Kept the brass button from Grandmother’s coat.'); }),
+          choice('Leave it with the photograph', 'workshop', 'Let this room keep its small history', () => { state.keepsake = 'leave'; note('Left the brass button for the next person who opens the frame.'); })
+        ] : [choice('Return to the path', memory.place)] });
       }
+      function paragraph(parent, text) { const p = document.createElement('p'); p.textContent = text; parent.append(p); }
+      function renderExtras(nodeId, data) {
+        $('itemDescription').textContent = '';
+        $('exploration').replaceChildren();
+        if (active && !state.ended && !reviewing && travelPlaces.includes(nodeId)) {
+          for (const [id, memory] of Object.entries(discoveries)) {
+            if (memory.place !== data.place) continue;
+            const button = document.createElement('button'); button.className = 'explore';
+            button.textContent = (state.memories.includes(id) ? 'Revisit · ' : '') + memory.label;
+            button.onclick = () => { if (view !== nodeId) return; if (!state.memories.includes(id)) { state.memories.push(id); note(memory.note); audio.cue('paper'); } go(id); };
+            $('exploration').append(button);
+          }
+        }
+        if (nodeId === 'square' && has('song')) paragraph($('prose'), 'A door opens. Someone is carrying a bundle of empty lamps toward the shore. Mara has kept her word.');
+        if (nodeId === 'workshop' && state.keepsake) paragraph($('prose'), state.keepsake === 'carry' ? 'The empty space behind the photograph looks smaller than you expected. You touch the button in your pocket.' : 'The button still rests behind the photograph. You straighten the frame before leaving.');
+        if (nodeId === 'tower' && has('wick') && has('oil')) paragraph($('prose'), 'The beacon can reach farther, but someone must tend it through the night. Shore lamps can mark the sheltered channel while the tide turns; they will need many hands.');
+        $('endingCard').hidden = !state.ended;
+        $('endingCard').replaceChildren();
+        if (state.ended) {
+          paragraph($('endingCard'), reviewing ? (endingSnapshots[state.node] ? 'A story kept · your remembered ending' : 'An earlier ending · individual choices were not recorded') : 'The things you brought to morning');
+          paragraph($('endingCard'), has('song') ? 'You stayed to mend Mara’s rope. She did not have to wait alone.' : 'You carried on to the tower. Before sunset, the lamp will need tending again.');
+          if (has('lens')) paragraph($('endingCard'), state.node === 'dawn' ? 'You borrowed the sea-glass lens. A ship beyond the reef saw the beam.' : 'At dawn you return the lens to Mara. She hangs it above the ferry’s door.');
+          if (state.keepsake) paragraph($('endingCard'), state.keepsake === 'carry' ? 'You sew the brass button inside your coat. The stitch is crooked. You leave it that way.' : 'Later, a child finds the button behind the photograph. You sit beside them and tell them who she was.');
+          paragraph($('endingCard'), `${state.memories.length} of 5 island memories carried into this telling.`);
+        }
+        $('endingCollection').replaceChildren();
+        if (!endings.length) paragraph($('endingCollection'), 'Your endings will be kept here. There is no wrong shore.');
+        endings.forEach(ending => {
+          const b = document.createElement('button'); b.className = 'item'; b.textContent = placeInfo[ending][2]; b.disabled = reviewing || view === 'restart';
+          b.onclick = () => {
+            archiveReturn = { state: structuredClone(state), active, view }; reviewing = true;
+            state = endingSnapshots[ending] ? structuredClone(endingSnapshots[ending]) : { ...fresh(), node: ending, ended: true, items: ending === 'home' ? ['wick', 'oil', 'song'] : ['wick', 'oil'] };
+            active = true; render(ending, true);
+          }; $('endingCollection').append(b);
+        });
+        $('recovery').hidden = !recovery; $('recovery').replaceChildren();
+        if (recovery) {
+          paragraph($('recovery'), recovery);
+          const b = document.createElement('button'); b.className = 'item'; b.textContent = 'Download original save';
+          b.onclick = () => { const blob = new Blob([JSON.stringify({ journey: read(SAVE_KEY), legacy: read(LEGACY_KEY), endings: read(ENDINGS_KEY) }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'briar-island-save-backup.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }; $('recovery').append(b);
+        }
+      }
+      // Original procedural sound: filtered surf, sparse bell-like notes and a homeward motif.
+      // No recordings, network requests or licensed sample dependencies.
+      const audio = (() => {
+        let context, master, filter, noiseGain, timer, enabled = false, place = 'square', beat = 0;
+        const motif = [220, 261.63, 293.66, 329.63, 293.66, 261.63, 220, 196];
+        function tone(frequency, duration = 2, volume = .08, type = 'sine') {
+          if (!enabled || !context || context.state !== 'running') return;
+          const oscillator = context.createOscillator(), gain = context.createGain();
+          oscillator.type = type; oscillator.frequency.value = frequency;
+          gain.gain.setValueAtTime(0, context.currentTime); gain.gain.linearRampToValueAtTime(volume, context.currentTime + .08); gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + duration);
+          oscillator.connect(gain).connect(master); oscillator.start(); oscillator.stop(context.currentTime + duration + .1);
+          oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+        }
+        function pulse() {
+          if (!enabled || document.hidden) return;
+          const warm = ['dawn', 'home'].includes(place);
+          const frequency = motif[beat++ % motif.length];
+          if (place === 'workshop' && beat % 3 === 0) tone(82.41, .6, .025, 'triangle');
+          if (place === 'dock' && beat % 4 === 0) tone(110, .5, .03, 'triangle');
+          tone(frequency, 3.5, place === 'dock' || warm ? .09 : .035);
+          if (warm) tone(frequency / 2, 4, .05, 'triangle');
+          if (place === 'home') tone(frequency * 1.5, 4, .025);
+          noiseGain.gain.setTargetAtTime(place === 'workshop' ? .025 : .055 + Math.sin(beat) * .014, context.currentTime, 1.8);
+        }
+        async function toggle() {
+          try {
+            if (!context) {
+              const Audio = window.AudioContext || window.webkitAudioContext;
+              if (!Audio) throw new Error('unsupported');
+              context = new Audio(); master = context.createGain(); master.gain.value = 0; master.connect(context.destination);
+              const buffer = context.createBuffer(1, context.sampleRate * 4, context.sampleRate), channel = buffer.getChannelData(0);
+              let previous = 0; for (let i = 0; i < channel.length; i++) { previous = (previous + (Math.random() * 2 - 1) * .025) / 1.025; channel[i] = previous * 5; }
+              const source = context.createBufferSource(); source.buffer = buffer; source.loop = true;
+              filter = context.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 650;
+              noiseGain = context.createGain(); noiseGain.gain.value = .05; source.connect(filter).connect(noiseGain).connect(master); source.start();
+            }
+            enabled = !enabled;
+            if (enabled) { await context.resume(); if (context.state !== 'running') throw new Error('blocked'); }
+            master.gain.cancelScheduledValues(context.currentTime); master.gain.setTargetAtTime(enabled ? .45 : 0, context.currentTime, .25);
+            clearInterval(timer); if (enabled) { pulse(); timer = setInterval(pulse, 2400); }
+            preferences.sound = enabled; savePreferences();
+            $('sound').textContent = enabled ? 'Sound on' : 'Sound off'; $('sound').setAttribute('aria-pressed', String(enabled));
+          } catch (_) { enabled = false; clearInterval(timer); if (master) master.gain.value = 0; $('sound').textContent = 'Sound unavailable'; $('sound').setAttribute('aria-pressed', 'false'); }
+        }
+        return { toggle, scene(next) { if (next !== place) { place = next; beat = 0; if (filter) filter.frequency.setTargetAtTime(({ workshop: 220, orchard: 1400, dock: 850, tower: 450, dawn: 1100, home: 900 })[place] || 600, context.currentTime, 1); if (place === 'dawn') tone(55, 5, .1, 'triangle'); if (place === 'home') pulse(); } }, cue(kind) { tone(kind === 'collect' ? 659.25 : kind === 'paper' ? 174.61 : 440, kind === 'collect' ? 1.5 : .2, .035); }, visibility() { if (context) { if (document.hidden) context.suspend().catch(() => {}); else if (enabled) context.resume().catch(() => {}); } } };
+      })();
+      function setupPreferences() {
+        document.body.classList.toggle('still', preferences.still);
+        $('motion').textContent = preferences.still ? 'Stillness on' : 'Stillness off';
+        $('motion').setAttribute('aria-pressed', String(preferences.still));
+        $('motion').onclick = () => { preferences.still = !preferences.still; savePreferences(); setupPreferences(); };
+        $('sound').onclick = audio.toggle;
+      }
+      document.addEventListener('visibilitychange', audio.visibility);
+
+      const requirements = { letter: ['wick'], oil: ['oil'], leaves: ['oil'], song: ['song'], lens: ['lens'], dawn: ['wick', 'oil'], home: ['wick', 'oil', 'song'] };
+      function validSave(raw) {
+        if (!raw || ![1, 2].includes(raw.version) || !Object.hasOwn(nodes, raw.node) || ['intro', 'restart', 'prelude'].includes(raw.node)) return null;
+        if (!Array.isArray(raw.items) || !raw.items.every(i => Object.hasOwn(itemNames, i)) || !Array.isArray(raw.notes) || !raw.notes.every(n => typeof n === 'string' && n.length < 2000) || !Array.isArray(raw.visited) || !raw.visited.every(v => travelPlaces.includes(v))) return null;
+        if (!(requirements[raw.node] || []).every(i => raw.items.includes(i))) return null;
+        if (raw.version === 2 && (!Array.isArray(raw.memories) || !raw.memories.every(m => Object.hasOwn(discoveries, m)) || ![null, 'carry', 'leave'].includes(raw.keepsake))) return null;
+        return { ...fresh(), node: raw.node, items: [...new Set(raw.items)], notes: raw.notes.slice(0, 100), visited: [...new Set(raw.visited)], memories: raw.version === 2 ? [...new Set(raw.memories)] : [], keepsake: raw.version === 2 ? raw.keepsake : null, ended: ['dawn', 'home'].includes(raw.node) };
+      }
+      function read(key) {
+        try { return localStorage.getItem(key); } catch (_) { storageAvailable = false; return null; }
+      }
+      function load() {
+        const source = read(SAVE_KEY) ?? read(LEGACY_KEY);
+        if (source) {
+          try { saved = validSave(JSON.parse(source)); } catch (_) { /* Keep the original bytes for recovery. */ }
+          if (!saved) recovery = 'This journey could not be read. Its original save is untouched. You can begin a new story in this tab or download the original below.';
+        }
+        try { const list = JSON.parse(read(ENDINGS_KEY) || '[]'); if (Array.isArray(list)) endings = [...new Set(list.filter(e => ['dawn', 'home'].includes(e)))]; } catch (_) { recovery += ' The ending collection could not be read; its stored copy will be preserved.'; }
+        if (saved?.ended && !endings.includes(saved.node)) endings.push(saved.node);
+        try { const archive = JSON.parse(read(ARCHIVE_KEY) || '{}'); for (const id of ['dawn', 'home']) { const snapshot = validSave(archive?.[id]); if (snapshot?.node === id) endingSnapshots[id] = snapshot; } } catch (_) { /* Legacy endings remain readable without a snapshot. */ }
+        if (saved?.ended && !endingSnapshots[saved.node]) endingSnapshots[saved.node] = structuredClone(saved);
+        if (recovery) storageAvailable = false;
+        try { const p = JSON.parse(read(PREF_KEY) || '{}'); for (const key of Object.keys(preferences)) if (typeof p?.[key] === 'boolean') preferences[key] = p[key]; } catch (_) { /* Preferences can safely use defaults. */ }
+      }
+      function savePreferences() { try { localStorage.setItem(PREF_KEY, JSON.stringify(preferences)); } catch (_) { storageAvailable = false; } }
       function save() {
+        saved = structuredClone(state);
+        if (recovery) { storageAvailable = false; return; }
         try {
           localStorage.setItem(SAVE_KEY, JSON.stringify(state));
           localStorage.setItem(ENDINGS_KEY, JSON.stringify(endings));
-          saved = JSON.parse(JSON.stringify(state));
+          localStorage.setItem(ARCHIVE_KEY, JSON.stringify(endingSnapshots));
           storageAvailable = true;
         } catch (_) { storageAvailable = false; }
       }
       function render(nodeId = state.node, focus = false) {
+        view = nodeId;
         const data = nodes[nodeId]();
+        document.body.classList.toggle('opening', !active);
+        document.body.classList.toggle('prelude', nodeId === 'prelude');
+        if (nodeId === 'intro' && saved) data.choices[data.choices.length - 1].target = 'restart';
+        if (reviewing) data.choices = [choice('Return to your journey', 'archive-back')];
+        audio.scene(data.place);
         $('world').dataset.place = data.place;
         $('placeLabel').textContent = placeInfo[data.place][0];
         $('sceneQuote').textContent = placeInfo[data.place][1];
         $('sceneSub').textContent = placeInfo[data.place][2];
         $('chapter').textContent = data.chapter;
         $('storyHeading').textContent = data.title;
-        $('prose').innerHTML = data.text.map(p => `<p>${p}</p>`).join('');
+
+        $('prose').innerHTML = '';
+        data.text.forEach((p, i) => {
+          const para = document.createElement('p');
+          para.innerHTML = p;
+          $('prose').append(para);
+        });
+
         $('choices').replaceChildren();
         activeChoices = data.choices;
         data.choices.forEach((entry, index) => {
           const button = document.createElement('button');
-          button.className = `choice${index === 0 ? ' primary' : ''}`;
+          button.className = `choice${index === 0 && nodeId !== 'tower' ? ' primary' : ''}`;
           button.dataset.choice = entry.target;
           button.innerHTML = `<span class="choice-num" aria-hidden="true">${index + 1}</span><span class="choice-copy">${entry.label}${entry.hint ? `<small>${entry.hint}</small>` : ''}</span><span class="choice-arrow" aria-hidden="true">↗</span>`;
           button.addEventListener('click', () => select(entry));
           $('choices').append(button);
         });
         document.querySelectorAll('[data-travel]').forEach(button => {
-          button.disabled = !active || state.ended || nodeId === 'restart';
+          button.disabled = !active || state.ended || nodeId === 'restart' || reviewing;
           if (button.dataset.travel === data.place && active) button.setAttribute('aria-current', 'location');
           else button.removeAttribute('aria-current');
         });
-        $('restart').hidden = !active || nodeId === 'restart';
+        $('restart').hidden = !active || nodeId === 'restart' || reviewing;
         $('satchel').replaceChildren();
-        ['lantern', ...state.items].forEach(item => {
-          const chip = document.createElement('span'); chip.className = 'item'; chip.textContent = item === 'lantern' ? '◈ Last lantern' : itemNames[item]; $('satchel').append(chip);
+        ['lantern', ...state.items, ...(state.keepsake === 'carry' ? ['button'] : [])].forEach(item => {
+          const chip = document.createElement('button'); chip.className = 'item'; chip.textContent = item === 'lantern' ? '◈ Last lantern' : item === 'button' ? '◉ Brass button' : itemNames[item]; chip.setAttribute('aria-pressed', 'false'); chip.onclick = () => { document.querySelectorAll('#satchel button').forEach(b => b.setAttribute('aria-pressed', String(b === chip))); $('itemDescription').textContent = itemDescriptions[item]; }; $('satchel').append(chip);
         });
         const count = (active ? 1 : 0) + Number(has('wick')) + Number(has('oil')) + Number(state.ended);
         document.querySelectorAll('.step').forEach((el, i) => el.classList.toggle('done', i < count));
@@ -355,9 +583,11 @@
         $('noteCount').textContent = `(${active ? state.notes.length : 0})`;
         $('saveStatus').textContent = storageAvailable ? active ? 'Journey saved · You can return any time.' : 'Your journey saves on this device.' : 'Saving unavailable · Your journey continues in this tab.';
         $('endingsCount').textContent = `${endings.length} / 2 endings discovered`;
-        if (focus) $('storyHeading').focus({ preventScroll: true });
+        renderExtras(nodeId, data);
+        if (focus) $('storyHeading').focus({ preventScroll: false });
       }
       function go(node) {
+        if (!Object.hasOwn(nodes, node) || ['intro', 'restart', 'prelude'].includes(node) || !(requirements[node] || []).every(has)) return;
         state.node = node;
         const place = nodes[node]().place;
         if (travelPlaces.includes(place) && !state.visited.includes(place)) state.visited.push(place);
@@ -365,13 +595,19 @@
           state.ended = true;
           if (!endings.includes(node)) endings.push(node);
           note(node === 'dawn' ? 'Lit the lighthouse. The fishing fleet found its way home.' : 'Shared the last flame. The village lit the shore and sang the fleet home.');
+          endingSnapshots[node] = structuredClone(state);
         }
         save(); render(node, true);
       }
       function select(entry) {
+        if (!activeChoices.includes(entry)) return;
+        audio.cue(entry.target === 'letter' ? 'paper' : 'choice');
+        if (entry.target === 'intro') { preferences.seenIntro = true; savePreferences(); render('intro', true); return; }
+        if (entry.target === 'restart') { render('restart', true); return; }
+        if (entry.target === 'archive-back') { state = archiveReturn.state; active = archiveReturn.active; reviewing = false; render(archiveReturn.view, true); return; }
         if (entry.target === 'arcade') { window.location.href = '../../arcade.html'; return; }
-        if (entry.target === 'cancel') { render(state.node, true); return; }
-        if (entry.target === 'new') { state = fresh(); active = true; go('square'); return; }
+        if (entry.target === 'cancel') { render(active ? state.node : 'intro', true); return; }
+        if (entry.target === 'new') { preferences.seenIntro = true; savePreferences(); state = fresh(); active = true; go('square'); return; }
         if (entry.target === 'continue') { state = JSON.parse(JSON.stringify(saved)); active = true; render(state.node, true); return; }
         if (entry.effect) entry.effect();
         go(entry.target);
@@ -381,12 +617,15 @@
         const button = event.target.closest('[data-travel]');
         if (button && !button.disabled) go(button.dataset.travel);
       });
+
       document.addEventListener('keydown', event => {
-        if (event.altKey || event.ctrlKey || event.metaKey || event.repeat || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName)) return;
+        if (event.altKey || event.ctrlKey || event.metaKey || event.repeat || event.shiftKey || event.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName)) return;
         const n = Number(event.key);
         if (n >= 1 && n <= activeChoices.length && /^\d$/.test(event.key)) { event.preventDefault(); select(activeChoices[n - 1]); }
       });
-      load(); render('intro');
+      load();
+      setupPreferences();
+      render(preferences.seenIntro || saved || recovery ? 'intro' : 'prelude');
     })();
   </script>
 </body>
