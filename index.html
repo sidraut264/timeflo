@@ -629,6 +629,22 @@
       background: rgba(30, 0, 18, 0.95);
     }
 
+    .experiences-link {
+      position: fixed;
+      top: 66px;
+      right: 16px;
+      z-index: 119;
+      padding: 10px 16px;
+      border: 1px solid #d4af3766;
+      border-radius: 24px;
+      background: #100e1f;
+      color: #e5c77b;
+      font: 600 12px 'Inter', sans-serif;
+      text-decoration: none;
+    }
+    .experiences-link:hover { background: #26203a; }
+    .experiences-link:focus-visible { outline: 2px solid #e5c77b; outline-offset: 4px; }
+
     /* === SIDEBAR OVERLAY & DRAWER === */
     .sidebar-overlay {
       position: fixed;
@@ -838,6 +854,8 @@
     <span>🗂️</span>
     <span>BROWSE ALL</span>
   </a>
+
+  <a class="experiences-link" href="experiences.html">✦ Experiences →</a>
 
   <!-- SIDEBAR DRAWER & OVERLAY -->
   <div class="sidebar-overlay" id="sidebarOverlay">

@@ -1,0 +1,2782 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MysticDraw — Tarot & Reflection | Timeflo Experiences</title>
+    <meta name="description" content="Explore MysticDraw on Timeflo: tarot readings, a 78-card codex, and a personal reflection journal.">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cinzel Decorative, Cinzel, Cormorant Garamond, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: {
+                            950: '#05050a',
+                            900: '#0a0a14',
+                            800: '#121224',
+                            700: '#1c1c36',
+                        },
+                        gold: {
+                            100: '#f9f1d8',
+                            200: '#f0deaa',
+                            300: '#e5c77b',
+                            400: '#d4af37',
+                            500: '#aa8625',
+                            600: '#806217',
+                        }
+                    },
+                    fontFamily: {
+                        decorative: ['"Cinzel Decorative"', 'serif'],
+                        cinzel: ['"Cinzel"', 'serif'],
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --gold-primary: #d4af37;
+            --gold-light: #f3e5ab;
+            --gold-dark: #8a6d1b;
+            --obsidian-bg: #05050a;
+        }
+
+        body {
+            background-color: #05050a;
+            color: #f3e5ab;
+            font-family: 'Cormorant Garamond', serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #080812;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2c2517;
+            border: 1px solid #d4af3755;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4af3788;
+        }
+
+        /* Gold Foil Text Gradient */
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fff6d6 0%, #d4af37 45%, #aa8220 75%, #f9eab8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Ornate Gold Borders */
+        .gold-border-glow {
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.08), inset 0 0 15px rgba(212, 175, 55, 0.05);
+        }
+        .gold-border-glow:hover {
+            border-color: rgba(212, 175, 55, 0.7);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.18), inset 0 0 20px rgba(212, 175, 55, 0.08);
+        }
+
+        /* 3D Card Flip Perspective & Containers */
+        .perspective-1000 {
+            perspective: 1400px;
+        }
+        .card-3d-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+            transform-style: preserve-3d;
+        }
+        .card-3d-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .card-face-front {
+            transform: rotateY(180deg);
+        }
+
+        /* Reversed Card Artwork Rotation */
+        .reversed-artwork {
+            transform: rotate(180deg);
+        }
+
+        /* Shimmer & Foil Effects */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .foil-shimmer {
+            background: linear-gradient(90deg, rgba(212,175,55,0) 0%, rgba(212,175,55,0.15) 50%, rgba(212,175,55,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 6s infinite linear;
+        }
+
+        /* Deck Fan Card Hover */
+        .deck-pick-card {
+            transition: all 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        .deck-pick-card:hover {
+            transform: translateY(-22px) scale(1.06) !important;
+            z-index: 40 !important;
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.35);
+        }
+        .deck-pick-card.picked {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-60px) scale(0.8) !important;
+        }
+
+        /* Shuffle Animation */
+        @keyframes shufflePulse {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-28px) rotate(-6deg); }
+            50% { transform: translateX(28px) rotate(6deg); }
+            75% { transform: translateX(-12px) rotate(-3deg); }
+        }
+        .shuffling-card {
+            animation: shufflePulse 0.45s ease-in-out infinite;
+        }
+
+        /* Floating Celestial Slow Spin */
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spin-slow {
+            animation: spinSlow 45s linear infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-gold-400 selection:text-obsidian-950">
+
+    <!-- Background Interactive Starfield Canvas -->
+    <canvas id="starfieldCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-75"></canvas>
+
+    <!-- Ambient Radial Glows -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-purple-950/20 blur-[140px] rounded-full pointer-events-none z-0"></div>
+    <div class="fixed bottom-0 right-10 w-[500px] h-[400px] bg-amber-900/10 blur-[130px] rounded-full pointer-events-none z-0"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-obsidian-950/85 border-b border-gold-400/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="switchView('sanctuary')">
+                <div class="w-11 h-11 rounded-full bg-obsidian-900 border border-gold-400/60 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.25)] group-hover:scale-105 transition">
+                    <i class="ph-fill ph-sparkle text-gold-400 text-2xl"></i>
+                </div>
+                <div>
+                    <span class="font-decorative text-2xl sm:text-3xl tracking-wider gold-gradient-text font-bold block leading-none">MysticDraw</span>
+                    <span class="font-cinzel text-[10px] tracking-[0.25em] text-gold-300/70 uppercase block mt-1">78-Card Arcane Sanctuary</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center gap-2 lg:gap-4">
+                <button onclick="switchView('sanctuary')" id="nav-sanctuary" class="nav-tab px-4 py-2 rounded-lg font-cinzel text-xs tracking-widest uppercase transition flex items-center gap-2 bg-gold-400/15 text-gold-200 border border-gold-400/40">
+                    <i class="ph ph-cards text-base text-gold-400"></i> Reading Sanctuary
+                </button>
+                <button onclick="switchView('codex')" id="nav-codex" class="nav-tab px-4 py-2 rounded-lg font-cinzel text-xs tracking-widest uppercase transition flex items-center gap-2 text-gold-200/70 hover:text-gold-200 hover:bg-white/5 border border-transparent">
+                    <i class="ph ph-book-open-text text-base text-gold-400"></i> 78-Card Codex
+                </button>
+                <button onclick="switchView('journal')" id="nav-journal" class="nav-tab px-4 py-2 rounded-lg font-cinzel text-xs tracking-widest uppercase transition flex items-center gap-2 text-gold-200/70 hover:text-gold-200 hover:bg-white/5 border border-transparent">
+                    <i class="ph ph-scroll text-base text-gold-400"></i> Journal <span id="journalCountBadge" class="px-1.5 py-0.5 text-[10px] rounded-full bg-gold-400/20 text-gold-300 font-mono">0</span>
+                </button>
+                <button onclick="toggleSqlModal(true)" class="px-4 py-2 rounded-lg font-mono text-xs tracking-wider uppercase transition flex items-center gap-2 bg-emerald-950/60 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-900/60 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                    <i class="ph ph-database text-base text-emerald-400"></i> MySQL & API Inspector
+                    <span id="sqlQueryCountBadge" class="px-1.5 py-0.5 text-[10px] rounded bg-emerald-500/20 text-emerald-200">Live</span>
+                </button>
+            </nav>
+
+            <!-- Right Controls: Sound & Mobile Menu -->
+            <div class="flex items-center gap-2">
+                <button id="audioToggleBtn" onclick="toggleAudio()" title="Toggle Mystical Chimes (Web Audio API)" class="p-2.5 rounded-lg bg-obsidian-900 border border-gold-400/30 text-gold-300 hover:border-gold-400 transition flex items-center gap-1.5 text-xs font-cinzel">
+                    <i id="audioIcon" class="ph ph-speaker-high text-lg text-gold-400"></i>
+                    <span class="hidden sm:inline" id="audioStatusText">Chimes On</span>
+                </button>
+
+                <button onclick="toggleSqlModal(true)" class="md:hidden p-2.5 rounded-lg bg-emerald-950/70 border border-emerald-500/40 text-emerald-300">
+                    <i class="ph ph-database text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom/Sub Navigation Bar -->
+        <div class="flex md:hidden border-t border-gold-400/15 bg-obsidian-900/90 justify-around py-2 px-2">
+            <button onclick="switchView('sanctuary')" class="flex items-center gap-1.5 font-cinzel text-xs uppercase tracking-wider text-gold-300 px-3 py-1.5 rounded">
+                <i class="ph ph-cards text-gold-400"></i> Sanctuary
+            </button>
+            <button onclick="switchView('codex')" class="flex items-center gap-1.5 font-cinzel text-xs uppercase tracking-wider text-gold-300/70 px-3 py-1.5 rounded">
+                <i class="ph ph-book-open-text text-gold-400"></i> 78-Deck
+            </button>
+            <button onclick="switchView('journal')" class="flex items-center gap-1.5 font-cinzel text-xs uppercase tracking-wider text-gold-300/70 px-3 py-1.5 rounded">
+                <i class="ph ph-scroll text-gold-400"></i> Journal
+            </button>
+        </div>
+    </header>
+
+    <nav aria-label="Timeflo" style="position:relative;z-index:10;width:100%;max-width:80rem;margin:1rem auto 0;padding:0 1.5rem;font:13px Inter,sans-serif;">
+        <a href="experiences.html" style="color:#e5c77b;text-decoration:underline;text-underline-offset:4px;">← Timeflo Experiences</a>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ==========================================
+             VIEW 1: TAROT READING SANCTUARY
+        =========================================== -->
+        <section id="view-sanctuary" class="space-y-10">
+
+            <!-- Sanctuary Hero Header -->
+            <div class="text-center max-w-3xl mx-auto space-y-3">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-400/10 border border-gold-400/30 text-gold-300 font-cinzel text-xs tracking-[0.2em] uppercase">
+                    <i class="ph-fill ph-moon-stars text-gold-400"></i> Consult the 78-Card Sacred Arcana
+                </div>
+                <h1 class="font-decorative text-3xl sm:text-5xl font-bold gold-gradient-text tracking-wide leading-tight">
+                    Unveil the Threads of Fate
+                </h1>
+                <p class="text-lg sm:text-xl text-gold-100/80 font-serif italic max-w-2xl mx-auto">
+                    Center your intention, select your realm of inquiry, and draw from the non-repeating cryptographic tarot deck.
+                </p>
+            </div>
+
+            <!-- STEP 1: CONFIGURATION CONSOLE -->
+            <div id="ritualConfigPanel" class="max-w-4xl mx-auto rounded-2xl bg-obsidian-900/85 backdrop-blur-xl gold-border-glow p-6 sm:p-8 space-y-8 relative overflow-hidden">
+                <!-- Subtle Decorative Corner SVG -->
+                <div class="absolute -top-12 -right-12 w-40 h-40 opacity-10 pointer-events-none spin-slow">
+                    <svg viewBox="0 0 100 100" fill="none" stroke="#d4af37" stroke-width="1">
+                        <circle cx="50" cy="50" r="45" stroke-dasharray="4 2"/>
+                        <circle cx="50" cy="50" r="35"/>
+                        <polygon points="50,5 62,38 95,50 62,62 50,95 38,62 5,50 38,38"/>
+                    </svg>
+                </div>
+
+                <!-- 1. Question Input -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label for="userQuestion" class="font-cinzel text-xs sm:text-sm uppercase tracking-[0.15em] text-gold-300 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-gold-400/20 border border-gold-400/50 inline-flex items-center justify-center text-xs font-bold">I</span>
+                            Whisper Your Question or Intention
+                        </label>
+                        <button onclick="fillSampleQuestion()" class="text-xs font-sans text-gold-400 hover:text-gold-200 underline underline-offset-4 transition">
+                            Inspire me with a question
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="userQuestion"
+                            maxlength="160"
+                            placeholder="e.g., What hidden energy surrounds my career transition over the coming months?"
+                            class="w-full rounded-xl bg-obsidian-950/90 border border-gold-400/35 focus:border-gold-400 focus:outline-none px-4 py-3.5 text-lg sm:text-xl text-gold-100 placeholder-gold-200/30 font-serif shadow-inner transition"
+                        >
+                        <i class="ph ph-magic-wand absolute right-4 top-1/2 -translate-y-1/2 text-gold-400/50 text-xl"></i>
+                    </div>
+                </div>
+
+                <!-- 2. Category Selection (4 Realms) -->
+                <div class="space-y-3">
+                    <label class="font-cinzel text-xs sm:text-sm uppercase tracking-[0.15em] text-gold-300 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-gold-400/20 border border-gold-400/50 inline-flex items-center justify-center text-xs font-bold">II</span>
+                        Select Realm of Inquiry
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" id="categoryButtonsGrid">
+                        <!-- Love & Relationships -->
+                        <button type="button" onclick="selectCategory('love')" data-cat="love" class="cat-btn group text-left p-4 rounded-xl bg-obsidian-950/80 border border-gold-400/80 ring-2 ring-gold-400/30 transition flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="w-9 h-9 rounded-lg bg-rose-950/60 border border-rose-400/40 flex items-center justify-center text-rose-300">
+                                    <i class="ph-fill ph-heart text-xl"></i>
+                                </span>
+                                <span class="cat-check text-gold-400"><i class="ph-fill ph-check-circle text-lg"></i></span>
+                            </div>
+                            <div>
+                                <div class="font-cinzel text-sm font-semibold text-gold-200">Love & Relationships</div>
+                                <p class="text-xs text-gold-100/60 font-sans mt-0.5">Romance, soul bonds, harmony & emotional truth</p>
+                            </div>
+                        </button>
+
+                        <!-- Career & Money -->
+                        <button type="button" onclick="selectCategory('career')" data-cat="career" class="cat-btn group text-left p-4 rounded-xl bg-obsidian-950/50 border border-gold-400/20 hover:border-gold-400/50 transition flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="w-9 h-9 rounded-lg bg-amber-950/60 border border-amber-400/40 flex items-center justify-center text-amber-300">
+                                    <i class="ph-fill ph-coins text-xl"></i>
+                                </span>
+                                <span class="cat-check hidden text-gold-400"><i class="ph-fill ph-check-circle text-lg"></i></span>
+                            </div>
+                            <div>
+                                <div class="font-cinzel text-sm font-semibold text-gold-200">Career & Money</div>
+                                <p class="text-xs text-gold-100/60 font-sans mt-0.5">Vocation, prosperity, ambition & material enterprise</p>
+                            </div>
+                        </button>
+
+                        <!-- Personal Growth -->
+                        <button type="button" onclick="selectCategory('growth')" data-cat="growth" class="cat-btn group text-left p-4 rounded-xl bg-obsidian-950/50 border border-gold-400/20 hover:border-gold-400/50 transition flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="w-9 h-9 rounded-lg bg-purple-950/60 border border-purple-400/40 flex items-center justify-center text-purple-300">
+                                    <i class="ph-fill ph-butterfly text-xl"></i>
+                                </span>
+                                <span class="cat-check hidden text-gold-400"><i class="ph-fill ph-check-circle text-lg"></i></span>
+                            </div>
+                            <div>
+                                <div class="font-cinzel text-sm font-semibold text-gold-200">Personal Growth</div>
+                                <p class="text-xs text-gold-100/60 font-sans mt-0.5">Shadow work, spiritual awakening & inner wisdom</p>
+                            </div>
+                        </button>
+
+                        <!-- General -->
+                        <button type="button" onclick="selectCategory('general')" data-cat="general" class="cat-btn group text-left p-4 rounded-xl bg-obsidian-950/50 border border-gold-400/20 hover:border-gold-400/50 transition flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="w-9 h-9 rounded-lg bg-sky-950/60 border border-sky-400/40 flex items-center justify-center text-sky-300">
+                                    <i class="ph-fill ph-compass text-xl"></i>
+                                </span>
+                                <span class="cat-check hidden text-gold-400"><i class="ph-fill ph-check-circle text-lg"></i></span>
+                            </div>
+                            <div>
+                                <div class="font-cinzel text-sm font-semibold text-gold-200">General Oracle</div>
+                                <p class="text-xs text-gold-100/60 font-sans mt-0.5">Holistic cosmic guidance & overarching life currents</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Spread Selection (1-Card vs 3-Card) & Reversal Settings -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                    <!-- Spread Choice -->
+                    <div class="md:col-span-2 space-y-3">
+                        <label class="font-cinzel text-xs sm:text-sm uppercase tracking-[0.15em] text-gold-300 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-gold-400/20 border border-gold-400/50 inline-flex items-center justify-center text-xs font-bold">III</span>
+                            Choose Sacred Spread
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <!-- One-Card Spread -->
+                            <button type="button" onclick="selectSpread(1)" id="spread-btn-1" class="p-4 rounded-xl bg-obsidian-950/50 border border-gold-400/20 hover:border-gold-400/50 text-left transition flex items-center gap-4">
+                                <div class="w-10 h-14 rounded border border-gold-400/60 bg-gold-400/10 flex items-center justify-center shrink-0 shadow">
+                                    <span class="font-cinzel text-sm font-bold text-gold-300">I</span>
+                                </div>
+                                <div>
+                                    <div class="font-cinzel text-sm font-semibold text-gold-200">One-Card Oracle</div>
+                                    <p class="text-xs text-gold-100/60 font-sans mt-0.5">Focused singular truth & immediate cosmic synthesis</p>
+                                </div>
+                            </button>
+
+                            <!-- Three-Card Spread (Default Active) -->
+                            <button type="button" onclick="selectSpread(3)" id="spread-btn-3" class="p-4 rounded-xl bg-obsidian-950/90 border border-gold-400/80 ring-2 ring-gold-400/30 text-left transition flex items-center gap-4">
+                                <div class="flex items-center -space-x-2 shrink-0">
+                                    <div class="w-7 h-11 rounded border border-gold-400/50 bg-obsidian-800 -rotate-6"></div>
+                                    <div class="w-7 h-11 rounded border border-gold-400 bg-gold-400/20 z-10 flex items-center justify-center font-cinzel text-xs font-bold text-gold-300">III</div>
+                                    <div class="w-7 h-11 rounded border border-gold-400/50 bg-obsidian-800 rotate-6"></div>
+                                </div>
+                                <div>
+                                    <div class="font-cinzel text-sm font-semibold text-gold-200">Three-Card Temporal</div>
+                                    <p class="text-xs text-gold-100/60 font-sans mt-0.5">Past Foundation • Present Crossroads • Future Horizon</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Orientation & Draw Method -->
+                    <div class="space-y-3">
+                        <label class="font-cinzel text-xs sm:text-sm uppercase tracking-[0.15em] text-gold-300 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-gold-400/20 border border-gold-400/50 inline-flex items-center justify-center text-xs font-bold">IV</span>
+                            Arcana Rules
+                        </label>
+                        <div class="p-3.5 rounded-xl bg-obsidian-950/60 border border-gold-400/25 space-y-3">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="text-xs font-sans text-gold-200">Allow Reversed Cards (50%)</span>
+                                <input type="checkbox" id="allowReversalsCheckbox" checked class="accent-amber-500 w-4 h-4 rounded cursor-pointer">
+                            </label>
+                            <label class="flex items-center justify-between cursor-pointer border-t border-gold-400/10 pt-2.5">
+                                <span class="text-xs font-sans text-gold-200">Interactive Deck Pick</span>
+                                <input type="checkbox" id="interactivePickCheckbox" checked class="accent-amber-500 w-4 h-4 rounded cursor-pointer">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Trigger Buttons -->
+                <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <button
+                        type="button"
+                        onclick="initiateReadingRitual()"
+                        class="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-obsidian-950 font-cinzel font-bold text-sm sm:text-base tracking-[0.2em] uppercase shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_45px_rgba(212,175,55,0.7)] hover:scale-[1.02] active:scale-[0.99] transition flex items-center justify-center gap-3"
+                    >
+                        <i class="ph-fill ph-sparkle text-xl"></i>
+                        Consecrate & Draw Cards
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: INTERACTIVE DECK SHUFFLING & CARD PICKING STAGE (Hidden until initiated) -->
+            <div id="deckRitualStage" class="hidden max-w-5xl mx-auto rounded-2xl bg-obsidian-900/90 border border-gold-400/40 p-6 sm:p-10 text-center space-y-6">
+                <div class="space-y-2">
+                    <div id="ritualStageBadge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-400/15 text-gold-300 font-cinzel text-xs uppercase tracking-widest">
+                        <i class="ph ph-spiral animate-spin"></i> Fisher-Yates Cryptographic Shuffle Active
+                    </div>
+                    <h2 id="ritualStageTitle" class="font-cinzel text-2xl sm:text-3xl text-gold-200 font-semibold">
+                        Select <span id="cardsRemainingToPick" class="text-gold-400 underline">3</span> Cards From the Sacred Arcana
+                    </h2>
+                    <p id="ritualStageSub" class="text-base text-gold-100/70 font-serif italic">
+                        Hover over the fanned 78-card deck below and click the cards that call to your intuition, or click "Quick Reveal All".
+                    </p>
+                </div>
+
+                <!-- Visual Deck Fan Container -->
+                <div id="fannedDeckContainer" class="relative py-8 px-2 flex flex-wrap justify-center items-center gap-1.5 sm:gap-2 min-h-[210px] max-w-4xl mx-auto">
+                    <!-- Populated dynamically with interactive face-down tarot cards -->
+                </div>
+
+                <!-- Ritual Controls -->
+                <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+                    <button onclick="reshuffleDeckVisual()" class="px-5 py-2.5 rounded-lg bg-obsidian-800 border border-gold-400/40 text-gold-300 hover:bg-gold-400/15 font-cinzel text-xs uppercase tracking-widest transition flex items-center gap-2">
+                        <i class="ph ph-shuffle text-base"></i> Shuffle Deck Again
+                    </button>
+                    <button onclick="autoCompleteCardPick()" class="px-6 py-2.5 rounded-lg bg-gold-400/20 border border-gold-400 text-gold-200 hover:bg-gold-400 hover:text-obsidian-950 font-cinzel text-xs font-semibold uppercase tracking-widest transition flex items-center gap-2">
+                        <i class="ph-fill ph-lightning text-base"></i> Instant Draw & Reveal
+                    </button>
+                    <button onclick="resetSanctuary()" class="px-4 py-2.5 rounded-lg text-gold-300/60 hover:text-gold-200 font-cinzel text-xs uppercase tracking-widest transition">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3: THE READING TABLE & PERSONALIZED INTERPRETATION -->
+            <div id="readingResultStage" class="hidden space-y-12">
+
+                <!-- Reading Metadata Banner -->
+                <div class="max-w-5xl mx-auto rounded-2xl bg-obsidian-900/90 border border-gold-400/35 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span id="resultCategoryBadge" class="px-3 py-0.5 rounded-full bg-gold-400/20 border border-gold-400/50 font-cinzel text-xs uppercase tracking-widest text-gold-300">
+                                Love & Relationships
+                            </span>
+                            <span id="resultSpreadBadge" class="px-3 py-0.5 rounded-full bg-obsidian-800 border border-gold-400/20 font-cinzel text-xs uppercase tracking-widest text-gold-200/80">
+                                Three-Card Temporal Spread
+                            </span>
+                            <span id="resultSqlTransactionId" onclick="toggleSqlModal(true)" class="cursor-pointer px-2.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 font-mono text-[11px] text-emerald-300 hover:bg-emerald-900">
+                                MySQL TX #1042
+                            </span>
+                        </div>
+                        <h2 id="resultQuestionHeading" class="text-xl sm:text-2xl font-serif italic text-gold-100 pt-1">
+                            "What hidden energy surrounds my path?"
+                        </h2>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                        <button id="revealAllBtn" onclick="flipAllCards()" class="px-4 py-2 rounded-lg bg-gold-400 text-obsidian-950 font-cinzel font-bold text-xs uppercase tracking-wider hover:bg-gold-300 transition flex items-center gap-1.5 shadow-lg">
+                            <i class="ph-fill ph-eye text-base"></i> Reveal All Cards
+                        </button>
+                        <button onclick="resetSanctuary()" class="px-4 py-2 rounded-lg bg-obsidian-800 border border-gold-400/40 text-gold-200 hover:bg-gold-400/15 font-cinzel text-xs uppercase tracking-wider transition flex items-center gap-1.5">
+                            <i class="ph ph-arrows-clockwise text-base"></i> New Reading
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAROT CARDS SPREAD DISPLAY GRID -->
+                <div id="spreadCardsContainer" class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center items-start">
+                    <!-- Dynamically populated with 1 or 3 3D flippable tarot cards -->
+                </div>
+
+                <!-- SYNTHESIZED ORACLE INTERPRETATION REPORT -->
+                <div id="oracleSynthesisSection" class="max-w-5xl mx-auto space-y-8">
+                    <!-- Individual Card Detailed Breakdowns -->
+                    <div id="individualCardInterpretations" class="space-y-6">
+                        <!-- Dynamically rendered as cards are flipped -->
+                    </div>
+
+                    <!-- Grand Cosmic Synthesis (Revealed once all cards in the reading are flipped) -->
+                    <div id="grandSynthesisCard" class="hidden rounded-2xl bg-gradient-to-b from-obsidian-900 via-obsidian-900 to-obsidian-950 gold-border-glow p-6 sm:p-10 space-y-6 relative overflow-hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold-400/25 pb-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-gold-400/15 border border-gold-400/50 flex items-center justify-center text-gold-400">
+                                    <i class="ph-fill ph-shooting-star text-2xl"></i>
+                                </div>
+                                <div>
+                                    <span class="font-cinzel text-xs uppercase tracking-[0.2em] text-gold-400 block">Holistic Arcana Synthesis</span>
+                                    <h3 class="font-decorative text-2xl sm:text-3xl gold-gradient-text font-bold">The Oracle's Final Decree</h3>
+                                </div>
+                            </div>
+                            <button onclick="copyReadingSummary()" id="copyReadingBtn" class="self-start sm:self-auto px-4 py-2 rounded-lg bg-obsidian-800 border border-gold-400/30 text-gold-200 hover:border-gold-400 font-cinzel text-xs uppercase tracking-wider transition flex items-center gap-2">
+                                <i class="ph ph-copy text-base text-gold-400"></i> Copy Reading
+                            </button>
+                        </div>
+
+                        <div id="grandSynthesisBody" class="space-y-4 text-lg sm:text-xl leading-relaxed text-gold-100/90 font-serif">
+                            <!-- Populated dynamically by combining question, category, card meanings, elemental balance, and positions -->
+                        </div>
+
+                        <!-- Elemental & Arcana Harmony Meter -->
+                        <div id="synthesisHarmonyMetrics" class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gold-400/20">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==========================================
+             VIEW 2: 78-CARD ARCANA CODEX EXPLORER
+        =========================================== -->
+        <section id="view-codex" class="hidden space-y-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gold-400/20 pb-6">
+                <div>
+                    <span class="font-cinzel text-xs uppercase tracking-[0.2em] text-gold-400">Complete MySQL Card Repository</span>
+                    <h2 class="font-decorative text-3xl sm:text-4xl gold-gradient-text font-bold mt-1">The 78-Card Tarot Codex</h2>
+                    <p class="text-gold-100/75 text-lg mt-1">Explore every Major and Minor Arcana card, custom SVG artwork, and category-specific Upright & Reversed interpretations.</p>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <input
+                        type="text"
+                        id="codexSearchInput"
+                        oninput="renderCodexGrid()"
+                        placeholder="Search card name or keyword..."
+                        class="px-3.5 py-2 rounded-lg bg-obsidian-900 border border-gold-400/30 text-gold-100 placeholder-gold-200/40 text-sm font-sans focus:outline-none focus:border-gold-400"
+                    >
+                    <select id="codexSuitFilter" onchange="renderCodexGrid()" class="px-3.5 py-2 rounded-lg bg-obsidian-900 border border-gold-400/30 text-gold-200 text-xs font-cinzel uppercase tracking-wider focus:outline-none">
+                        <option value="ALL">All 78 Cards</option>
+                        <option value="Major Arcana">Major Arcana (22)</option>
+                        <option value="Wands">Suit of Wands (14)</option>
+                        <option value="Cups">Suit of Cups (14)</option>
+                        <option value="Swords">Suit of Swords (14)</option>
+                        <option value="Pentacles">Suit of Pentacles (14)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 78 Cards Grid -->
+            <div id="codexCardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW 3: READING JOURNAL / SAVED HISTORY
+        =========================================== -->
+        <section id="view-journal" class="hidden space-y-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold-400/20 pb-6">
+                <div>
+                    <span class="font-cinzel text-xs uppercase tracking-[0.2em] text-gold-400">Personal Chronicles</span>
+                    <h2 class="font-decorative text-3xl sm:text-4xl gold-gradient-text font-bold mt-1">Sacred Reading Journal</h2>
+                    <p class="text-gold-100/75 text-lg mt-1">Review past spreads, questions, and drawn cards persisted in your sanctuary log.</p>
+                </div>
+                <button onclick="clearReadingJournal()" class="self-start sm:self-auto px-4 py-2 rounded-lg bg-rose-950/50 border border-rose-500/40 text-rose-300 hover:bg-rose-900/60 font-cinzel text-xs uppercase tracking-wider transition flex items-center gap-2">
+                    <i class="ph ph-trash text-base"></i> Clear Journal
+                </button>
+            </div>
+
+            <div id="journalEntriesContainer" class="space-y-4">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==========================================
+         MODAL 1: CARD DETAIL INSPECTOR (FOR CODEX)
+    =========================================== -->
+    <div id="cardDetailModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-obsidian-900 gold-border-glow rounded-2xl max-w-4xl w-full p-6 sm:p-8 relative my-8 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeCardDetailModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-obsidian-800 border border-gold-400/40 text-gold-300 hover:text-white flex items-center justify-center">
+                <i class="ph ph-x text-lg"></i>
+            </button>
+            <div id="cardDetailModalContent"></div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 2: BACKEND & MYSQL ARCHITECTURE INSPECTOR
+    =========================================== -->
+    <div id="sqlInspectorModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-obsidian-950 border border-emerald-500/40 rounded-2xl max-w-6xl w-full h-[88vh] flex flex-col shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-obsidian-900 border-b border-emerald-500/30 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-950 border border-emerald-500/50 flex items-center justify-center text-emerald-400">
+                        <i class="ph ph-database text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-mono text-sm sm:text-base font-bold text-emerald-300">MysticDraw MySQL 8.0 & Backend Architecture Inspector</h3>
+                        <p class="font-sans text-xs text-emerald-200/60">Live SQL Query Execution Log, Production Relational Schema (`cards`, `card_interpretations`, `readings`, `reading_cards`), and Backend API</p>
+                    </div>
+                </div>
+                <button onclick="toggleSqlModal(false)" class="w-9 h-9 rounded-lg bg-obsidian-800 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/40 flex items-center justify-center">
+                    <i class="ph ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Sub-navigation Tabs inside Modal -->
+            <div class="px-6 py-2.5 bg-obsidian-900/60 border-b border-emerald-500/20 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="switchSqlTab('live')" id="sqltab-live" class="sql-tab-btn px-3.5 py-1.5 rounded-md font-mono text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">
+                        1. Live SQL Query Log
+                    </button>
+                    <button onclick="switchSqlTab('schema')" id="sqltab-schema" class="sql-tab-btn px-3.5 py-1.5 rounded-md font-mono text-xs text-emerald-200/60 hover:text-emerald-200">
+                        2. MySQL Schema & Seed (`schema.sql`)
+                    </button>
+                    <button onclick="switchSqlTab('node')" id="sqltab-node" class="sql-tab-btn px-3.5 py-1.5 rounded-md font-mono text-xs text-emerald-200/60 hover:text-emerald-200">
+                        3. Node.js + MySQL2 API (`server.js`)
+                    </button>
+                    <button onclick="switchSqlTab('php')" id="sqltab-php" class="sql-tab-btn px-3.5 py-1.5 rounded-md font-mono text-xs text-emerald-200/60 hover:text-emerald-200">
+                        4. PHP PDO Endpoint (`draw.php`)
+                    </button>
+                </div>
+                <button onclick="copyActiveSqlCode()" id="copySqlCodeBtn" class="px-3 py-1.5 rounded bg-emerald-900/60 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-800 font-mono text-xs flex items-center gap-1.5">
+                    <i class="ph ph-copy"></i> Copy Code / SQL
+                </button>
+            </div>
+
+            <!-- Modal Body Content -->
+            <div class="flex-grow overflow-y-auto p-6 font-mono text-xs sm:text-sm bg-[#06090e] text-emerald-100 space-y-4">
+                <!-- Tab 1: Live SQL Log -->
+                <div id="sqlcontent-live" class="space-y-4">
+                    <div class="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs font-sans text-emerald-200 flex items-start gap-3">
+                        <i class="ph-fill ph-info text-emerald-400 text-lg shrink-0 mt-0.5"></i>
+                        <div>
+                            Every time you draw a reading in MysticDraw, the in-browser relational engine executes the exact non-duplicate selection algorithm and logs the parameterized MySQL transactions below.
+                        </div>
+                    </div>
+                    <div id="liveSqlLogsContainer" class="space-y-4">
+                        <!-- Populated dynamically on each draw -->
+                    </div>
+                </div>
+
+                <!-- Tab 2: MySQL Schema -->
+                <pre id="sqlcontent-schema" class="hidden whitespace-pre-wrap leading-relaxed text-emerald-200 select-all"></pre>
+
+                <!-- Tab 3: Node.js Express Backend -->
+                <pre id="sqlcontent-node" class="hidden whitespace-pre-wrap leading-relaxed text-sky-200 select-all"></pre>
+
+                <!-- Tab 4: PHP PDO Backend -->
+                <pre id="sqlcontent-php" class="hidden whitespace-pre-wrap leading-relaxed text-amber-200 select-all"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-gold-400/15 bg-obsidian-950/90 py-6 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gold-200/50 font-cinzel tracking-wider">
+            <div class="flex items-center gap-2">
+                <i class="ph-fill ph-sparkle text-gold-400"></i>
+                <span>MYSTICDRAW • 78-CARD ESOTERIC TAROT ENGINE</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSqlModal(true)" class="hover:text-gold-300 underline underline-offset-4">MySQL Schema & API</button>
+                <span>•</span>
+                <button onclick="switchView('codex')" class="hover:text-gold-300 underline underline-offset-4">78-Card Deck</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==========================================
+         JAVASCRIPT ENGINE: 78-CARD DB, ARTWORK & LOGIC
+    =========================================== -->
+    <script>
+        /**************************************************************
+         * 1. WEB AUDIO SYNTHESIZER FOR MYSTICAL CHIMES
+         **************************************************************/
+        let audioEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playMysticSound(type = 'flip') {
+            if (!audioEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const now = audioCtx.currentTime;
+                if (type === 'shuffle') {
+                    // Soft celestial harp sweep
+                    const freqs = [329.63, 392.00, 493.88, 587.33, 659.25];
+                    freqs.forEach((f, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, now + idx * 0.055);
+                        gain.gain.setValueAtTime(0.001, now + idx * 0.055);
+                        gain.gain.exponentialRampToValueAtTime(0.06, now + idx * 0.055 + 0.04);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.055 + 0.65);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.055);
+                        osc.stop(now + idx * 0.055 + 0.7);
+                    });
+                } else if (type === 'flip') {
+                    // Crystalline bell chime
+                    const freqs = [523.25, 783.99, 1046.50];
+                    freqs.forEach((f, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = idx === 0 ? 'triangle' : 'sine';
+                        osc.frequency.setValueAtTime(f, now + idx * 0.04);
+                        gain.gain.setValueAtTime(0.001, now + idx * 0.04);
+                        gain.gain.exponentialRampToValueAtTime(0.08 / (idx + 1), now + idx * 0.04 + 0.03);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.04 + 1.1);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.04);
+                        osc.stop(now + idx * 0.04 + 1.15);
+                    });
+                } else if (type === 'pick') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.18);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.38);
+                }
+            } catch (e) {
+                // Ignore audio errors if blocked by browser autoplay policy
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audioIcon');
+            const text = document.getElementById('audioStatusText');
+            if (audioEnabled) {
+                icon.className = 'ph ph-speaker-high text-lg text-gold-400';
+                text.textContent = 'Chimes On';
+                playMysticSound('pick');
+            } else {
+                icon.className = 'ph ph-speaker-slash text-lg text-gold-400/50';
+                text.textContent = 'Muted';
+            }
+        }
+
+        /**************************************************************
+         * 2. COMPLETE 78-CARD TAROT RELATIONAL DATABASE IN MEMORY
+         *    (22 Major Arcana + 56 Minor Arcana with Upright & Reversed
+         *     meanings across Love, Career, Personal Growth, and General)
+         **************************************************************/
+        const MAJOR_ARCANA_DATA = [
+            {
+                id: 1, number: 0, numeral: "0", name: "The Fool", arcana: "Major Arcana", suit: "Major", element: "Air", astro: "Uranus",
+                keywordsUpright: ["New Beginnings", "Leap of Faith", "Innocence", "Spontaneity"],
+                keywordsReversed: ["Recklessness", "Hesitation", "Naivety", "Foolish Risk"],
+                motif: "sun_cliff",
+                upright: {
+                    general: "A sacred threshold opens before you. The Fool invites you to release rigid expectations and step into the unknown with an open, curious spirit. Trust that the universe supports your maiden voyage.",
+                    love: "A breath of fresh air revitalizes your romantic life. Open your heart to spontaneous connection, unguarded vulnerability, or a joyful new chapter free from past relationship baggage.",
+                    career: "An exciting venture, startup path, or unconventional career pivot beckons. Even if you don't have every credential mapped out, your enthusiasm and fresh perspective are your greatest assets.",
+                    growth: "Embrace the 'beginner's mind.' Let go of the need to look like an expert and allow yourself the sacred freedom to experiment, play, and discover who you are becoming."
+                },
+                reversed: {
+                    general: "Pause before leaping blindly. You may either be acting impulsively without weighing consequences, or letting fear of judgment paralyze you at the edge of a necessary beginning.",
+                    love: "Guard againstwearing rose-colored glasses or ignoring clear red flags in romance. Alternatively, fear of commitment may be keeping a meaningful bond at surface level.",
+                    career: "Avoid hasty financial speculations or signing agreements without reading the fine print. Ground your creative ambitions in a practical execution plan before jumping.",
+                    growth: "Ask yourself whether self-doubt is masquerading as 'waiting for the right time,' or if scattered energy is preventing you from committing to true inner transformation."
+                }
+            },
+            {
+                id: 2, number: 1, numeral: "I", name: "The Magician", arcana: "Major Arcana", suit: "Major", element: "Air", astro: "Mercury",
+                keywordsUpright: ["Manifestation", "Mastery", "Resourcefulness", "Willpower"],
+                keywordsReversed: ["Untapped Potential", "Illusion", "Manipulation", "Scattered Focus"],
+                motif: "lemniscate_wand",
+                upright: {
+                    general: "As above, so below. You already possess all four elemental tools—vision, emotion, intellect, and material grit—needed to turn your intention into tangible reality.",
+                    love: "Magnetic attraction and intentional communication align. Express your desires clearly and take conscious, inspired action to deepen intimacy or attract a kindred partner.",
+                    career: "Peak executive mastery. Pitch your boldest proposal, negotiate with confidence, and channel your specialized skills into high-impact creation.",
+                    growth: "You are moving from passive wishing to active co-creation. Align your daily habits with your highest spiritual willpower."
+                },
+                reversed: {
+                    general: "Brilliant energy is currently fragmented or doubted. Beware of smoke and mirrors—either from external promises that sound too good to be true, or from your own impostor syndrome.",
+                    love: "Watch for mixed signals, half-truths, or playing power games in love. Authentic connection requires dropping the performance and speaking from the heart.",
+                    career: "Talents are sitting idle due to procrastination or lack of singular focus. Consolidate your projects rather than chasing five directions at once.",
+                    growth: "Reconnect your actions with ethical integrity. True spiritual power never needs to force or deceive; reclaim your authentic confidence."
+                }
+            },
+            {
+                id: 3, number: 2, numeral: "II", name: "The High Priestess", arcana: "Major Arcana", suit: "Major", element: "Water", astro: "Moon",
+                keywordsUpright: ["Intuition", "Sacred Mystery", "Subconscious Wisdom", "Stillness"],
+                keywordsReversed: ["Ignored Intuition", "Hidden Secrets", "Superficiality", "Inner Noise"],
+                motif: "crescent_pillars",
+                upright: {
+                    general: "Step beyond logic and listen to the quiet oracle within. Not everything is ready to be spoken aloud; allow hidden truths to ripen in the sanctuary of silence.",
+                    love: "Soul-deep telepathic resonance and unspoken magnetism. Trust your gut instincts about a partner's true feelings rather than over-analyzing surface words.",
+                    career: "Keep your strategic cards close to your chest for now. Pay attention to subtle office dynamics, dreams, and intuitive hunches before making your next public move.",
+                    growth: "Your dreams, synchronicities, and somatic intuition are extraordinarily heightened. Create quiet space for meditation and shadow integration."
+                },
+                reversed: {
+                    general: "You have been overriding your inner voice in favor of external opinions. Secret agendas or repressed feelings may also be clouding the waters.",
+                    love: "Emotional withdrawal, unspoken resentment, or ignoring your intuition about a relationship imbalance. Bring hidden feelings gently into the light.",
+                    career: "Information is being withheld, or you are relying solely on surface metrics while ignoring a clear gut warning about a project or colleague.",
+                    growth: "Slow down the mental chatter. Reconnect with your body's intuitive compass instead of seeking constant external validation."
+                }
+            },
+            {
+                id: 4, number: 3, numeral: "III", name: "The Empress", arcana: "Major Arcana", suit: "Major", element: "Earth", astro: "Venus",
+                keywordsUpright: ["Abundance", "Creativity", "Nurturing", "Sensuality"],
+                keywordsReversed: ["Creative Block", "Over-giving", "Neglect of Self", "Smothering"],
+                motif: "venus_crown",
+                upright: {
+                    general: "Lush, fertile abundance surrounds your inquiry. Like nature in full bloom, your ideas and relationships flourish when tended with warmth, beauty, and patience.",
+                    love: "Deeply affectionate, sensual, and nurturing love. Existing bonds grow richer and more fertile, while singles radiate magnetic Venusian warmth.",
+                    career: "Creative projects bear rich financial and artistic fruit. Lead with empathy, cultivate a harmonious workspace, and trust in generous prosperity.",
+                    growth: "Honor your physical vessel and creative spirit. Spend time in nature, indulge your senses, and treat yourself with radical maternal compassion."
+                },
+                reversed: {
+                    general: "Your well has run dry from pouring into everyone else first. Creative stagnation or material scarcity mindset is a signal to replenish your own roots.",
+                    love: "Codependency, over-mothering a partner, or feeling emotionally unappreciated. Restore healthy boundaries so love can breathe freely.",
+                    career: "Burnout or creative block caused by micromanagement or lack of inspiration. Step back to rest and reconnect with why you started.",
+                    growth: "Prioritize radical self-care. You cannot harvest fruit from a garden you refuse to water—tend to your own emotional and physical nourishment."
+                }
+            },
+            {
+                id: 5, number: 4, numeral: "IV", name: "The Emperor", arcana: "Major Arcana", suit: "Major", element: "Fire", astro: "Aries",
+                keywordsUpright: ["Authority", "Structure", "Stability", "Sovereignty"],
+                keywordsReversed: ["Rigidity", "Domination", "Lack of Discipline", "Control Issues"],
+                motif: "throne_ram",
+                upright: {
+                    general: "Establish order, clear boundaries, and long-term architecture. Through calm discipline and sovereign leadership, you transform chaos into an enduring empire.",
+                    love: "Devoted protection, reliability, and building a rock-solid foundation together. Look for actions that prove loyalty rather than fleeting poetic promises.",
+                    career: "Step decisively into executive authority. Systems, budgets, and disciplined routines will elevate your professional standing and financial security.",
+                    growth: "Claim sovereign authorship over your life. Self-discipline is not restriction—it is the devotion required to honor your highest goals."
+                },
+                reversed: {
+                    general: "Either an overly rigid need for control is suffocating growth, or a lack of structure and boundaries is leaving your plans vulnerable to collapse.",
+                    love: "Power struggles, stubbornness, or emotional guardedness. Soften the armor—true strength in love allows room for vulnerability and mutual respect.",
+                    career: "An overbearing boss, suffocating bureaucracy, or scattered personal discipline. Balance structured leadership with adaptability.",
+                    growth: "Examine where fear of chaos makes you cling to control, or where avoidance of responsibility keeps you from standing in your own authority."
+                }
+            },
+            {
+                id: 6, number: 5, numeral: "V", name: "The Hierophant", arcana: "Major Arcana", suit: "Major", element: "Earth", astro: "Taurus",
+                keywordsUpright: ["Sacred Tradition", "Mentorship", "Spiritual Wisdom", "Commitment"],
+                keywordsReversed: ["Rebellion", "Unconventional Path", "Outdated Dogma", "Freedom"],
+                motif: "crossed_keys",
+                upright: {
+                    general: "Honor time-tested wisdom, ethical foundations, and sacred lineages. Seeking guidance from a seasoned mentor or committing to formal study brings breakthroughs.",
+                    love: "Shared core values, marriage, or deepening spiritual commitment. Harmony flourishes when both partners honor mutual vows and ethical trust.",
+                    career: "Success comes through established institutions, certifications, mentorship, or working within proven frameworks and collaborative teams.",
+                    growth: "Ground your spiritual curiosity in dedicated practice. Study the classics, honor your core ethics, and learn from those who walked the path before you."
+                },
+                reversed: {
+                    general: "You have outgrown a rigid rulebook or inherited expectation. It is time to question dogma and forge an authentic philosophy that rings true to your own soul.",
+                    love: "Unconventional relationship dynamics or breaking free from societal expectations about how your love life 'should' look.",
+                    career: "Challenging stale corporate orthodoxy. Innovation requires stepping outside bureaucratic red tape and pioneering your own methodology.",
+                    growth: "Become your own spiritual authority. Release guilt around leaving behind traditions that no longer align with your evolving truth."
+                }
+            },
+            {
+                id: 7, number: 6, numeral: "VI", name: "The Lovers", arcana: "Major Arcana", suit: "Major", element: "Air", astro: "Gemini",
+                keywordsUpright: ["Soul Union", "Conscious Choice", "Harmony", "Alignment of Values"],
+                keywordsReversed: ["Disharmony", "Indecision", "Conflicting Values", "Detachment"],
+                motif: "twin_flames",
+                upright: {
+                    general: "A profound union of opposites and a crossroads requiring wholehearted alignment. Choose the path that resonates with your deepest love rather than convenience.",
+                    love: "Deep kindred magnetism, mutual devotion, and soul-level recognition. A relationship reaches a sacred new tier of honesty and vulnerability.",
+                    career: "A synergistic business partnership or a pivotal career choice. Align your livelihood with what you genuinely love rather than chasing hollow prestige.",
+                    growth: "Integrate the dualities within yourself—head and heart, shadow and light—into unified self-acceptance."
+                },
+                reversed: {
+                    general: "Internal division or wavering between two incompatible desires. When values are misaligned, hesitation creates friction until a clear choice is made.",
+                    love: "Emotional distance, mixed priorities, or temptation pulling focus away from mutual devotion. Honest dialogue is needed to restore harmony.",
+                    career: "A partnership where incentives clash, or feeling torn between financial safety and your true calling.",
+                    growth: "Heal self-betrayal by honoring the promises you make to yourself. Stop splitting your energy to please everyone else."
+                }
+            },
+            {
+                id: 8, number: 7, numeral: "VII", name: "The Chariot", arcana: "Major Arcana", suit: "Major", element: "Water", astro: "Cancer",
+                keywordsUpright: ["Triumph", "Focused Momentum", "Willpower", "Self-Mastery"],
+                keywordsReversed: ["Loss of Direction", "Aggression", "Spinning Wheels", "Burnout"],
+                motif: "winged_chariot",
+                upright: {
+                    general: "Harness opposing forces through sheer clarity of purpose. Once you lock onto your destination and unify your resolve, no obstacle can halt your forward victory.",
+                    love: "Taking confident initiative in love or overcoming external distance together. Balance passion with emotional maturity so both partners move in the same direction.",
+                    career: "Ambitious momentum, career advancement, and decisive victory over competition. Stay laser-focused on the finish line.",
+                    growth: "Master your emotional impulses rather than being dragged by them. Disciplined focus turns raw emotion into unstoppable propulsion."
+                },
+                reversed: {
+                    general: "You are pulling the reins too hard or trying to force an outcome whose timing hasn't ripened. Check whether your ego is driving without a compass.",
+                    love: "Rushing a relationship too fast or letting stubbornness turn a minor disagreement into a battle of wills.",
+                    career: "Stalled projects, conflicting team priorities, or exhaustion from pushing through walls without recalibrating your strategy.",
+                    growth: "Surrender the need to bulldoze every challenge. Sometimes true mastery means pausing to realign your inner compass."
+                }
+            },
+            {
+                id: 9, number: 8, numeral: "VIII", name: "Strength", arcana: "Major Arcana", suit: "Major", element: "Fire", astro: "Leo",
+                keywordsUpright: ["Quiet Courage", "Compassion", "Inner Fortitude", "Patience"],
+                keywordsReversed: ["Self-Doubt", "Raw Reactivity", "Exhaustion", "Vulnerability"],
+                motif: "lion_infinity",
+                upright: {
+                    general: "True power is velvet over steel. You tame fierce challenges not through brute force, but through unwavering patience, grace, and compassionate composure.",
+                    love: "Loving patience, forgiveness, and holding a safe, tender space during vulnerable moments. Compassion dissolves defensiveness.",
+                    career: "Lead with calm poise under pressure. Your emotional intelligence and steady nerve inspire far more respect than loud intimidation.",
+                    growth: "Befriend your inner wildness—your fears, anger, and passions—with gentle self-compassion rather than harsh self-criticism."
+                },
+                reversed: {
+                    general: "Your emotional reserves are taxed, making self-doubt or sudden frustration surface. Remember that needing rest does not diminish your resilience.",
+                    love: "Insecurity, jealousy, or reactive outbursts triggered by unhealed fears. Respond with tenderness rather than defensiveness.",
+                    career: "Impostor syndrome or feeling overwhelmed by demanding responsibilities. Reclaim confidence in how much you have already survived.",
+                    growth: "Be gentle with your fatigue. Lay down the heavy armor and let yourself recover your inner fire."
+                }
+            },
+            {
+                id: 10, number: 9, numeral: "IX", name: "The Hermit", arcana: "Major Arcana", suit: "Major", element: "Earth", astro: "Virgo",
+                keywordsUpright: ["Solitude", "Soul Searching", "Inner Lantern", "Contemplation"],
+                keywordsReversed: ["Isolation", "Loneliness", "Avoiding Truth", "Echo Chamber"],
+                motif: "lantern_star",
+                upright: {
+                    general: "Withdraw briefly from the clamor of the world. The answers you seek cannot be crowdsourced—they illuminate only one step at a time by the light of your own lantern.",
+                    love: "Taking healthy space for self-reflection so you can love from wholeness rather than neediness, or honoring deep, quiet companionship.",
+                    career: "Deep research, independent mastery, or stepping back to evaluate whether your career path truly fulfills your soul's purpose.",
+                    growth: "A sacred season of introspection. Solitude now is not loneliness—it is a pilgrimage back to your authentic center."
+                },
+                reversed: {
+                    general: "Solitude has tipped into cold isolation, or you are keeping yourself frantically busy to avoid sitting with your own thoughts.",
+                    love: "Shutting a partner out behind walls of silence, or brooding over past hurts instead of reaching out for warm connection.",
+                    career: "Working in a silo and refusing helpful collaboration, or ignoring wise mentorship out of stubborn pride.",
+                    growth: "Step back into the warmth of community. You have gathered enough inner wisdom—now bring your lantern back to the world."
+                }
+            },
+            {
+                id: 11, number: 10, numeral: "X", name: "Wheel of Fortune", arcana: "Major Arcana", suit: "Major", element: "Fire", astro: "Jupiter",
+                keywordsUpright: ["Destiny", "Turning Point", "Serendipity", "Cosmic Cycles"],
+                keywordsReversed: ["Resisting Change", "Temporary Setback", "Breaking Karmic Loops"],
+                motif: "cosmic_wheel",
+                upright: {
+                    general: "The great wheel of destiny turns in your favor. Expect synchronicities, sudden turning points, and a reminder that all life moves in purposeful seasons.",
+                    love: "Fated encounters, unexpected romantic shifts, or a relationship evolving into a dynamic new chapter blessed by serendipity.",
+                    career: "A stroke of fortunate timing—an unexpected opportunity, market shift, or breakthrough that accelerates your trajectory.",
+                    growth: "Find stillness at the hub of the wheel. When you accept life's rhythmic changes with grace, even turbulence carries you forward."
+                },
+                reversed: {
+                    general: "An unexpected delay or a recurring pattern asks for your awareness. Clinging to how things used to be only creates friction against the turning tide.",
+                    love: "Repeating old relationship habits or experiencing a temporary romantic lull that tests your patience and adaptability.",
+                    career: "External market fluctuations or unforeseen delays. Focus on what you can control and wait for the cycle to turn upward.",
+                    growth: "Notice the karmic loop you are ready to break. Changing your response breaks the repetition of the lesson."
+                }
+            },
+            {
+                id: 12, number: 11, numeral: "XI", name: "Justice", arcana: "Major Arcana", suit: "Major", element: "Air", astro: "Libra",
+                keywordsUpright: ["Truth", "Karmic Balance", "Fairness", "Accountability"],
+                keywordsReversed: ["Bias", "Imbalance", "Evading Accountability", "Unfairness"],
+                motif: "scales_sword",
+                upright: {
+                    general: "Cause and effect come into crystal equilibrium. Speak the unvarnished truth, act with scrupulous integrity, and trust that fair resolution is at hand.",
+                    love: "Mutual reciprocity, honest clarity, and balanced give-and-take. Past efforts in love are met with fair, transparent truth.",
+                    career: "Favorable legal, contractual, or negotiation outcomes. Decisions made with objective fairness and ethical standards succeed.",
+                    growth: "Practice radical self-honesty. Owning your choices without blame empowers you to write a cleaner, freer future."
+                },
+                reversed: {
+                    general: "Something feels lopsided—either an external situation lacks fairness, or you are judging yourself or another through a biased lens.",
+                    love: "Unequal effort in a relationship, keeping score, or avoiding an overdue honest conversation.",
+                    career: "Office politics, biased evaluations, or cutting corners. Protect yourself with clear documentation and unwavering integrity.",
+                    growth: "Drop harsh self-judgment as well as rationalizations. Restore inner balance by aligning your actions with your stated values."
+                }
+            },
+            {
+                id: 13, number: 12, numeral: "XII", name: "The Hanged Man", arcana: "Major Arcana", suit: "Major", element: "Water", astro: "Neptune",
+                keywordsUpright: ["Surrender", "New Perspective", "Sacred Pause", "Enlightenment"],
+                keywordsReversed: ["Stalling", "Martyrdom", "Futile Resistance", "Indecision"],
+                motif: "inverted_halo",
+                upright: {
+                    general: "When forward force fails, invert your perspective. This sacred pause is not a punishment—it is the chrysalis where letting go reveals a brilliant unseen angle.",
+                    love: "Releasing pressure and timelines in love. Viewing your partner or romantic path through fresh, compassionate eyes dissolves stalemates.",
+                    career: "A strategic hold allows a better solution to emerge. Don't force a premature launch; use this pause to rethink the paradigm entirely.",
+                    growth: "Surrender the ego's demand for immediate answers. Wisdom blooms when you release resistance to the present moment."
+                },
+                reversed: {
+                    general: "You are either fighting a necessary pause with restless frustration, or staying suspended in indecision long after it is time to act.",
+                    love: "Playing the martyr in love—sacrificing your core needs without being asked, or waiting endlessly for someone who won't commit.",
+                    career: "Spinning your wheels in analysis paralysis or staying stuck in an unrewarding role out of inertia.",
+                    growth: "Stop postponing your life. Step down from the tree of hesitation and ground your insight into action."
+                }
+            },
+            {
+                id: 14, number: 13, numeral: "XIII", name: "Death", arcana: "Major Arcana", suit: "Major", element: "Water", astro: "Scorpio",
+                keywordsUpright: ["Metamorphosis", "Inevitable Ending", "Rebirth", "Release"],
+                keywordsReversed: ["Clinging to the Past", "Fear of Change", "Stagnation"],
+                motif: "phoenix_rose",
+                upright: {
+                    general: "A profound, purifying metamorphosis. An outdated chapter closes completely so that vital new life can rise from the fertile ashes. Honor the ending.",
+                    love: "Deep transformation of a relationship—shedding old dynamics to be reborn stronger, or releasing a bond that has completed its soul contract.",
+                    career: "Closing the door on a career chapter, role, or business model that you have outgrown, clearing the slate for authentic renewal.",
+                    growth: "Shed the old skin of who you used to be. Every autumn leaf that falls feeds the roots of your coming spring."
+                },
+                reversed: {
+                    general: "Prolonging what has already expired only drains your vitality. Fear of the unknown is keeping your hands tightly closed around yesterday.",
+                    love: "Holding onto a stagnant relationship dynamic or refusing to heal and move forward after a past heartbreak.",
+                    career: "Staying in a dead-end position or resisting organizational modernization out of comfort with the familiar.",
+                    growth: "Trust that releasing the old identity will not erase you—it will liberate the truer version of you waiting underneath."
+                }
+            },
+            {
+                id: 15, number: 14, numeral: "XIV", name: "Temperance", arcana: "Major Arcana", suit: "Major", element: "Fire", astro: "Sagittarius",
+                keywordsUpright: ["Alchemy", "Moderation", "Patience", "Divine Harmony"],
+                keywordsReversed: ["Imbalance", "Excess", "Impatience", "Clashing Energies"],
+                motif: "alchemy_chalices",
+                upright: {
+                    general: "Sacred alchemy is blending disparate elements of your life into golden harmony. Move with unhurried grace, moderation, and tranquil synthesis.",
+                    love: "Soulful serenity, emotional maturity, and a harmonious blending of two distinct personalities into a peaceful partnership.",
+                    career: "Balanced pacing, diplomatic collaboration, and combining analytical skill with creative intuition for sustainable success.",
+                    growth: "Walk the middle path. Peace arises when you blend spiritual idealism with grounded daily presence."
+                },
+                reversed: {
+                    general: "Swinging between extremes is exhausting your spirit. Impatience or overindulgence signals a need to recalibrate your energetic proportions.",
+                    love: "Hot-and-cold volatility, clashing lifestyles, or rushing emotional milestones before trust has settled.",
+                    career: "Work-life imbalance, rushed deadlines, or friction between team members with competing visions.",
+                    growth: "Restore equilibrium to your nervous system. Release all-or-nothing thinking in favor of gentle consistency."
+                }
+            },
+            {
+                id: 16, number: 15, numeral: "XV", name: "The Devil", arcana: "Major Arcana", suit: "Major", element: "Earth", astro: "Capricorn",
+                keywordsUpright: ["Shadow Attachment", "Temptation", "Materialism", "Obsession"],
+                keywordsReversed: ["Liberation", "Breaking Chains", "Reclaiming Power", "Detachment"],
+                motif: "pentagram_chains",
+                upright: {
+                    general: "Look closely at the chains around your habits or fears—they are unlocked. Examine where obsession, fear of scarcity, or short-term pleasure is costing your freedom.",
+                    love: "Intense magnetic chemistry that may border on possessiveness, codependency, or repeating toxic patterns. Choose conscious love over compulsion.",
+                    career: "Feeling trapped by 'golden handcuffs,' overworking for status, or letting fear of financial loss dictate your ethics.",
+                    growth: "Shadow work illumination. Acknowledge your hidden desires and fears without shame so they no longer rule you from the dark."
+                },
+                reversed: {
+                    general: "The spell breaks and the chains fall away! You are awakening to your sovereignty and stepping out of a limiting habit, toxic dynamic, or limiting belief.",
+                    love: "Breaking free from unhealthy relationship dynamics, healing jealousy, and choosing mutual respect and emotional freedom.",
+                    career: "Leaving an oppressive work environment, overcoming debt or scarcity anxiety, and reclaiming autonomy over your time.",
+                    growth: "A triumphant moment of self-liberation. You realize you held the key to your cage all along."
+                }
+            },
+            {
+                id: 17, number: 16, numeral: "XVI", name: "The Tower", arcana: "Major Arcana", suit: "Major", element: "Fire", astro: "Mars",
+                keywordsUpright: ["Sudden Awakening", "Shattered Illusion", "Liberation", "Truth"],
+                keywordsReversed: ["Averting Disaster", "Delaying the Inevitable", "Quiet Upheaval"],
+                motif: "lightning_spire",
+                upright: {
+                    general: "A flash of lightning strikes down only what was built on false foundations. Though sudden and intense, this revelation clears away illusion so you can build on bedrock truth.",
+                    love: "A sudden truth surfaces that shatters pretenses in love—clearing the air for radical honesty or freeing you from an unstable bond.",
+                    career: "A sudden restructuring, market shakeup, or career epiphany that frees you from a path that wasn't truly secure.",
+                    growth: "Breakthrough via breakdown. When the false ego structure crumbles, your indestructible sky-wide spirit remains."
+                },
+                reversed: {
+                    general: "You sense the tremors in the foundation and are trying to patch the cracks. Accepting a necessary change voluntarily makes the transition far gentler.",
+                    love: "Ignoring obvious relationship fractures to keep the peace, or quietly processing an internal shift in how you view love.",
+                    career: "Narrowly dodging a professional crisis, or prolonging an unsustainable work situation out of fear of disruption.",
+                    growth: "Allow outworn beliefs to dismantle gracefully rather than waiting for life to force the issue."
+                }
+            },
+            {
+                id: 18, number: 17, numeral: "XVII", name: "The Star", arcana: "Major Arcana", suit: "Major", element: "Air", astro: "Aquarius",
+                keywordsUpright: ["Hope", "Serene Healing", "Inspiration", "Cosmic Faith"],
+                keywordsReversed: ["Cynicism", "Flickering Faith", "Disconnection", "Depletion"],
+                motif: "eight_pointed_star",
+                upright: {
+                    general: "After the storm comes crystal-clear starlight. A season of deep emotional healing, renewed faith, and luminous inspiration pours blessings over your path.",
+                    love: "Pure, unguarded vulnerability, hopeful romance, and healing past heartaches. You are loved for your authentic, luminous self.",
+                    career: "Inspired creative vision, positive public recognition, and aligning your work with a humanitarian or high-minded mission.",
+                    growth: "Your spirit is replenished at the cosmic wellspring. Trust the quiet north star guiding your long-term destiny."
+                },
+                reversed: {
+                    general: "Disappointment has temporarily dimmed your optimism, making the sky feel distant. Remember that the stars are still shining above the cloud cover.",
+                    love: "Feeling guarded, cynical about romance, or holding back your true self out of fear of being let down.",
+                    career: "Creative dryness or losing sight of the meaning behind your daily grind. Reconnect with your original inspiration.",
+                    growth: "Refill your spiritual cup gently. Start with small acts of gratitude and self-kindness to rekindle your inner light."
+                }
+            },
+            {
+                id: 19, number: 18, numeral: "XVIII", name: "The Moon", arcana: "Major Arcana", suit: "Major", element: "Water", astro: "Pisces",
+                keywordsUpright: ["Mystery", "Subconscious Dreams", "Illusion", "Deep Intuition"],
+                keywordsReversed: ["Clearing Fog", "Revealed Truth", "Subsiding Anxiety", "Clarity"],
+                motif: "moon_twin_towers",
+                upright: {
+                    general: "You are walking by moonlight where shadows can look larger than life. Do not rush to final conclusions yet—distinguish between anxious projection and quiet intuition.",
+                    love: "Heightened romance mingled with uncertainty or unspoken fears. Avoid assuming the worst; gently ask for clarity rather than reading between the lines.",
+                    career: "Not all facts or motives are visible yet. Hold off on major commitments until the mist clears and verify assumptions carefully.",
+                    growth: "Pay close attention to vivid dreams, ancestral memories, and shadow fears rising to be witnessed and healed."
+                },
+                reversed: {
+                    general: "Morning light dissolves the fog of confusion. Deceptions are exposed, anxieties subside, and you see the path ahead for what it truly is.",
+                    love: "Misunderstandings clear up, secrets come into the open, and emotional insecurity gives way to grounded clarity.",
+                    career: "Ambiguity around a project or role resolves. Hidden details surface, allowing you to make an informed decision.",
+                    growth: "You are emerging from a period of emotional confusion with sharper intuition and calmer nerves."
+                }
+            },
+            {
+                id: 20, number: 19, numeral: "XIX", name: "The Sun", arcana: "Major Arcana", suit: "Major", element: "Fire", astro: "Sun",
+                keywordsUpright: ["Radiant Joy", "Vitality", "Success", "Illumination"],
+                keywordsReversed: ["Temporary Cloud", "Over-optimism", "Muted Enthusiasm"],
+                motif: "radiant_sun",
+                upright: {
+                    general: "Glorious warmth, unmistakable clarity, and abundant vitality! Shadows vanish in the noon sun; celebrate your achievements and radiate authentic joy.",
+                    love: "Warm, playful, celebratory love. Relationships bask in mutual adoration, laughter, and transparent devotion.",
+                    career: "Triumphant success, public recognition, thriving ventures, and contagious enthusiasm that attracts abundance.",
+                    growth: "Step unapologetically into the light. Reclaim childlike wonder, gratitude, and confidence in your inherent worth."
+                },
+                reversed: {
+                    general: "Success and joy are still present, though slightly muted by burnout, perfectionism, or unrealistic timelines. Let yourself enjoy the warmth already here.",
+                    love: "Taking a good relationship for granted or letting minor ego pride cast a small shadow over an otherwise bright bond.",
+                    career: "A successful outcome that feels delayed or requires trimming overly grandiose expectations into realistic milestones.",
+                    growth: "Don't wait for everything to be 100% perfect before allowing yourself to feel happy and proud today."
+                }
+            },
+            {
+                id: 21, number: 20, numeral: "XX", name: "Judgement", arcana: "Major Arcana", suit: "Major", element: "Fire", astro: "Pluto",
+                keywordsUpright: ["Awakening", "Higher Calling", "Absolution", "Reckoning"],
+                keywordsReversed: ["Self-Criticism", "Ignoring the Call", "Doubt", "Unforgiven Past"],
+                motif: "gabriel_trumpet",
+                upright: {
+                    general: "A clarion call from your higher self echoes across your life. Forgive your past chapters, integrate their wisdom, and rise into the vocation you were born for.",
+                    love: "A pivotal renewal or honest reckoning in love. Forgiveness heals old wounds, allowing a relationship to ascend to a higher level of truth.",
+                    career: "Stepping into a true vocation or receiving a decisive evaluation that propels you into purposeful leadership.",
+                    growth: "Self-absolution and spiritual awakening. You are no longer defined by past mistakes—only by how you answer your calling now."
+                },
+                reversed: {
+                    general: "An overly harsh inner critic is keeping you on trial for the past, causing you to hit snooze on your own greatness.",
+                    love: "Holding grudges, replaying old relationship arguments, or hesitating to make a clear decision about your romantic future.",
+                    career: "Doubting your readiness for a bigger role or letting fear of public scrutiny keep you playing small.",
+                    growth: "Practice radical self-forgiveness. You did the best you could with what you knew then; release the gavel."
+                }
+            },
+            {
+                id: 22, number: 21, numeral: "XXI", name: "The World", arcana: "Major Arcana", suit: "Major", element: "Earth", astro: "Saturn",
+                keywordsUpright: ["Wholeness", "Fulfillment", "Cosmic Completion", "Mastery"],
+                keywordsReversed: ["Unfinished Business", "Seeking Closure", "Short-cutting"],
+                motif: "world_wreath",
+                upright: {
+                    general: "The grand tapestry comes full circle! You have walked the journey, integrated the lessons, and arrived at a summit of wholeness, accomplishment, and global possibility.",
+                    love: "Deep soul fulfillment, enduring partnership, or feeling completely whole within yourself as you share your life with another.",
+                    career: "Completing a landmark project, achieving a major career milestone, or expanding your reach internationally.",
+                    growth: "A profound sense of cosmic belonging and inner integration. Celebrate how far you have traveled before the next spiral begins."
+                },
+                reversed: {
+                    general: "You are standing on the 99th yard line, tempted to rush or leave loose ends untied. Take the time to find genuine closure before starting the next cycle.",
+                    love: "Lingering unresolved feelings from a past chapter or feeling like one final honest conversation is needed for full harmony.",
+                    career: "A project nearly complete that needs one final push of discipline to cross the finish line with excellence.",
+                    growth: "Honor the final steps of your healing integration instead of skipping ahead out of restlessness."
+                }
+            }
+        ];
+
+        // Programmatic Generator for Rich, Authentic 56 Minor Arcana Cards (Wands, Cups, Swords, Pentacles)
+        const SUIT_CONFIG = {
+            Wands: {
+                element: "Fire",
+                astro: "Aries • Leo • Sagittarius",
+                domain: "inspiration, ambition, passion, and creative willpower",
+                symbol: "wand",
+                color: "#f59e0b"
+            },
+            Cups: {
+                element: "Water",
+                astro: "Cancer • Scorpio • Pisces",
+                domain: "emotion, intuition, relationships, and the heart's chalice",
+                symbol: "cup",
+                color: "#38bdf8"
+            },
+            Swords: {
+                element: "Air",
+                astro: "Gemini • Libra • Aquarius",
+                domain: "intellect, truth, discernment, and decisive communication",
+                symbol: "sword",
+                color: "#e2e8f0"
+            },
+            Pentacles: {
+                element: "Earth",
+                astro: "Taurus • Virgo • Capricorn",
+                domain: "material prosperity, craft, health, and earthly legacy",
+                symbol: "pentacle",
+                color: "#10b981"
+            }
+        };
+
+        const MINOR_RANKS = [
+            {
+                rank: 1, name: "Ace", numeral: "I",
+                upKw: ["Pure Seed", "Breakthrough", "Divine Gift"],
+                revKw: ["Delayed Start", "Missed Spark", "Hesitation"],
+                upCore: "A pure, potent seed of new energy bursts forth in the realm of",
+                revCore: "A promising new seed requires patience or grounding in the realm of"
+            },
+            {
+                rank: 2, name: "Two", numeral: "II",
+                upKw: ["Duality", "Planning", "Partnership"],
+                revKw: ["Indecision", "Imbalance", "Fear of Unknown"],
+                upCore: "Harmonizing two paths, partnerships, or future horizons within",
+                revCore: "Wavering between two choices or restoring reciprocity within"
+            },
+            {
+                rank: 3, name: "Three", numeral: "III",
+                upKw: ["Expansion", "Synergy", "Initial Growth"],
+                revKw: ["Misalignment", "Delays", "Overextension"],
+                upCore: "Initial momentum expands outward through collaboration and expression in",
+                revCore: "Realigning shared goals and clearing communication delays in"
+            },
+            {
+                rank: 4, name: "Four", numeral: "IV",
+                upKw: ["Stability", "Foundation", "Sanctuary"],
+                revKw: ["Restlessness", "Stagnation", "Rigidity"],
+                upCore: "Consolidating a steady foundation, rest, or protective structure around",
+                revCore: "Outgrowing a static comfort zone and inviting fresh flow into"
+            },
+            {
+                rank: 5, name: "Five", numeral: "V",
+                upKw: ["Catalyst", "Friction", "Adaptation"],
+                revKw: ["Resolution", "Releasing Conflict", "Recovery"],
+                upCore: "Navigating dynamic friction or sudden change that sharpens your resilience in",
+                revCore: "De-escalating tension, finding compromise, and recovering peace in"
+            },
+            {
+                rank: 6, name: "Six", numeral: "VI",
+                upKw: ["Harmony", "Reciprocity", "Forward Passage"],
+                revKw: ["Clinging", "Unequal Exchange", "Unfinished Past"],
+                upCore: "A graceful restoration of harmony, generosity, and supportive flow across",
+                revCore: "Checking for one-sided giving or lingering attachment within"
+            },
+            {
+                rank: 7, name: "Seven", numeral: "VII",
+                upKw: ["Assessment", "Conviction", "Strategy"],
+                revKw: ["Overwhelm", "Doubt", "Scattered Effort"],
+                upCore: "Standing firm in your vision, evaluating options wisely, and holding your ground in",
+                revCore: "Simplifying scattered choices and trusting your long-term strategy in"
+            },
+            {
+                rank: 8, name: "Eight", numeral: "VIII",
+                upKw: ["Mastery", "Acceleration", "Dedicated Craft"],
+                revKw: ["Perfectionism", "Impasse", "Rushing"],
+                upCore: "Focused dedication, rapid movement, or liberating breakthroughs within",
+                revCore: "Loosening mental knots or perfectionist delays surrounding"
+            },
+            {
+                rank: 9, name: "Nine", numeral: "IX",
+                upKw: ["Culmination", "Resilience", "Self-Sufficiency"],
+                revKw: ["Exhaustion", "Guardedness", "Releasing Burden"],
+                upCore: "Approaching the summit of fulfillment, hard-earned wisdom, and sovereignty in",
+                revCore: "Lowering hyper-vigilant walls and allowing support as you complete a cycle in"
+            },
+            {
+                rank: 10, name: "Ten", numeral: "X",
+                upKw: ["Completion", "Legacy", "Full Cycle"],
+                revKw: ["Overburdened", "Release", "Redistribution"],
+                upCore: "The grand culmination of a full cycle, bringing lasting legacy or final release in",
+                revCore: "Setting down heavy responsibilities that aren't yours to carry alone in"
+            },
+            {
+                rank: 11, name: "Page", numeral: "PG",
+                upKw: ["Curious Messenger", "Apprentice", "Fresh News"],
+                revKw: ["Immaturity", "Gossip", "False Start"],
+                upCore: "An enthusiastic messenger or fresh student curiosity awakens new possibilities in",
+                revCore: "Grounding scattered curiosity and verifying news before reacting in"
+            },
+            {
+                rank: 12, name: "Knight", numeral: "KN",
+                upKw: ["Questing Action", "Momentum", "Pursuit"],
+                revKw: ["Haste", "Dogmatism", "Restless Stall"],
+                upCore: "Bold, purposeful movement charges ahead to champion your goals in",
+                revCore: "Pacing your charge so passion doesn't outrun wisdom in"
+            },
+            {
+                rank: 13, name: "Queen", numeral: "QN",
+                upKw: ["Inward Mastery", "Magnetism", "Emotional Wisdom"],
+                revKw: ["Self-Neglect", "Moodiness", "Over-Control"],
+                upCore: "Embodying magnetic, receptive mastery and deep intuitive authority over",
+                revCore: "Replenishing your inner throne and emotional boundaries within"
+            },
+            {
+                rank: 14, name: "King", numeral: "KG",
+                upKw: ["Sovereign Command", "Visionary Leadership", "Maturity"],
+                revKw: ["Rigidity", "Misused Power", "Detachment"],
+                upCore: "Exercising seasoned, benevolent command and architectural vision across",
+                revCore: "Leading with empathy rather than rigid control or distance within"
+            }
+        ];
+
+        // Specific canonical nuances for iconic Minor Arcana cards so every card feels deeply authentic
+        const SPECIFIC_MINOR_TITLES = {
+            "Two of Cups": { kw: ["Soul Bond", "Mutual Attraction", "Sacred Truce"], loveUp: "A deeply reciprocal heart connection where two souls meet as equals in affection and devotion." },
+            "Three of Cups": { kw: ["Celebration", "Sisterhood", "Joyful Community"], loveUp: "Joyful celebration, warm friendship blossoming into romance, or harmonious social festivities." },
+            "Three of Swords": { kw: ["Heartbreak", "Piercing Truth", "Emotional Release"], loveUp: "An honest, albeit tender truth clears away illusion so genuine healing of the heart can begin." },
+            "Ten of Cups": { kw: ["Blissful Harmony", "Emotional Fulfillment", "Homecoming"], loveUp: "The rainbow blessing of lasting emotional fulfillment, domestic peace, and shared devotion." },
+            "Ten of Pentacles": { kw: ["Generational Wealth", "Enduring Legacy", "Prosperity"], careerUp: "Long-term financial security, thriving enterprise, and building an enduring material legacy." },
+            "Six of Wands": { kw: ["Public Victory", "Recognition", "Acclaim"], careerUp: "Well-earned triumph, public applause, and stepping confidently into the spotlight of success." },
+            "Eight of Pentacles": { kw: ["Master Craftsmanship", "Diligence", "Skill Refinement"], careerUp: "Devoted apprenticeship and honing your specialized craft leads to undeniable excellence." },
+            "Five of Pentacles": { kw: ["Temporary Hardship", "Seeking Sanctuary", "Solidarity"], generalUp: "Even in a chilly season of scarcity, look up—the stained-glass sanctuary of help and support is right beside you." }
+        };
+
+        function buildComplete78CardDeck() {
+            const deck = [...MAJOR_ARCANA_DATA];
+            let nextId = 23;
+
+            Object.keys(SUIT_CONFIG).forEach(suitName => {
+                const suitMeta = SUIT_CONFIG[suitName];
+                MINOR_RANKS.forEach(r => {
+                    const fullName = `${r.name} of ${suitName}`;
+                    const special = SPECIFIC_MINOR_TITLES[fullName] || {};
+
+                    deck.push({
+                        id: nextId++,
+                        number: r.rank,
+                        numeral: r.numeral,
+                        name: fullName,
+                        arcana: "Minor Arcana",
+                        suit: suitName,
+                        element: suitMeta.element,
+                        astro: suitMeta.astro,
+                        keywordsUpright: special.kw || r.upKw,
+                        keywordsReversed: r.revKw,
+                        motif: `${suitMeta.symbol}_${r.rank}`,
+                        upright: {
+                            general: special.generalUp || `${r.upCore} ${suitMeta.domain}. As the ${r.name} of ${suitName} (${suitMeta.element}), this card invites you to align your daily actions with clarity, confidence, and purposeful flow.`,
+                            love: special.loveUp || `In relationships, the ${fullName} illuminates ${r.upKw[0].toLowerCase()} and ${r.upKw[1].toLowerCase()}. By honoring ${suitMeta.domain}, you cultivate deeper honesty, warmth, and mutual understanding.`,
+                            career: special.careerUp || `Within your career and financial path, the ${fullName} signals ${r.upKw[0].toLowerCase()} through ${suitMeta.domain}. Channel the elemental power of ${suitMeta.element} into decisive professional execution.`,
+                            growth: `On your inner path, the ${fullName} calls you to integrate ${r.upKw[0].toLowerCase()} and ${r.upKw[2].toLowerCase()}. Let the wisdom of ${suitName} refine your emotional and spiritual maturity.`
+                        },
+                        reversed: {
+                            general: `${r.revCore} ${suitMeta.domain}. When the ${fullName} appears reversed, take a breath to recalibrate your energy, clear subtle blockages, and avoid forcing premature outcomes.`,
+                            love: `In matters of the heart, the reversed ${fullName} highlights ${r.revKw[0].toLowerCase()} or ${r.revKw[1].toLowerCase()}. Honest communication and gentle self-reflection will restore emotional balance.`,
+                            career: `In work and finances, watch for ${r.revKw[0].toLowerCase()} or ${r.revKw[1].toLowerCase()}. Review your foundational strategy and avoid spreading your resources too thin.`,
+                            growth: `Spiritually, the reversed ${fullName} asks you to notice where ${r.revKw[0].toLowerCase()} is clouding your inner peace. Re-center yourself in the grounded wisdom of ${suitMeta.element}.`
+                        }
+                    });
+                });
+            });
+
+            return deck;
+        }
+
+        const TAROT_DECK = buildComplete78CardDeck();
+
+        /**************************************************************
+         * 3. BESPOKE CELESTIAL GOLD-FOIL SVG TAROT ARTWORK GENERATOR
+         *    Generates intricate esoteric vector illustrations for
+         *    all 78 cards + ornate card backs
+         **************************************************************/
+        function renderCardBackSVG() {
+            return `
+            <svg viewBox="0 0 240 400" class="w-full h-full bg-[#080814]" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="goldGradBack" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#f9eab8"/>
+                        <stop offset="50%" stop-color="#d4af37"/>
+                        <stop offset="100%" stop-color="#8a6d1b"/>
+                    </linearGradient>
+                    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#d4af37" stop-opacity="0.22"/>
+                        <stop offset="100%" stop-color="#080814" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+                <!-- Outer Borders -->
+                <rect x="8" y="8" width="224" height="384" rx="10" fill="none" stroke="url(#goldGradBack)" stroke-width="1.5"/>
+                <rect x="14" y="14" width="212" height="372" rx="6" fill="none" stroke="url(#goldGradBack)" stroke-width="0.7" stroke-dasharray="3 3"/>
+                <circle cx="120" cy="200" r="110" fill="url(#centerGlow)"/>
+
+                <!-- Corner Celestial Rosettes -->
+                <g stroke="url(#goldGradBack)" fill="none" stroke-width="1">
+                    <circle cx="28" cy="28" r="8"/><circle cx="212" cy="28" r="8"/>
+                    <circle cx="28" cy="372" r="8"/><circle cx="212" cy="372" r="8"/>
+                    <!-- Sacred Geometry Diamond Lattice -->
+                    <polygon points="120,32 200,200 120,368 40,200" stroke-width="1.2"/>
+                    <polygon points="120,60 182,200 120,340 58,200" stroke-width="0.7" stroke-dasharray="4 2"/>
+                    <!-- Central Sun & Moon Mandala -->
+                    <circle cx="120" cy="200" r="64" stroke-width="1.4"/>
+                    <circle cx="120" cy="200" r="52" stroke-width="0.7" stroke-dasharray="2 3"/>
+                    <!-- 8-Pointed Star -->
+                    <polygon points="120,136 135,185 184,200 135,215 120,264 105,215 56,200 105,185" fill="#0d0d22" stroke-width="1.3"/>
+                    <polygon points="120,150 130,190 170,200 130,210 120,250 110,210 70,200 110,190" fill="url(#goldGradBack)" fill-opacity="0.18"/>
+                    <circle cx="120" cy="200" r="14" fill="#d4af37" fill-opacity="0.25"/>
+                    <circle cx="120" cy="200" r="5" fill="#f9eab8"/>
+                    <!-- Top & Bottom Crescent Moons -->
+                    <path d="M105,95 A18,18 0 1,0 135,95 A14,14 0 1,1 105,95 Z" fill="url(#goldGradBack)"/>
+                    <path d="M105,305 A18,18 0 1,1 135,305 A14,14 0 1,0 105,305 Z" fill="url(#goldGradBack)"/>
+                </g>
+            </svg>`;
+        }
+
+        function renderCardFrontSVG(card) {
+            const uid = `card_${card.id}_${Math.random().toString(36).substring(2, 7)}`;
+            // Determine accent color based on element/suit
+            let accentColor = "#d4af37";
+            let bgTint = "#120f24";
+            if (card.element === "Fire") { accentColor = "#f59e0b"; bgTint = "#1a0f14"; }
+            else if (card.element === "Water") { accentColor = "#38bdf8"; bgTint = "#0b1524"; }
+            else if (card.element === "Air") { accentColor = "#cbd5e1"; bgTint = "#111322"; }
+            else if (card.element === "Earth") { accentColor = "#10b981"; bgTint = "#0c1917"; }
+
+            // Generate bespoke central illustration based on Major Arcana ID or Minor Suit/Rank
+            let centerIllustration = "";
+
+            if (card.arcana === "Major Arcana") {
+                centerIllustration = getMajorArcanaCenterpiece(card.number, accentColor);
+            } else {
+                centerIllustration = getMinorArcanaCenterpiece(card.suit, card.number, accentColor);
+            }
+
+            return `
+            <svg viewBox="0 0 240 400" class="w-full h-full select-none" style="background: ${bgTint};" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="gold_${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#fff3c4"/>
+                        <stop offset="45%" stop-color="#d4af37"/>
+                        <stop offset="100%" stop-color="#8a6d1b"/>
+                    </linearGradient>
+                    <radialGradient id="halo_${uid}" cx="50%" cy="46%" r="48%">
+                        <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.28"/>
+                        <stop offset="65%" stop-color="#d4af37" stop-opacity="0.06"/>
+                        <stop offset="100%" stop-color="#05050a" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+
+                <!-- Background Cosmic Halo -->
+                <rect x="0" y="0" width="240" height="400" fill="url(#halo_${uid})"/>
+
+                <!-- Ornate Gold Frame -->
+                <rect x="7" y="7" width="226" height="386" rx="10" fill="none" stroke="url(#gold_${uid})" stroke-width="1.8"/>
+                <rect x="13" y="13" width="214" height="374" rx="6" fill="none" stroke="url(#gold_${uid})" stroke-width="0.8" opacity="0.7"/>
+
+                <!-- Archway Pillar Lines -->
+                <path d="M 22 330 L 22 85 A 98 85 0 0 1 218 85 L 218 330" fill="none" stroke="url(#gold_${uid})" stroke-width="1" opacity="0.55"/>
+
+                <!-- Top Numeral Cartouche -->
+                <rect x="88" y="18" width="64" height="22" rx="11" fill="#090914" stroke="url(#gold_${uid})" stroke-width="1.1"/>
+                <text x="120" y="33" text-anchor="middle" fill="#f9eab8" font-family="Cinzel, serif" font-size="11" font-weight="700" letter-spacing="1.5">${card.numeral}</text>
+
+                <!-- Starfield Micro Dots -->
+                <g fill="#f9eab8" opacity="0.55">
+                    <circle cx="42" cy="60" r="1.2"/><circle cx="198" cy="65" r="1.5"/>
+                    <circle cx="35" cy="145" r="1"/><circle cx="204" cy="130" r="1.2"/>
+                    <circle cx="48" cy="285" r="1.3"/><circle cx="192" cy="275" r="1"/>
+                </g>
+
+                <!-- Bespoke Esoteric Centerpiece Illustration -->
+                <g transform="translate(120, 185)">
+                    ${centerIllustration}
+                </g>
+
+                <!-- Bottom Name Banner -->
+                <rect x="18" y="332" width="204" height="44" rx="5" fill="#070710" stroke="url(#gold_${uid})" stroke-width="1.2"/>
+                <line x1="28" y1="337" x2="212" y2="337" stroke="url(#gold_${uid})" stroke-width="0.4" opacity="0.5"/>
+                <text x="120" y="354" text-anchor="middle" fill="#fff3c4" font-family="Cinzel, serif" font-size="11.5" font-weight="700" letter-spacing="1.2">${card.name.toUpperCase()}</text>
+                <text x="120" y="369" text-anchor="middle" fill="#d4af37" font-family="Cormorant Garamond, serif" font-style="italic" font-size="10" opacity="0.9">${card.element} • ${card.astro}</text>
+            </svg>`;
+        }
+
+        function getMajorArcanaCenterpiece(num, accent) {
+            // Unique sacred geometry + symbolic vector motif for each of the 22 Major Arcana
+            const baseSacredRing = `
+                <circle cx="0" cy="0" r="78" fill="none" stroke="#d4af37" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.6"/>
+                <circle cx="0" cy="0" r="68" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.85"/>
+            `;
+
+            switch (num) {
+                case 0: // The Fool: Sunburst + Cliff + White Rose
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="-35" r="22" fill="${accent}" fill-opacity="0.2" stroke="#f9eab8" stroke-width="1.5"/>
+                        <g stroke="#f9eab8" stroke-width="1.2">
+                            <line x1="0" y1="-65" x2="0" y2="-5"/><line x1="-30" y1="-35" x2="30" y2="-35"/>
+                            <line x1="-21" y1="-56" x2="21" y2="-14"/><line x1="21" y1="-56" x2="-21" y2="-14"/>
+                        </g>
+                        <path d="M -55 55 L -10 15 L 5 35 L 55 55 Z" fill="#0d0d1a" stroke="#d4af37" stroke-width="1.5"/>
+                        <circle cx="0" cy="-35" r="7" fill="#fff3c4"/>`;
+                case 1: // The Magician: Lemniscate Infinity + 4 Elemental Symbols
+                    return `${baseSacredRing}
+                        <path d="M -32 -35 C -52 -55, -52 -15, -32 -35 C -12 -55, 12 -15, 32 -35 C 52 -55, 52 -15, 32 -35 C 12 -15, -12 -55, -32 -35 Z" fill="none" stroke="#fff3c4" stroke-width="2"/>
+                        <line x1="0" y1="-15" x2="0" y2="55" stroke="#d4af37" stroke-width="3"/>
+                        <polygon points="0,-24 -8,-10 8,-10" fill="#f9eab8"/>
+                        <circle cx="-38" cy="20" r="10" fill="none" stroke="#10b981" stroke-width="1.5"/>
+                        <path d="M 28 12 L 48 12 L 38 30 Z" fill="none" stroke="#38bdf8" stroke-width="1.5"/>`;
+                case 2: // The High Priestess: Triple Moon + Pillars B & J
+                    return `${baseSacredRing}
+                        <rect x="-52" y="-50" width="16" height="105" fill="#090914" stroke="#d4af37" stroke-width="1.3"/>
+                        <rect x="36" y="-50" width="16" height="105" fill="#d4af37" fill-opacity="0.25" stroke="#d4af37" stroke-width="1.3"/>
+                        <text x="-44" y="5" text-anchor="middle" fill="#d4af37" font-size="11" font-family="Cinzel">B</text>
+                        <text x="44" y="5" text-anchor="middle" fill="#fff3c4" font-size="11" font-family="Cinzel">J</text>
+                        <circle cx="0" cy="-8" r="20" fill="${accent}" fill-opacity="0.25" stroke="#fff3c4" stroke-width="1.6"/>
+                        <path d="M -22 36 A 26 26 0 0 0 22 36 A 22 20 0 0 1 -22 36 Z" fill="#f9eab8"/>`;
+                case 3: // The Empress: Venus Symbol + 12-Star Crown
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="-12" r="26" fill="${accent}" fill-opacity="0.2" stroke="#f9eab8" stroke-width="2"/>
+                        <line x1="0" y1="14" x2="0" y2="54" stroke="#f9eab8" stroke-width="2"/>
+                        <line x1="-18" y1="34" x2="18" y2="34" stroke="#f9eab8" stroke-width="2"/>
+                        <polygon points="0,-58 5,-45 18,-45 8,-37 12,-24 0,-32 -12,-24 -8,-37 -18,-45 -5,-45" fill="#d4af37"/>`;
+                case 4: // The Emperor: Solar Cross + Sovereign Throne Cube
+                    return `${baseSacredRing}
+                        <rect x="-38" y="-38" width="76" height="76" fill="#0c0c1c" stroke="#d4af37" stroke-width="1.8"/>
+                        <rect x="-26" y="-26" width="52" height="52" transform="rotate(45)" fill="${accent}" fill-opacity="0.2" stroke="#f9eab8" stroke-width="1.4"/>
+                        <circle cx="0" cy="0" r="14" fill="none" stroke="#fff3c4" stroke-width="2"/>
+                        <circle cx="0" cy="0" r="4" fill="#f59e0b"/>`;
+                case 5: // The Hierophant: Crossed Sacred Keys
+                    return `${baseSacredRing}
+                        <g stroke="#f9eab8" stroke-width="2.2" fill="none">
+                            <line x1="-35" y1="45" x2="35" y2="-35"/>
+                            <line x1="35" y1="45" x2="-35" y2="-35"/>
+                            <circle cx="-35" cy="45" r="12" fill="#0a0a16"/>
+                            <circle cx="35" cy="45" r="12" fill="#0a0a16"/>
+                        </g>
+                        <polygon points="0,-58 14,-25 -14,-25" fill="#d4af37" stroke="#fff3c4" stroke-width="1.2"/>`;
+                case 6: // The Lovers: Interlocking Vesica Piscis + Twin Stars
+                    return `${baseSacredRing}
+                        <circle cx="-20" cy="5" r="34" fill="${accent}" fill-opacity="0.18" stroke="#f9eab8" stroke-width="1.6"/>
+                        <circle cx="20" cy="5" r="34" fill="#f43f5e" fill-opacity="0.18" stroke="#d4af37" stroke-width="1.6"/>
+                        <path d="M 0 -48 L 8 -30 L 26 -30 L 12 -18 L 17 0 L 0 -11 L -17 0 L -12 -18 L -26 -30 L -8 -30 Z" fill="#fff3c4"/>`;
+                case 7: // The Chariot: Winged Merkaba Star
+                    return `${baseSacredRing}
+                        <polygon points="0,-54 46,26 -46,26" fill="none" stroke="#fff3c4" stroke-width="1.8"/>
+                        <polygon points="0,54 46,-26 -46,-26" fill="${accent}" fill-opacity="0.2" stroke="#d4af37" stroke-width="1.8"/>
+                        <circle cx="0" cy="0" r="16" fill="#090914" stroke="#f9eab8" stroke-width="1.5"/>
+                        <circle cx="0" cy="0" r="6" fill="#f9eab8"/>`;
+                case 8: // Strength: Solar Lion Mandala + Infinity Crown
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="8" r="36" fill="${accent}" fill-opacity="0.22" stroke="#f9eab8" stroke-width="2"/>
+                        <polygon points="0,-42 12,-15 40,-15 18,2 26,30 0,14 -26,30 -18,2 -40,-15 -12,-15" fill="none" stroke="#d4af37" stroke-width="1.4"/>
+                        <path d="M -22 -42 C -36 -56, -36 -28, -22 -42 C -8 -56, 8 -28, 22 -42 C 36 -56, 36 -28, 22 -42 C 8 -28, -8 -56, -22 -42 Z" fill="none" stroke="#fff3c4" stroke-width="1.8"/>`;
+                case 9: // The Hermit: Six-Pointed Seal inside Hanging Lantern
+                    return `${baseSacredRing}
+                        <polygon points="0,-48 32,0 0,48 -32,0" fill="#090914" stroke="#d4af37" stroke-width="1.8"/>
+                        <polygon points="0,-24 20,12 -20,12" fill="none" stroke="#fff3c4" stroke-width="1.3"/>
+                        <polygon points="0,24 20,-12 -20,-12" fill="none" stroke="#fff3c4" stroke-width="1.3"/>
+                        <circle cx="0" cy="0" r="6" fill="#fff3c4"/>`;
+                case 10: // Wheel of Fortune: 8-Spoke Cosmic Wheel
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="0" r="52" fill="${accent}" fill-opacity="0.15" stroke="#fff3c4" stroke-width="2.2"/>
+                        <circle cx="0" cy="0" r="36" fill="none" stroke="#d4af37" stroke-width="1.2"/>
+                        <g stroke="#f9eab8" stroke-width="1.4">
+                            <line x1="0" y1="-52" x2="0" y2="52"/><line x1="-52" y1="0" x2="52" y2="0"/>
+                            <line x1="-37" y1="-37" x2="37" y2="37"/><line x1="37" y1="-37" x2="-37" y2="37"/>
+                        </g>
+                        <circle cx="0" cy="0" r="12" fill="#090914" stroke="#fff3c4" stroke-width="2"/>`;
+                case 11: // Justice: Upright Sword & Balanced Scales
+                    return `${baseSacredRing}
+                        <line x1="0" y1="-58" x2="0" y2="58" stroke="#fff3c4" stroke-width="2.5"/>
+                        <line x1="-44" y1="-15" x2="44" y2="-15" stroke="#d4af37" stroke-width="2"/>
+                        <path d="M -44 -15 L -54 15 L -34 15 Z" fill="${accent}" fill-opacity="0.3" stroke="#f9eab8" stroke-width="1.3"/>
+                        <path d="M 44 -15 L 34 15 L 54 15 Z" fill="${accent}" fill-opacity="0.3" stroke="#f9eab8" stroke-width="1.3"/>
+                        <circle cx="0" cy="-15" r="7" fill="#d4af37"/>`;
+                case 12: // The Hanged Man: Inverted Triangle + Radiant Halo
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="28" r="24" fill="${accent}" fill-opacity="0.3" stroke="#fff3c4" stroke-width="1.5" stroke-dasharray="3 2"/>
+                        <polygon points="-38,-42 38,-42 0,32" fill="#0b0b1a" stroke="#d4af37" stroke-width="1.8"/>
+                        <line x1="0" y1="-68" x2="0" y2="-42" stroke="#f9eab8" stroke-width="2"/>
+                        <circle cx="0" cy="28" r="6" fill="#fff3c4"/>`;
+                case 13: // Death: Mystic 5-Petal Eclipse Rose & Crescent Scythe
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="0" r="34" fill="#05050a" stroke="#fff3c4" stroke-width="2"/>
+                        <circle cx="0" cy="0" r="22" fill="none" stroke="#d4af37" stroke-width="1" stroke-dasharray="2 2"/>
+                        <polygon points="0,-32 9,-9 32,-9 14,6 20,28 0,15 -20,28 -14,6 -32,-9 -9,-9" fill="${accent}" fill-opacity="0.25" stroke="#f9eab8" stroke-width="1.2"/>
+                        <circle cx="0" cy="0" r="5" fill="#fff3c4"/>`;
+                case 14: // Temperance: Alchemical Triangle inside Square + Flowing Wave
+                    return `${baseSacredRing}
+                        <rect x="-38" y="-38" width="76" height="76" fill="none" stroke="#d4af37" stroke-width="1.4"/>
+                        <polygon points="0,-46 42,30 -42,30" fill="${accent}" fill-opacity="0.2" stroke="#fff3c4" stroke-width="1.8"/>
+                        <path d="M -25 5 Q 0 -20, 25 5 T 0 25" fill="none" stroke="#38bdf8" stroke-width="2"/>`;
+                case 15: // The Devil: Inverted Pentagram inside Obsidian Ring
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="0" r="48" fill="#09050c" stroke="#f59e0b" stroke-width="1.8"/>
+                        <polygon points="0,46 -28,-38 44,14 -44,14 28,-38" fill="${accent}" fill-opacity="0.2" stroke="#f9eab8" stroke-width="1.5"/>
+                        <circle cx="0" cy="0" r="8" fill="none" stroke="#f59e0b" stroke-width="1.5"/>`;
+                case 16: // The Tower: Crown Struck by Celestial Lightning
+                    return `${baseSacredRing}
+                        <path d="M -22 55 L -16 -15 L 16 -15 L 22 55 Z" fill="#0b0b18" stroke="#d4af37" stroke-width="1.8"/>
+                        <polygon points="-22,-20 -12,-35 0,-22 12,-35 22,-20" fill="#d4af37"/>
+                        <polyline points="28,-62 2,-18 18,-18 -18,32" fill="none" stroke="#fff3c4" stroke-width="3"/>`;
+                case 17: // The Star: Great 8-Pointed Sirius Star + 7 Smaller Stars
+                    return `${baseSacredRing}
+                        <polygon points="0,-56 12,-12 56,0 12,12 0,56 -12,12 -56,0 -12,-12" fill="${accent}" fill-opacity="0.3" stroke="#fff3c4" stroke-width="1.8"/>
+                        <polygon points="0,-36 25,-25 36,0 25,25 0,36 -25,25 -36,0 -25,-25" fill="none" stroke="#d4af37" stroke-width="1"/>
+                        <circle cx="0" cy="0" r="7" fill="#fff3c4"/>`;
+                case 18: // The Moon: Full Lunar Orb + Twin Pillars + Tidal Waves
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="-14" r="30" fill="${accent}" fill-opacity="0.25" stroke="#fff3c4" stroke-width="1.8"/>
+                        <path d="M -8 -40 A 24 24 0 1 0 18 8 A 20 20 0 1 1 -8 -40 Z" fill="#f9eab8"/>
+                        <rect x="-46" y="5" width="12" height="42" fill="#080814" stroke="#d4af37" stroke-width="1.2"/>
+                        <rect x="34" y="5" width="12" height="42" fill="#080814" stroke="#d4af37" stroke-width="1.2"/>`;
+                case 19: // The Sun: 16-Ray Solar Mandala
+                    return `${baseSacredRing}
+                        <g stroke="#f59e0b" stroke-width="1.6">
+                            <line x1="0" y1="-60" x2="0" y2="60"/><line x1="-60" y1="0" x2="60" y2="0"/>
+                            <line x1="-42" y1="-42" x2="42" y2="42"/><line x1="42" y1="-42" x2="-42" y2="42"/>
+                        </g>
+                        <circle cx="0" cy="0" r="32" fill="#f59e0b" fill-opacity="0.3" stroke="#fff3c4" stroke-width="2.2"/>
+                        <circle cx="0" cy="0" r="14" fill="#fff3c4"/>`;
+                case 20: // Judgement: Rising Phoenix Wings + Solar Cross
+                    return `${baseSacredRing}
+                        <path d="M 0 25 C -30 5, -55 -25, -45 -45 C -25 -30, -10 -10, 0 5 C 10 -10, 25 -30, 45 -45 C 55 -25, 30 5, 0 25 Z" fill="${accent}" fill-opacity="0.28" stroke="#fff3c4" stroke-width="1.6"/>
+                        <line x1="0" y1="-48" x2="0" y2="48" stroke="#f9eab8" stroke-width="2"/>
+                        <line x1="-22" y1="-22" x2="22" y2="-22" stroke="#f9eab8" stroke-width="2"/>`;
+                default: // 21 The World: Cosmic Wreath & 4 Fixed Sign Jewels
+                    return `${baseSacredRing}
+                        <ellipse cx="0" cy="0" rx="36" ry="54" fill="${accent}" fill-opacity="0.2" stroke="#fff3c4" stroke-width="2.2"/>
+                        <ellipse cx="0" cy="0" rx="26" ry="44" fill="none" stroke="#d4af37" stroke-width="1" stroke-dasharray="3 2"/>
+                        <circle cx="0" cy="0" r="10" fill="#fff3c4"/>
+                        <circle cx="-48" cy="-48" r="5" fill="#d4af37"/><circle cx="48" cy="-48" r="5" fill="#d4af37"/>
+                        <circle cx="-48" cy="48" r="5" fill="#d4af37"/><circle cx="48" cy="48" r="5" fill="#d4af37"/>`;
+            }
+        }
+
+        function getMinorArcanaCenterpiece(suit, rank, accent) {
+            // Renders sacred suit emblem + geometric rank constellation
+            let suitEmblem = "";
+            if (suit === "Wands") {
+                suitEmblem = `
+                    <line x1="0" y1="-52" x2="0" y2="52" stroke="#f9eab8" stroke-width="3.5" stroke-linecap="round"/>
+                    <polygon points="0,-60 -10,-42 0,-48 10,-42" fill="#f59e0b" stroke="#fff3c4" stroke-width="1"/>
+                    <path d="M 0 -15 Q 18 -25 14 -35 Q 4 -25 0 -15" fill="#10b981"/>
+                    <path d="M 0 10 Q -18 0 -14 -10 Q -4 0 0 10" fill="#10b981"/>
+                `;
+            } else if (suit === "Cups") {
+                suitEmblem = `
+                    <path d="M -28 -32 L 28 -32 C 28 5, 12 18, 0 20 C -12 18, -28 5, -28 -32 Z" fill="${accent}" fill-opacity="0.28" stroke="#fff3c4" stroke-width="2"/>
+                    <line x1="0" y1="20" x2="0" y2="46" stroke="#fff3c4" stroke-width="3"/>
+                    <path d="M -22 46 L 22 46" stroke="#fff3c4" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="0" cy="-44" r="7" fill="#38bdf8" stroke="#fff3c4" stroke-width="1.2"/>
+                `;
+            } else if (suit === "Swords") {
+                suitEmblem = `
+                    <polygon points="0,-60 7,20 0,28 -7,20" fill="#e2e8f0" stroke="#fff3c4" stroke-width="1.3"/>
+                    <path d="M -28 20 Q 0 10 28 20" fill="none" stroke="#d4af37" stroke-width="3.5" stroke-linecap="round"/>
+                    <line x1="0" y1="20" x2="0" y2="48" stroke="#d4af37" stroke-width="3.5"/>
+                    <circle cx="0" cy="51" r="6" fill="#f9eab8"/>
+                `;
+            } else {
+                // Pentacles
+                suitEmblem = `
+                    <circle cx="0" cy="0" r="38" fill="#091914" stroke="#d4af37" stroke-width="2.2"/>
+                    <polygon points="0,-32 9,-9 32,-9 14,6 20,28 0,15 -20,28 -14,6 -32,-9 -9,-9" fill="${accent}" fill-opacity="0.3" stroke="#fff3c4" stroke-width="1.5"/>
+                `;
+            }
+
+            // Rank geometric crown or constellation ring around the suit emblem
+            let rankOrnament = "";
+            if (rank >= 11) {
+                // Court Card Crown
+                rankOrnament = `
+                    <polygon points="-32,-68 -18,-52 0,-70 18,-52 32,-68 26,-46 -26,-46" fill="#d4af37" fill-opacity="0.35" stroke="#fff3c4" stroke-width="1.2"/>
+                `;
+            } else {
+                // Pip Constellation Nodes around perimeter
+                let dots = "";
+                for (let i = 0; i < rank; i++) {
+                    const angle = (i / rank) * Math.PI * 2 - Math.PI / 2;
+                    const rx = Math.cos(angle) * 62;
+                    const ry = Math.sin(angle) * 62;
+                    dots += `<circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="4" fill="#fff3c4" stroke="#d4af37" stroke-width="1"/>`;
+                }
+                rankOrnament = `<circle cx="0" cy="0" r="62" fill="none" stroke="#d4af37" stroke-width="0.9" stroke-dasharray="3 3"/>${dots}`;
+            }
+
+            return `
+                <circle cx="0" cy="0" r="76" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.65"/>
+                ${rankOrnament}
+                ${suitEmblem}
+            `;
+        }
+
+        /**************************************************************
+         * 4. APPLICATION STATE & FISHER-YATES NON-DUPLICATE SHUFFLE
+         **************************************************************/
+        let currentState = {
+            question: "",
+            category: "love", // 'love', 'career', 'growth', 'general'
+            spreadCount: 3,   // 1 or 3
+            allowReversals: true,
+            interactivePick: true,
+            shuffledDeck: [],
+            drawnCards: [],   // Array of { card, positionIndex, positionTitle, positionDesc, isReversed, isFlipped }
+            transactionId: 1000,
+            sqlLogs: []
+        };
+
+        const CATEGORY_LABELS = {
+            love: "Love & Relationships",
+            career: "Career & Money",
+            growth: "Personal Growth",
+            general: "General Oracle"
+        };
+
+        const SPREAD_POSITIONS = {
+            1: [
+                { title: "The Core Oracle", subtitle: "Singular Present Truth & Guiding Counsel" }
+            ],
+            3: [
+                { title: "I • The Past", subtitle: "Foundational Roots & Preceding Influences" },
+                { title: "II • The Present", subtitle: "Current Crossroads & Active Energies" },
+                { title: "III • The Future", subtitle: "Emerging Horizon & Trajectory" }
+            ]
+        };
+
+        const SAMPLE_QUESTIONS = {
+            love: [
+                "What deeper truth wants to be seen within my romantic life right now?",
+                "How can I open my heart to attract a genuinely aligned soulmate bond?",
+                "What energy surrounds the future harmony of my current relationship?"
+            ],
+            career: [
+                "What hidden opportunity surrounds my career transition and financial growth?",
+                "How can I align my daily vocation with greater abundance and leadership?",
+                "What strategic focus will bring my creative venture to fruition?"
+            ],
+            growth: [
+                "What inner shadow or gift is ready to be integrated for my spiritual evolution?",
+                "How can I reclaim my personal sovereignty and inner peace this season?",
+                "What lesson is the universe inviting me to master right now?"
+            ],
+            general: [
+                "What overarching cosmic current guides my path over the coming weeks?",
+                "Where should I direct my energy for the highest holistic alignment?",
+                "What unseen blessing is taking shape beneath the surface of my life?"
+            ]
+        };
+
+        // Cryptographically strong Fisher-Yates shuffle guaranteeing zero duplicates
+        function shuffleTarotDeckNoDuplicates(deckArray) {
+            const copy = [...deckArray];
+            for (let i = copy.length - 1; i > 0; i--) {
+                let randInt;
+                if (window.crypto && window.crypto.getRandomValues) {
+                    const buf = new Uint32Array(1);
+                    window.crypto.getRandomValues(buf);
+                    randInt = buf[0] % (i + 1);
+                } else {
+                    randInt = Math.floor(Math.random() * (i + 1));
+                }
+                const temp = copy[i];
+                copy[i] = copy[randInt];
+                copy[randInt] = temp;
+            }
+            return copy;
+        }
+
+        function fillSampleQuestion() {
+            const pool = SAMPLE_QUESTIONS[currentState.category] || SAMPLE_QUESTIONS.general;
+            const randomQ = pool[Math.floor(Math.random() * pool.length)];
+            const input = document.getElementById('userQuestion');
+            input.value = randomQ;
+            input.focus();
+            playMysticSound('pick');
+        }
+
+        function selectCategory(cat) {
+            currentState.category = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                const isSelected = btn.getAttribute('data-cat') === cat;
+                const check = btn.querySelector('.cat-check');
+                if (isSelected) {
+                    btn.className = "cat-btn group text-left p-4 rounded-xl bg-obsidian-950/90 border border-gold-400/80 ring-2 ring-gold-400/30 transition flex flex-col justify-between";
+                    check.classList.remove('hidden');
+                } else {
+                    btn.className = "cat-btn group text-left p-4 rounded-xl bg-obsidian-950/50 border border-gold-400/20 hover:border-gold-400/50 transition flex flex-col justify-between";
+                    check.classList.add('hidden');
+                }
+            });
+            playMysticSound('pick');
+        }
+
+        function selectSpread(count) {
+            currentState.spreadCount = count;
+            const btn1 = document.getElementById('spread-btn-1');
+            const btn3 = document.getElementById('spread-btn-3');
+            if (count === 1) {
+                btn1.className = "p-4 rounded-xl bg-obsidian-950/90 border border-gold-400/80 ring-2 ring-gold-400/30 text-left transition flex items-center gap-4";
+                btn3.className = "p-4 rounded-xl bg-obsidian-950/50 border border-gold-400/20 hover:border-gold-400/50 text-left transition flex items-center gap-4";
+            } else {
+                btn3.className = "p-4 rounded-xl bg-obsidian-950/90 border border-gold-400/80 ring-2 ring-gold-400/30 text-left transition flex items-center gap-4";
+                btn1.className = "p-4 rounded-xl bg-obsidian-950/50 border border-gold-400/20 hover:border-gold-400/50 text-left transition flex items-center gap-4";
+            }
+            playMysticSound('pick');
+        }
+
+        /**************************************************************
+         * 5. READING RITUAL WORKFLOW: SHUFFLE, PICK & REVEAL
+         **************************************************************/
+        function initiateReadingRitual() {
+            const qInput = document.getElementById('userQuestion').value.trim();
+            currentState.question = qInput || `Guidance for my ${CATEGORY_LABELS[currentState.category]} path`;
+            currentState.allowReversals = document.getElementById('allowReversalsCheckbox').checked;
+            currentState.interactivePick = document.getElementById('interactivePickCheckbox').checked;
+            currentState.shuffledDeck = shuffleTarotDeckNoDuplicates(TAROT_DECK);
+            currentState.drawnCards = [];
+
+            playMysticSound('shuffle');
+
+            if (currentState.interactivePick) {
+                document.getElementById('ritualConfigPanel').classList.add('hidden');
+                document.getElementById('deckRitualStage').classList.remove('hidden');
+                document.getElementById('readingResultStage').classList.add('hidden');
+                renderInteractiveFannedDeck();
+            } else {
+                autoCompleteCardPick();
+            }
+        }
+
+        function renderInteractiveFannedDeck() {
+            const container = document.getElementById('fannedDeckContainer');
+            const remainingSpan = document.getElementById('cardsRemainingToPick');
+            remainingSpan.textContent = currentState.spreadCount - currentState.drawnCards.length;
+
+            // Render 26 representative selectable cards from the shuffled 78-card array for clean mobile & desktop UX
+            // (Each slot maps to a unique index in currentState.shuffledDeck)
+            let html = "";
+            const displaySlots = 26;
+            for (let i = 0; i < displaySlots; i++) {
+                const rot = ((i - (displaySlots - 1) / 2) * 1.6).toFixed(1);
+                html += `
+                    <div
+                        onclick="pickCardFromFan(${i}, this)"
+                        style="transform: rotate(${rot}deg);"
+                        class="deck-pick-card cursor-pointer w-14 h-24 sm:w-16 sm:h-28 rounded-lg border border-gold-400/60 bg-obsidian-950 shadow-md overflow-hidden relative -ml-6 first:ml-0"
+                        title="Draw Sacred Card"
+                    >
+                        ${renderCardBackSVG()}
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function reshuffleDeckVisual() {
+            currentState.shuffledDeck = shuffleTarotDeckNoDuplicates(TAROT_DECK);
+            currentState.drawnCards = [];
+            playMysticSound('shuffle');
+            const cards = document.querySelectorAll('.deck-pick-card');
+            cards.forEach(c => c.classList.add('shuffling-card'));
+            setTimeout(() => {
+                renderInteractiveFannedDeck();
+            }, 480);
+        }
+
+        function pickCardFromFan(deckIndex, el) {
+            if (currentState.drawnCards.length >= currentState.spreadCount) return;
+            if (el.classList.contains('picked')) return;
+
+            el.classList.add('picked');
+            playMysticSound('pick');
+
+            const posIdx = currentState.drawnCards.length;
+            const posMeta = SPREAD_POSITIONS[currentState.spreadCount][posIdx];
+            const selectedCard = currentState.shuffledDeck[deckIndex];
+            const isReversed = currentState.allowReversals ? (Math.random() < 0.5) : false;
+
+            currentState.drawnCards.push({
+                card: selectedCard,
+                positionIndex: posIdx,
+                positionTitle: posMeta.title,
+                positionSubtitle: posMeta.subtitle,
+                isReversed: isReversed,
+                isFlipped: false
+            });
+
+            const left = currentState.spreadCount - currentState.drawnCards.length;
+            document.getElementById('cardsRemainingToPick').textContent = left;
+
+            if (left === 0) {
+                setTimeout(() => {
+                    finalizeReadingAndRenderTable();
+                }, 380);
+            }
+        }
+
+        function autoCompleteCardPick() {
+            while (currentState.drawnCards.length < currentState.spreadCount) {
+                const nextIndex = currentState.drawnCards.length;
+                // Ensure non-duplicate selection from shuffledDeck
+                const candidate = currentState.shuffledDeck.find(
+                    c => !currentState.drawnCards.some(d => d.card.id === c.id)
+                );
+                const posMeta = SPREAD_POSITIONS[currentState.spreadCount][nextIndex];
+                const isReversed = currentState.allowReversals ? (Math.random() < 0.5) : false;
+
+                currentState.drawnCards.push({
+                    card: candidate,
+                    positionIndex: nextIndex,
+                    positionTitle: posMeta.title,
+                    positionSubtitle: posMeta.subtitle,
+                    isReversed: isReversed,
+                    isFlipped: false
+                });
+            }
+            finalizeReadingAndRenderTable();
+        }
+
+        function finalizeReadingAndRenderTable() {
+            currentState.transactionId++;
+            // Record simulated MySQL transaction log & save to journal
+            recordSimulatedMySQLQueries();
+            saveReadingToJournal();
+
+            // Switch UI stages
+            document.getElementById('ritualConfigPanel').classList.add('hidden');
+            document.getElementById('deckRitualStage').classList.add('hidden');
+            document.getElementById('readingResultStage').classList.remove('hidden');
+
+            // Update Metadata Header
+            document.getElementById('resultCategoryBadge').textContent = CATEGORY_LABELS[currentState.category];
+            document.getElementById('resultSpreadBadge').textContent = currentState.spreadCount === 1 ? "One-Card Oracle Spread" : "Three-Card Temporal Spread";
+            document.getElementById('resultSqlTransactionId').textContent = `MySQL TX #${currentState.transactionId}`;
+            document.getElementById('resultQuestionHeading').textContent = `"${currentState.question}"`;
+            document.getElementById('revealAllBtn').classList.remove('hidden');
+
+            // Render 1 or 3 Cards on Table
+            const spreadGrid = document.getElementById('spreadCardsContainer');
+            if (currentState.spreadCount === 1) {
+                spreadGrid.className = "max-w-md mx-auto grid grid-cols-1 gap-8 justify-items-center items-start";
+            } else {
+                spreadGrid.className = "max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center items-start";
+            }
+
+            spreadGrid.innerHTML = currentState.drawnCards.map((item, idx) => {
+                const orientationBadge = item.isReversed
+                    ? `<span class="px-2.5 py-0.5 rounded-full bg-rose-950/90 border border-rose-400/50 text-rose-300 font-cinzel text-[10px] uppercase tracking-widest">Reversed</span>`
+                    : `<span class="px-2.5 py-0.5 rounded-full bg-emerald-950/90 border border-emerald-400/50 text-emerald-300 font-cinzel text-[10px] uppercase tracking-widest">Upright</span>`;
+
+                const kws = item.isReversed ? item.card.keywordsReversed : item.card.keywordsUpright;
+
+                return `
+                <div class="w-full max-w-[290px] flex flex-col items-center space-y-4">
+                    <!-- Position Header -->
+                    <div class="text-center space-y-0.5">
+                        <div class="font-cinzel text-sm font-bold tracking-[0.2em] text-gold-300 uppercase">${item.positionTitle}</div>
+                        <div class="text-xs text-gold-100/60 font-serif italic">${item.positionSubtitle}</div>
+                    </div>
+
+                    <!-- 3D Flippable Tarot Card Container -->
+                    <div
+                        onclick="flipSingleCard(${idx})"
+                        class="perspective-1000 w-[235px] h-[390px] cursor-pointer group relative"
+                    >
+                        <div id="card-inner-${idx}" class="card-3d-inner rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
+                            <!-- Card Back (Unrevealed) -->
+                            <div class="card-face bg-obsidian-900 gold-border-glow flex flex-col items-center justify-center">
+                                ${renderCardBackSVG()}
+                                <div class="absolute bottom-4 inset-x-4 py-1.5 rounded-full bg-obsidian-950/90 border border-gold-400/50 text-center font-cinzel text-[10px] tracking-[0.2em] text-gold-300 uppercase group-hover:bg-gold-400 group-hover:text-obsidian-950 transition">
+                                    Tap to Reveal
+                                </div>
+                            </div>
+
+                            <!-- Card Front (Revealed) -->
+                            <div class="card-face card-face-front bg-obsidian-950 border-2 border-gold-400/80 shadow-[0_0_30px_rgba(212,175,55,0.25)]">
+                                <div class="w-full h-full ${item.isReversed ? 'reversed-artwork' : ''}">
+                                    ${renderCardFrontSVG(item.card)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post-Flip Card Meta Label -->
+                    <div id="card-caption-${idx}" class="opacity-0 transition-opacity duration-500 text-center space-y-2 pt-1">
+                        <div class="flex items-center justify-center gap-2">
+                            <span class="font-cinzel font-bold text-base text-gold-200">${item.card.name}</span>
+                            ${orientationBadge}
+                        </div>
+                        <div class="flex flex-wrap justify-center gap-1">
+                            ${kws.map(k => `<span class="px-2 py-0.5 rounded bg-obsidian-900 border border-gold-400/25 text-[11px] font-sans text-gold-200/80">${k}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            // Reset interpretation containers until cards are flipped
+            document.getElementById('individualCardInterpretations').innerHTML = "";
+            document.getElementById('grandSynthesisCard').classList.add('hidden');
+
+            // Auto-flip first card after short dramatic pause or let user click
+            setTimeout(() => {
+                flipSingleCard(0);
+            }, 450);
+        }
+
+        function flipSingleCard(idx) {
+            const item = currentState.drawnCards[idx];
+            if (!item || item.isFlipped) return;
+
+            item.isFlipped = true;
+            playMysticSound('flip');
+
+            const innerEl = document.getElementById(`card-inner-${idx}`);
+            const captionEl = document.getElementById(`card-caption-${idx}`);
+            if (innerEl) innerEl.classList.add('is-flipped');
+            if (captionEl) captionEl.classList.remove('opacity-0');
+
+            renderRevealedInterpretations();
+
+            // Check if all cards are flipped
+            if (currentState.drawnCards.every(c => c.isFlipped)) {
+                document.getElementById('revealAllBtn').classList.add('hidden');
+                renderGrandOracleSynthesis();
+            }
+        }
+
+        function flipAllCards() {
+            currentState.drawnCards.forEach((item, idx) => {
+                if (!item.isFlipped) {
+                    setTimeout(() => flipSingleCard(idx), idx * 280);
+                }
+            });
+        }
+
+        /**************************************************************
+         * 6. PERSONALIZED INTERPRETATION & SYNTHESIS ENGINE
+         *    Combines predefined MySQL text, positional context,
+         *    category, orientation, and user question
+         **************************************************************/
+        function buildPositionFramingSentence(item, categoryLabel) {
+            const cardTitle = `${item.card.name} (${item.isReversed ? 'Reversed' : 'Upright'})`;
+            if (currentState.spreadCount === 1) {
+                return `Drawn as your singular **Core Oracle** for **${categoryLabel}**, **${cardTitle}** serves as the primary mirror for your inquiry:`;
+            }
+            if (item.positionIndex === 0) {
+                return `Anchored in **The Past**, **${cardTitle}** reveals the foundational roots and preceding energetic currents that shaped your present ${categoryLabel.toLowerCase()} landscape:`;
+            } else if (item.positionIndex === 1) {
+                return `Standing at **The Present Crossroads**, **${cardTitle}** illuminates the immediate dynamic and conscious choice active around your question right now:`;
+            } else {
+                return `Radiating from **The Future Horizon**, **${cardTitle}** projects the emerging trajectory and potential outcome if current energies continue to unfold:`;
+            }
+        }
+
+        function renderRevealedInterpretations() {
+            const container = document.getElementById('individualCardInterpretations');
+            const cat = currentState.category;
+            const catLabel = CATEGORY_LABELS[cat];
+
+            const flippedItems = currentState.drawnCards.filter(d => d.isFlipped);
+
+            container.innerHTML = flippedItems.map(item => {
+                const meaningBlock = item.isReversed ? item.card.reversed : item.card.upright;
+                const categorySpecificText = meaningBlock[cat];
+                const generalText = meaningBlock.general;
+                const kws = item.isReversed ? item.card.keywordsReversed : item.card.keywordsUpright;
+                const framing = buildPositionFramingSentence(item, catLabel).replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold-300 font-semibold">$1</strong>');
+
+                return `
+                <div class="rounded-2xl bg-obsidian-900/90 border border-gold-400/30 p-6 sm:p-7 space-y-4 transition-all">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gold-400/15 pb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 rounded-lg bg-gold-400/15 border border-gold-400/40 font-cinzel text-xs font-bold text-gold-300 uppercase tracking-wider">
+                                ${item.positionTitle}
+                            </span>
+                            <h4 class="font-cinzel text-lg sm:text-xl font-bold text-gold-100">
+                                ${item.card.name}
+                                <span class="text-sm font-normal ${item.isReversed ? 'text-rose-300' : 'text-emerald-300'}">
+                                    (${item.isReversed ? 'Reversed' : 'Upright'})
+                                </span>
+                            </h4>
+                        </div>
+                        <span class="text-xs font-cinzel text-gold-300/70 uppercase tracking-widest">
+                            ${item.card.arcana} • ${item.card.element}
+                        </span>
+                    </div>
+
+                    <p class="text-base sm:text-lg text-gold-200/80 font-serif italic">
+                        ${framing}
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        <div class="p-4 rounded-xl bg-obsidian-950/70 border border-gold-400/20 space-y-1.5">
+                            <div class="font-cinzel text-xs uppercase tracking-widest text-gold-400 flex items-center gap-1.5">
+                                <i class="ph-fill ph-sparkle"></i> ${catLabel} Interpretation
+                            </div>
+                            <p class="text-base sm:text-lg text-gold-100 leading-relaxed">
+                                ${categorySpecificText}
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-obsidian-950/70 border border-gold-400/20 space-y-1.5">
+                            <div class="font-cinzel text-xs uppercase tracking-widest text-gold-300/80 flex items-center gap-1.5">
+                                <i class="ph ph-compass"></i> Core Arcana Resonance
+                            </div>
+                            <p class="text-base sm:text-lg text-gold-100/85 leading-relaxed">
+                                ${generalText}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 pt-1 text-xs font-sans text-gold-300/70">
+                        <span class="font-cinzel uppercase tracking-wider text-gold-400">Key Frequencies:</span>
+                        ${kws.map(k => `<span class="px-2.5 py-0.5 rounded-full bg-gold-400/10 border border-gold-400/30 text-gold-200">${k}</span>`).join('')}
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function renderGrandOracleSynthesis() {
+            const cardContainer = document.getElementById('grandSynthesisCard');
+            const bodyContainer = document.getElementById('grandSynthesisBody');
+            const metricsContainer = document.getElementById('synthesisHarmonyMetrics');
+
+            cardContainer.classList.remove('hidden');
+
+            const cat = currentState.category;
+            const catLabel = CATEGORY_LABELS[cat];
+            const drawn = currentState.drawnCards;
+
+            // Count Major Arcana & Reversals & Elements
+            const majorCount = drawn.filter(d => d.card.arcana === "Major Arcana").length;
+            const revCount = drawn.filter(d => d.isReversed).length;
+            const elements = drawn.map(d => d.card.element);
+
+            let narrativeHtml = "";
+
+            if (currentState.spreadCount === 1) {
+                const d0 = drawn[0];
+                const kw0 = (d0.isReversed ? d0.card.keywordsReversed : d0.card.keywordsUpright)[0];
+                narrativeHtml = `
+                    <p>
+                        Regarding your inquiry—<em class="text-gold-300">"${currentState.question}"</em>—the appearance of <strong class="text-gold-200">${d0.card.name} (${d0.isReversed ? 'Reversed' : 'Upright'})</strong> in the realm of <strong class="text-gold-200">${catLabel}</strong> centers your attention on <strong class="text-gold-300">${kw0}</strong>.
+                    </p>
+                    <p>
+                        ${d0.card.arcana === "Major Arcana"
+                            ? `Because this is a Major Arcana archetype ruled by ${d0.card.astro}, this moment carries long-term soul significance rather than a passing mood.`
+                            : `Guided by the elemental current of ${d0.card.element} (${d0.card.suit}), your most empowering step today is practical, grounded integration.`}
+                        ${d0.isReversed
+                            ? `Its reversed orientation invites you to look inward first—clearing internal hesitation or imbalance before pushing outward.`
+                            : `Its upright alignment confirms that cosmic momentum supports direct, heart-aligned action.`}
+                    </p>
+                `;
+            } else {
+                const [past, present, future] = drawn;
+                const kwPast = (past.isReversed ? past.card.keywordsReversed : past.card.keywordsUpright)[0].toLowerCase();
+                const kwPres = (present.isReversed ? present.card.keywordsReversed : present.card.keywordsUpright)[0].toLowerCase();
+                const kwFut = (future.isReversed ? future.card.keywordsReversed : future.card.keywordsUpright)[0].toLowerCase();
+
+                narrativeHtml = `
+                    <p>
+                        For your question—<em class="text-gold-300">"${currentState.question}"</em>—your Three-Card Temporal Spread weaves a cohesive arc across <strong class="text-gold-200">${catLabel}</strong>. Your journey began with <strong class="text-gold-200">${past.card.name} (${past.isReversed ? 'Reversed' : 'Upright'})</strong> in the Past, establishing a foundation shaped by <em>${kwPast}</em>.
+                    </p>
+                    <p>
+                        Now, in the Present, <strong class="text-gold-200">${present.card.name} (${present.isReversed ? 'Reversed' : 'Upright'})</strong> places you at a pivotal juncture defined by <em>${kwPres}</em>. By consciously integrating the counsel of ${present.card.name}, you unlock the trajectory of <strong class="text-gold-200">${future.card.name} (${future.isReversed ? 'Reversed' : 'Upright'})</strong> in your Future—ushering in a chapter centered on <em>${kwFut}</em>.
+                    </p>
+                    <p class="text-base text-gold-200/80 border-l-2 border-gold-400 pl-4 italic">
+                        <strong>Arcana Balance Note:</strong> With ${majorCount} Major Arcana card(s) and ${revCount} reversed card(s) in this spread, ${
+                            majorCount >= 2
+                                ? "powerful karmic and archetypal forces are guiding this chapter of your life."
+                                : "your everyday choices and conscious habits hold the primary steering wheel over how this outcome unfolds."
+                        }
+                    </p>
+                `;
+            }
+
+            bodyContainer.innerHTML = narrativeHtml;
+
+            metricsContainer.innerHTML = `
+                <div class="p-3.5 rounded-xl bg-obsidian-950/80 border border-gold-400/20">
+                    <div class="text-[11px] font-cinzel uppercase tracking-widest text-gold-400">Arcana Weight</div>
+                    <div class="text-base font-bold text-gold-100 mt-0.5">${majorCount} Major / ${drawn.length - majorCount} Minor</div>
+                </div>
+                <div class="p-3.5 rounded-xl bg-obsidian-950/80 border border-gold-400/20">
+                    <div class="text-[11px] font-cinzel uppercase tracking-widest text-gold-400">Elemental Signature</div>
+                    <div class="text-base font-bold text-gold-100 mt-0.5">${elements.join(' • ')}</div>
+                </div>
+                <div class="p-3.5 rounded-xl bg-obsidian-950/80 border border-gold-400/20">
+                    <div class="text-[11px] font-cinzel uppercase tracking-widest text-gold-400">Polarity Flow</div>
+                    <div class="text-base font-bold text-gold-100 mt-0.5">${drawn.length - revCount} Upright • ${revCount} Reversed</div>
+                </div>
+            `;
+        }
+
+        function resetSanctuary() {
+            document.getElementById('ritualConfigPanel').classList.remove('hidden');
+            document.getElementById('deckRitualStage').classList.add('hidden');
+            document.getElementById('readingResultStage').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function copyReadingSummary() {
+            const drawnText = currentState.drawnCards.map(d => {
+                const meaning = d.isReversed ? d.card.reversed[currentState.category] : d.card.upright[currentState.category];
+                return `${d.positionTitle}: ${d.card.name} (${d.isReversed ? 'Reversed' : 'Upright'})\n${meaning}`;
+            }).join('\n\n');
+
+            const fullText = `✨ MysticDraw Tarot Reading ✨\nQuestion: "${currentState.question}"\nCategory: ${CATEGORY_LABELS[currentState.category]}\n\n${drawnText}`;
+
+            const ta = document.createElement('textarea');
+            ta.value = fullText;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+
+            const btn = document.getElementById('copyReadingBtn');
+            btn.innerHTML = `<i class="ph-fill ph-check text-emerald-400"></i> Copied to Clipboard`;
+            setTimeout(() => {
+                btn.innerHTML = `<i class="ph ph-copy text-base text-gold-400"></i> Copy Reading`;
+            }, 2200);
+        }
+
+        /**************************************************************
+         * 7. READING JOURNAL (LOCAL STORAGE PERSISTENCE)
+         **************************************************************/
+        function getSavedJournal() {
+            try {
+                const raw = localStorage.getItem('mysticdraw_journal_v1');
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveReadingToJournal() {
+            const history = getSavedJournal();
+            const entry = {
+                id: currentState.transactionId,
+                timestamp: new Date().toLocaleString(),
+                question: currentState.question,
+                category: currentState.category,
+                spreadCount: currentState.spreadCount,
+                cards: currentState.drawnCards.map(d => ({
+                    cardId: d.card.id,
+                    name: d.card.name,
+                    positionTitle: d.positionTitle,
+                    isReversed: d.isReversed
+                }))
+            };
+            history.unshift(entry);
+            try {
+                localStorage.setItem('mysticdraw_journal_v1', JSON.stringify(history.slice(0, 25)));
+            } catch (e) {}
+            updateJournalBadge();
+        }
+
+        function updateJournalBadge() {
+            const history = getSavedJournal();
+            const badge = document.getElementById('journalCountBadge');
+            if (badge) badge.textContent = history.length;
+        }
+
+        function renderJournalView() {
+            const container = document.getElementById('journalEntriesContainer');
+            const history = getSavedJournal();
+            updateJournalBadge();
+
+            if (history.length === 0) {
+                container.innerHTML = `
+                    <div class="rounded-2xl bg-obsidian-900/70 border border-gold-400/20 p-12 text-center space-y-3">
+                        <i class="ph ph-scroll text-4xl text-gold-400/50"></i>
+                        <h3 class="font-cinzel text-xl text-gold-200">Your Sacred Journal is Empty</h3>
+                        <p class="text-gold-100/60">Complete a One-Card or Three-Card tarot reading in the Sanctuary to automatically chronicle it here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = history.map(entry => `
+                <div class="rounded-2xl bg-obsidian-900/85 border border-gold-400/30 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div class="space-y-1.5">
+                        <div class="flex flex-wrap items-center gap-2 text-xs">
+                            <span class="px-2.5 py-0.5 rounded-full bg-gold-400/15 border border-gold-400/40 font-cinzel text-gold-300 uppercase">${CATEGORY_LABELS[entry.category]}</span>
+                            <span class="font-mono text-gold-200/50">${entry.timestamp}</span>
+                        </div>
+                        <h4 class="text-xl font-serif italic text-gold-100">"${entry.question}"</h4>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        ${entry.cards.map(c => `
+                            <div onclick="openCardDetailModal(${c.cardId})" class="cursor-pointer px-3 py-2 rounded-lg bg-obsidian-950 border border-gold-400/30 hover:border-gold-400 transition">
+                                <div class="text-[10px] font-cinzel text-gold-400 uppercase">${c.positionTitle}</div>
+                                <div class="text-xs font-cinzel font-bold text-gold-100">${c.name} <span class="${c.isReversed ? 'text-rose-300' : 'text-emerald-300'}">(${c.isReversed ? 'Rev' : 'Up'})</span></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearReadingJournal() {
+            try {
+                localStorage.removeItem('mysticdraw_journal_v1');
+            } catch (e) {}
+            renderJournalView();
+        }
+
+        /**************************************************************
+         * 8. 78-CARD TAROT CODEX EXPLORER
+         **************************************************************/
+        function renderCodexGrid() {
+            const search = (document.getElementById('codexSearchInput')?.value || "").toLowerCase();
+            const suitFilter = document.getElementById('codexSuitFilter')?.value || "ALL";
+            const grid = document.getElementById('codexCardsGrid');
+
+            const filtered = TAROT_DECK.filter(c => {
+                const matchesSuit = suitFilter === "ALL"
+                    || (suitFilter === "Major Arcana" && c.arcana === "Major Arcana")
+                    || c.suit === suitFilter;
+                const matchesSearch = !search
+                    || c.name.toLowerCase().includes(search)
+                    || c.keywordsUpright.some(k => k.toLowerCase().includes(search))
+                    || c.keywordsReversed.some(k => k.toLowerCase().includes(search));
+                return matchesSuit && matchesSearch;
+            });
+
+            grid.innerHTML = filtered.map(c => `
+                <div onclick="openCardDetailModal(${c.id})" class="cursor-pointer group rounded-xl bg-obsidian-900/90 border border-gold-400/25 hover:border-gold-400 p-2.5 transition flex flex-col items-center space-y-2 hover:-translate-y-1">
+                    <div class="w-full aspect-[240/400] rounded-lg overflow-hidden border border-gold-400/30">
+                        ${renderCardFrontSVG(c)}
+                    </div>
+                    <div class="text-center">
+                        <div class="font-cinzel text-xs font-bold text-gold-200 group-hover:text-gold-400 transition">${c.name}</div>
+                        <div class="text-[11px] text-gold-200/60 font-serif italic">${c.keywordsUpright[0]} • ${c.keywordsUpright[1]}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openCardDetailModal(cardId) {
+            const card = TAROT_DECK.find(c => c.id === cardId);
+            if (!card) return;
+            const modal = document.getElementById('cardDetailModal');
+            const content = document.getElementById('cardDetailModalContent');
+
+            content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                    <div class="flex flex-col items-center space-y-3">
+                        <div class="w-[220px] h-[366px] rounded-xl overflow-hidden border-2 border-gold-400 shadow-2xl">
+                            ${renderCardFrontSVG(card)}
+                        </div>
+                        <div class="text-center font-cinzel text-xs text-gold-300 uppercase tracking-widest">
+                            MySQL Card ID #${card.id} • ${card.arcana}
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2 space-y-5">
+                        <div>
+                            <span class="font-cinzel text-xs uppercase tracking-[0.2em] text-gold-400">${card.element} • ${card.astro}</span>
+                            <h3 class="font-decorative text-3xl gold-gradient-text font-bold">${card.name}</h3>
+                        </div>
+
+                        <!-- Upright Breakdown -->
+                        <div class="p-4 rounded-xl bg-obsidian-950 border border-emerald-500/30 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-cinzel text-xs font-bold uppercase tracking-widest text-emerald-300">Upright Meanings</span>
+                                <span class="text-xs font-sans text-emerald-200/70">${card.keywordsUpright.join(' • ')}</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm pt-1">
+                                <div><strong class="text-gold-300 font-cinzel text-xs block">LOVE:</strong> ${card.upright.love}</div>
+                                <div><strong class="text-gold-300 font-cinzel text-xs block">CAREER:</strong> ${card.upright.career}</div>
+                                <div><strong class="text-gold-300 font-cinzel text-xs block">GROWTH:</strong> ${card.upright.growth}</div>
+                                <div><strong class="text-gold-300 font-cinzel text-xs block">GENERAL:</strong> ${card.upright.general}</div>
+                            </div>
+                        </div>
+
+                        <!-- Reversed Breakdown -->
+                        <div class="p-4 rounded-xl bg-obsidian-950 border border-rose-500/30 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-cinzel text-xs font-bold uppercase tracking-widest text-rose-300">Reversed Meanings</span>
+                                <span class="text-xs font-sans text-rose-200/70">${card.keywordsReversed.join(' • ')}</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm pt-1">
+                                <div><strong class="text-gold-300 font-cinzel text-xs block">LOVE:</strong> ${card.reversed.love}</div>
+                                <div><strong class="text-gold-300 font-cinzel text-xs block">CAREER:</strong> ${card.reversed.career}</div>
+                                <div><strong class="text-gold-300 font-cinzel text-xs block">GROWTH:</strong> ${card.reversed.growth}</div>
+                                <div><strong class="text-gold-300 font-cinzel text-xs block">GENERAL:</strong> ${card.reversed.general}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function closeCardDetailModal() {
+            document.getElementById('cardDetailModal').classList.add('hidden');
+        }
+
+        /**************************************************************
+         * 9. MYSQL 8.0 SCHEMA, BACKEND API & LIVE SQL LOG INSPECTOR
+         **************************************************************/
+        function recordSimulatedMySQLQueries() {
+            const cardIds = currentState.drawnCards.map(d => d.card.id);
+            const insertValues = currentState.drawnCards.map((d, idx) =>
+                `(${currentState.transactionId}, ${d.card.id}, '${d.positionTitle.replace(/'/g, "\\'")}', ${d.isReversed ? 1 : 0})`
+            ).join(',\n    ');
+
+            const logItem = {
+                txId: currentState.transactionId,
+                time: new Date().toLocaleTimeString(),
+                category: currentState.category,
+                spread: currentState.spreadCount,
+                sql: `-- [TX #${currentState.transactionId}] Non-Duplicate Backend Card Selection & Interpretation Join
+START TRANSACTION;
+
+-- 1. Persist User Reading Session
+INSERT INTO readings (id, user_question, category, spread_type, created_at)
+VALUES (${currentState.transactionId}, '${currentState.question.replace(/'/g, "\\'")}', '${currentState.category}', '${currentState.spreadCount === 1 ? 'ONE_CARD' : 'THREE_CARD'}', NOW());
+
+-- 2. Persist Non-Duplicate Drawn Cards (Selected via Fisher-Yates / CSPRNG)
+INSERT INTO reading_cards (reading_id, card_id, position_name, is_reversed)
+VALUES
+    ${insertValues};
+
+-- 3. Fetch Predefined Category-Specific Upright/Reversed Meanings
+SELECT
+    c.id AS card_id,
+    c.name AS card_name,
+    c.arcana_type,
+    c.suit,
+    rc.position_name,
+    rc.is_reversed,
+    ci.meaning_text,
+    ci.keywords
+FROM reading_cards rc
+INNER JOIN cards c ON c.id = rc.card_id
+INNER JOIN card_interpretations ci
+    ON ci.card_id = c.id
+    AND ci.category = '${currentState.category}'
+    AND ci.orientation = IF(rc.is_reversed = 1, 'REVERSED', 'UPRIGHT')
+WHERE rc.reading_id = ${currentState.transactionId}
+ORDER BY rc.id ASC;
+
+COMMIT; -- Returned ${cardIds.length} unique rows (Card IDs: ${cardIds.join(', ')}) in 1.8ms`
+            };
+
+            currentState.sqlLogs.unshift(logItem);
+            renderLiveSqlLogs();
+        }
+
+        function renderLiveSqlLogs() {
+            const container = document.getElementById('liveSqlLogsContainer');
+            if (!container) return;
+
+            if (currentState.sqlLogs.length === 0) {
+                container.innerHTML = `<div class="p-6 rounded-xl bg-obsidian-900 border border-emerald-500/20 text-emerald-300/70">No readings drawn in this session yet. Draw a 1-card or 3-card spread in the Sanctuary to inspect live SQL queries!</div>`;
+                return;
+            }
+
+            container.innerHTML = currentState.sqlLogs.map(l => `
+                <div class="rounded-xl bg-obsidian-900 border border-emerald-500/30 overflow-hidden">
+                    <div class="px-4 py-2 bg-emerald-950/50 border-b border-emerald-500/20 flex items-center justify-between text-xs">
+                        <span class="font-bold text-emerald-300">Transaction #${l.txId} • ${l.spread}-Card Spread (${l.category.toUpperCase()})</span>
+                        <span class="text-emerald-400/70">${l.time}</span>
+                    </div>
+                    <pre class="p-4 text-xs leading-relaxed text-emerald-100 overflow-x-auto">${l.sql}</pre>
+                </div>
+            `).join('');
+        }
+
+        function populateSqlInspectorStaticCode() {
+            const schemaCode = `-- ============================================================================
+-- MYSTICDRAW PRODUCTION MYSQL 8.0 SCHEMA (78-Card Relational Deck & Readings)
+-- ============================================================================
+CREATE DATABASE IF NOT EXISTS mysticdraw_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE mysticdraw_db;
+
+-- 1. Master 78-Card Tarot Deck Table
+CREATE TABLE cards (
+    id TINYINT UNSIGNED PRIMARY KEY,          -- 1 to 78
+    card_number TINYINT UNSIGNED NOT NULL,    -- 0-21 (Major) or 1-14 (Minor)
+    roman_numeral VARCHAR(10) NOT NULL,
+    name VARCHAR(64) NOT NULL UNIQUE,
+    arcana_type ENUM('Major Arcana', 'Minor Arcana') NOT NULL,
+    suit ENUM('Major', 'Wands', 'Cups', 'Swords', 'Pentacles') NOT NULL,
+    element ENUM('Fire', 'Water', 'Air', 'Earth') NOT NULL,
+    astrology VARCHAR(64) NOT NULL,
+    svg_motif_key VARCHAR(40) NOT NULL
+) ENGINE=InnoDB;
+
+-- 2. Predefined Category & Orientation Interpretations (78 cards * 4 categories * 2 orientations = 624 rows)
+CREATE TABLE card_interpretations (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    card_id TINYINT UNSIGNED NOT NULL,
+    category ENUM('love', 'career', 'growth', 'general') NOT NULL,
+    orientation ENUM('UPRIGHT', 'REVERSED') NOT NULL,
+    keywords VARCHAR(160) NOT NULL,
+    meaning_text TEXT NOT NULL,
+    UNIQUE KEY uq_card_cat_orient (card_id, category, orientation),
+    CONSTRAINT fk_interp_card FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 3. User Reading Sessions
+CREATE TABLE readings (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_question VARCHAR(255) NOT NULL,
+    category ENUM('love', 'career', 'growth', 'general') NOT NULL,
+    spread_type ENUM('ONE_CARD', 'THREE_CARD') NOT NULL,
+    synthesized_summary TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 4. Drawn Cards per Reading (Enforces non-duplicate cards within a reading via UNIQUE constraint)
+CREATE TABLE reading_cards (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    reading_id BIGINT UNSIGNED NOT NULL,
+    card_id TINYINT UNSIGNED NOT NULL,
+    position_index TINYINT UNSIGNED NOT NULL, -- 0 = Single/Past, 1 = Present, 2 = Future
+    position_name VARCHAR(32) NOT NULL,
+    is_reversed TINYINT(1) NOT NULL DEFAULT 0,
+    UNIQUE KEY uq_no_duplicate_card_per_reading (reading_id, card_id),
+    CONSTRAINT fk_rc_reading FOREIGN KEY (reading_id) REFERENCES readings(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rc_card FOREIGN KEY (card_id) REFERENCES cards(id)
+) ENGINE=InnoDB;`;
+
+            const nodeCode = `/**
+ * MysticDraw Backend API — Node.js + Express + mysql2/promise
+ * Endpoint: POST /api/readings/draw
+ * Guarantees non-duplicate random selection across the 78-card MySQL deck
+ */
+const express = require('express');
+const mysql = require('mysql2/promise');
+const crypto = require('crypto');
+
+const app = express();
+app.use(express.json());
+
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'mystic_user',
+    password: process.env.DB_PASS || 'secret_oracle_pass',
+    database: 'mysticdraw_db',
+    waitForConnections: true,
+    connectionLimit: 10
+});
+
+// Cryptographic Fisher-Yates Selection of N Unique Card IDs (1..78)
+function drawUniqueCardIds(count) {
+    const deckIds = Array.from({ length: 78 }, (_, i) => i + 1);
+    for (let i = deckIds.length - 1; i > 0; i--) {
+        const j = crypto.randomInt(0, i + 1);
+        [deckIds[i], deckIds[j]] = [deckIds[j], deckIds[i]];
+    }
+    return deckIds.slice(0, count);
+}
+
+app.post('/api/readings/draw', async (req, res) => {
+    const { question = '', category = 'general', spreadCount = 3, allowReversals = true } = req.body;
+    const count = spreadCount === 1 ? 1 : 3;
+    const positions = count === 1 ? ['The Core Oracle'] : ['Past', 'Present', 'Future'];
+    const selectedIds = drawUniqueCardIds(count);
+
+    const conn = await pool.getConnection();
+    try {
+        await conn.beginTransaction();
+
+        const [readingResult] = await conn.execute(
+            'INSERT INTO readings (user_question, category, spread_type) VALUES (?, ?, ?)',
+            [question, category, count === 1 ? 'ONE_CARD' : 'THREE_CARD']
+        );
+        const readingId = readingResult.insertId;
+
+        for (let idx = 0; idx < count; idx++) {
+            const isReversed = allowReversals ? crypto.randomInt(0, 2) : 0;
+            await conn.execute(
+                'INSERT INTO reading_cards (reading_id, card_id, position_index, position_name, is_reversed) VALUES (?, ?, ?, ?, ?)',
+                [readingId, selectedIds[idx], idx, positions[idx], isReversed]
+            );
+        }
+
+        const [rows] = await conn.execute(\`
+            SELECT c.*, rc.position_index, rc.position_name, rc.is_reversed,
+                   ci.keywords, ci.meaning_text AS category_meaning
+            FROM reading_cards rc
+            INNER JOIN cards c ON c.id = rc.card_id
+            INNER JOIN card_interpretations ci
+                ON ci.card_id = c.id
+                AND ci.category = ?
+                AND ci.orientation = IF(rc.is_reversed = 1, 'REVERSED', 'UPRIGHT')
+            WHERE rc.reading_id = ?
+            ORDER BY rc.position_index ASC
+        \`, [category, readingId]);
+
+        await conn.commit();
+        res.json({ readingId, question, category, cards: rows });
+    } catch (err) {
+        await conn.rollback();
+        res.status(500).json({ error: err.message });
+    } finally {
+        conn.release();
+    }
+});`;
+
+            const phpCode = `<?php
+/**
+ * MysticDraw Backend API — PHP 8.2 + PDO MySQL
+ * Endpoint: POST /api/draw.php
+ */
+header('Content-Type: application/json');
+
+$pdo = new PDO(
+    "mysql:host=localhost;dbname=mysticdraw_db;charset=utf8mb4",
+    "mystic_user",
+    "secret_oracle_pass",
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+);
+
+$input = json_decode(file_get_contents('php://input'), true);
+$question = substr(trim($input['question'] ?? 'General guidance'), 0, 255);
+$category = in_array($input['category'] ?? '', ['love','career','growth','general']) ? $input['category'] : 'general';
+$count = ($input['spreadCount'] ?? 3) == 1 ? 1 : 3;
+$positions = $count === 1 ? ['The Core Oracle'] : ['Past', 'Present', 'Future'];
+
+// Non-duplicate selection from 78-card deck
+$deckIds = range(1, 78);
+shuffle($deckIds);
+$drawnIds = array_slice($deckIds, 0, $count);
+
+$pdo->beginTransaction();
+$stmt = $pdo->prepare("INSERT INTO readings (user_question, category, spread_type) VALUES (?, ?, ?)");
+$stmt->execute([$question, $category, $count === 1 ? 'ONE_CARD' : 'THREE_CARD']);
+$readingId = $pdo->lastInsertId();
+
+$insertCard = $pdo->prepare("INSERT INTO reading_cards (reading_id, card_id, position_index, position_name, is_reversed) VALUES (?, ?, ?, ?, ?)");
+foreach ($drawnIds as $idx => $cardId) {
+    $isReversed = random_int(0, 1);
+    $insertCard->execute([$readingId, $cardId, $idx, $positions[$idx], $isReversed]);
+}
+
+$fetch = $pdo->prepare("
+    SELECT c.id, c.name, c.arcana_type, c.suit, c.element,
+           rc.position_name, rc.is_reversed, ci.keywords, ci.meaning_text
+    FROM reading_cards rc
+    JOIN cards c ON c.id = rc.card_id
+    JOIN card_interpretations ci ON ci.card_id = c.id
+         AND ci.category = :cat
+         AND ci.orientation = IF(rc.is_reversed = 1, 'REVERSED', 'UPRIGHT')
+    WHERE rc.reading_id = :rid
+    ORDER BY rc.position_index ASC
+");
+$fetch->execute([':cat' => $category, ':rid' => $readingId]);
+$cards = $fetch->fetchAll(PDO::FETCH_ASSOC);
+$pdo->commit();
+
+echo json_encode(['readingId' => $readingId, 'category' => $category, 'cards' => $cards]);`;
+
+            document.getElementById('sqlcontent-schema').textContent = schemaCode;
+            document.getElementById('sqlcontent-node').textContent = nodeCode;
+            document.getElementById('sqlcontent-php').textContent = phpCode;
+        }
+
+        let activeSqlTab = 'live';
+        function toggleSqlModal(show) {
+            const modal = document.getElementById('sqlInspectorModal');
+            if (show) {
+                renderLiveSqlLogs();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function switchSqlTab(tab) {
+            activeSqlTab = tab;
+            ['live', 'schema', 'node', 'php'].forEach(t => {
+                const btn = document.getElementById(`sqltab-${t}`);
+                const content = document.getElementById(`sqlcontent-${t}`);
+                if (t === tab) {
+                    btn.className = "sql-tab-btn px-3.5 py-1.5 rounded-md font-mono text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/50";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "sql-tab-btn px-3.5 py-1.5 rounded-md font-mono text-xs text-emerald-200/60 hover:text-emerald-200";
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        function copyActiveSqlCode() {
+            const contentEl = document.getElementById(`sqlcontent-${activeSqlTab}`);
+            const text = contentEl ? contentEl.innerText : "";
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+
+            const btn = document.getElementById('copySqlCodeBtn');
+            btn.innerHTML = `<i class="ph-fill ph-check text-emerald-400"></i> Copied!`;
+            setTimeout(() => {
+                btn.innerHTML = `<i class="ph ph-copy"></i> Copy Code / SQL`;
+            }, 1800);
+        }
+
+        /**************************************************************
+         * 10. VIEW SWITCHING & CELESTIAL STARFIELD CANVAS
+         **************************************************************/
+        function switchView(viewName) {
+            ['sanctuary', 'codex', 'journal'].forEach(v => {
+                const sec = document.getElementById(`view-${v}`);
+                const nav = document.getElementById(`nav-${v}`);
+                if (v === viewName) {
+                    sec.classList.remove('hidden');
+                    if (nav) nav.className = "nav-tab px-4 py-2 rounded-lg font-cinzel text-xs tracking-widest uppercase transition flex items-center gap-2 bg-gold-400/15 text-gold-200 border border-gold-400/40";
+                } else {
+                    sec.classList.add('hidden');
+                    if (nav) nav.className = "nav-tab px-4 py-2 rounded-lg font-cinzel text-xs tracking-widest uppercase transition flex items-center gap-2 text-gold-200/70 hover:text-gold-200 hover:bg-white/5 border border-transparent";
+                }
+            });
+
+            if (viewName === 'codex') renderCodexGrid();
+            if (viewName === 'journal') renderJournalView();
+        }
+
+        // Ambient Starfield Canvas Animation
+        function initStarfieldCanvas() {
+            const canvas = document.getElementById('starfieldCanvas');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                stars = Array.from({ length: 110 }, () => ({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 1.4 + 0.3,
+                    alpha: Math.random(),
+                    speed: (Math.random() * 0.012) + 0.003
+                }));
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                stars.forEach(s => {
+                    s.alpha += s.speed;
+                    const opacity = (Math.sin(s.alpha) + 1) / 2 * 0.75 + 0.1;
+                    ctx.fillStyle = `rgba(243, 229, 171, ${opacity.toFixed(2)})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            draw();
+        }
+
+        window.onload = function () {
+            initStarfieldCanvas();
+            populateSqlInspectorStaticCode();
+            updateJournalBadge();
+        };
+    </script>
+</body>
+</html>

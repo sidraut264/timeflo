@@ -540,7 +540,10 @@
       grid.innerHTML = '';
 
       if (!filtered.length) {
-        grid.innerHTML = `<div class="no-results"><div class="nr-icon">🔍</div><p>No games found for "<strong>${q}</strong>"</p></div>`;
+        const message = document.createElement('p');
+        message.className = 'no-results';
+        message.textContent = `No games found for "${searchQuery.trim()}"`;
+        grid.appendChild(message);
         return;
       }
 
