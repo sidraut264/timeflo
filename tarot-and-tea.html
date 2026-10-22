@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot &amp; Tea — Playful Tarot | Timeflo Experiences</title>
+    <meta name="description" content="Choose your tarot reader, draw from 78 cards, and save playful readings and cosmic roasts to your Burn Book with Tarot &amp; Tea.">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka (Bouncy Playful Display) & Plus Jakarta Sans (Clean Casual UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Fredoka"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FFFDF7',
+                        lilac: '#F3E8FF',
+                        bubblegum: '#FF5E99',
+                        sunny: '#FFD13B',
+                        mint: '#34D399',
+                        grape: '#7C3AED',
+                        ink: '#1E1B2E'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            background: linear-gradient(135deg, #FFF7ED 0%, #F5F3FF 50%, #FDF2F8 100%);
+            color: #1E1B2E;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+        }
+
+        /* Neo-brutalist Pop Tarot Borders & Shadows */
+        .pop-card {
+            background: #FFFFFF;
+            border: 2.5px solid #1E1B2E;
+            box-shadow: 0 4px 0 #1E1B2E;
+        }
+        .pop-card-sm {
+            background: #FFFFFF;
+            border: 2px solid #1E1B2E;
+            box-shadow: 0 3px 0 #1E1B2E;
+        }
+        .pop-btn {
+            border: 2.5px solid #1E1B2E;
+            box-shadow: 0 4px 0 #1E1B2E;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .pop-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #1E1B2E;
+        }
+
+        /* Active Reader States */
+        .persona-aura-active {
+            background: linear-gradient(135deg, #FEF3C7 0%, #DCFCE7 100%) !important;
+            border: 2.5px solid #1E1B2E !important;
+            box-shadow: 0 4px 0 #1E1B2E !important;
+        }
+        .persona-colin-active {
+            background: linear-gradient(135deg, #FCE7F3 0%, #F3E8FF 100%) !important;
+            border: 2.5px solid #1E1B2E !important;
+            box-shadow: 0 4px 0 #1E1B2E !important;
+        }
+
+        /* Custom subtle scrollbars for inner panels/modals */
+        .thin-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .thin-scroll::-webkit-scrollbar-track {
+            background: rgba(30, 27, 46, 0.05);
+            border-radius: 99px;
+        }
+        .thin-scroll::-webkit-scrollbar-thumb {
+            background: rgba(124, 58, 237, 0.35);
+            border-radius: 99px;
+        }
+
+        /* 3D Card Flip Containers */
+        .perspective-1000 {
+            perspective: 1200px;
+        }
+        .card-3d-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+            transform-style: preserve-3d;
+        }
+        .card-3d-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .card-face-front {
+            transform: rotateY(180deg);
+        }
+        .reversed-artwork {
+            transform: rotate(180deg);
+        }
+
+        /* Fan Deck Card Animations */
+        .fan-card {
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+        }
+        .fan-card:hover {
+            transform: translateY(-16px) scale(1.08) !important;
+            z-index: 30 !important;
+        }
+        .fan-card.picked {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-45px) scale(0.75) !important;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-6deg) translateX(-8px); }
+            75% { transform: rotate(6deg) translateX(8px); }
+        }
+        .shuffling-anim {
+            animation: wiggle 0.32s ease-in-out infinite;
+        }
+        .timeflo-back {
+            position: relative;
+            z-index: 30;
+            flex-shrink: 0;
+            padding: 6px 12px;
+            background: #F3E8FF;
+            border-bottom: 1px solid #1E1B2E22;
+            font-size: 12px;
+            font-weight: 700;
+            color: #7C3AED;
+        }
+        .timeflo-back a { text-decoration: underline; text-underline-offset: 3px; }
+        .timeflo-back a:focus-visible { outline: 2px solid #7C3AED; outline-offset: 3px; }
+        header > button { min-width: 0; }
+        @media (max-width: 380px) {
+            header { padding-left: 8px !important; padding-right: 8px !important; }
+            header > button > div:first-child { display: none; }
+        }
+    </style>
+</head>
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col relative select-none">
+
+    <!-- Decorative Floating Pastel Stickers in Background -->
+    <div class="fixed -top-16 -left-16 w-64 h-64 bg-sunny/30 rounded-full blur-3xl pointer-events-none z-0"></div>
+    <div class="fixed -bottom-16 -right-16 w-72 h-72 bg-bubblegum/20 rounded-full blur-3xl pointer-events-none z-0"></div>
+
+    <!-- ==========================================
+         COMPACT TOP HEADER (Fixed ~54px)
+    =========================================== -->
+    <header class="relative z-30 h-14 shrink-0 px-3 sm:px-6 border-b-2 border-ink bg-white/85 backdrop-blur-md flex items-center justify-between">
+        <!-- Brand Logo (Resets to Setup) -->
+        <button onclick="resetToSetup()" class="flex items-center gap-2 group text-left py-1">
+            <div class="w-9 h-9 rounded-xl bg-sunny border-2 border-ink shadow-[0_2px_0_#1E1B2E] flex items-center justify-center group-hover:rotate-6 transition">
+                <i class="ph-fill ph-sparkle text-ink text-lg"></i>
+            </div>
+            <div>
+                <span class="font-display text-lg sm:text-xl font-bold text-ink tracking-tight block leading-none">Tarot &amp; Tea</span>
+                <span class="text-[10px] font-bold text-grape uppercase tracking-wider block">Vibe Check Tarot ✨</span>
+            </div>
+        </button>
+
+        <!-- Right Quick Modals: 78-Card Deck, Burn Book Journal, Audio -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+            <button onclick="openGrimoireModal()" class="pop-card-sm px-2.5 py-1.5 rounded-xl bg-lilac hover:bg-purple-200 text-ink text-xs font-bold flex items-center gap-1.5 active:translate-y-0.5 transition">
+                <i class="ph-fill ph-cards text-grape text-sm"></i>
+                <span class="hidden sm:inline">78 Cards</span>
+            </button>
+
+            <button onclick="openBurnBookModal()" class="pop-card-sm px-2.5 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-ink text-xs font-bold flex items-center gap-1.5 active:translate-y-0.5 transition">
+                <i class="ph-fill ph-notebook text-bubblegum text-sm"></i>
+                <span class="hidden sm:inline">Burn Book</span>
+                <span id="burnBookBadge" class="px-1.5 py-0.2 rounded-full bg-ink text-white text-[10px] font-bold">0</span>
+            </button>
+
+            <button id="audioToggleBtn" onclick="toggleAudio()" title="Toggle Sound Effects" class="pop-card-sm w-8 h-8 rounded-xl bg-white hover:bg-amber-50 text-ink flex items-center justify-center active:translate-y-0.5 transition">
+                <i id="audioIcon" class="ph-fill ph-speaker-high text-ink text-base"></i>
+            </button>
+        </div>
+    </header>
+    <nav class="timeflo-back" aria-label="Timeflo"><a href="experiences.html">← Timeflo Experiences</a></nav>
+
+    <!-- ==========================================
+         MAIN ZERO-SCROLL VIEWPORT STAGE
+    =========================================== -->
+    <main class="relative z-10 flex-1 w-full max-w-3xl mx-auto px-3 sm:px-5 py-2.5 sm:py-4 flex flex-col justify-between overflow-hidden">
+
+        <!-- =====================================================
+             STAGE 1: COMPACT SETUP (2 Personas + Category + Question)
+        ====================================================== -->
+        <section id="stage-setup" class="h-full w-full flex flex-col justify-between gap-2 overflow-hidden">
+
+            <!-- 1. PICK YOUR READER (Good/Wholesome vs. Toxic/Chaotic) -->
+            <div class="space-y-1.5 shrink-0">
+                <div class="flex items-center justify-between px-0.5">
+                    <span class="font-display text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-ink text-white text-[11px] inline-flex items-center justify-center">1</span>
+                        Pick Your Tarot Bestie
+                    </span>
+                    <span id="readerActiveTagline" class="text-[11px] font-semibold text-grape truncate max-w-[195px] sm:max-w-none">
+                        "I'll hype you up, babe, right after I roast your taste!"
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+                    <!-- Persona 1: Auntie Aura (The Good / Wholesome Tease) -->
+                    <button type="button" onclick="selectReader('aura')" id="reader-btn-aura" class="persona-aura-active rounded-2xl p-2.5 sm:p-3 bg-white border-2 border-ink/20 text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden">
+                        <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-sunny border-2 border-ink shrink-0 overflow-hidden flex items-center justify-center shadow-[0_2px_0_#1E1B2E]">
+                            <!-- Cute Auntie Aura SVG Avatar -->
+                            <svg viewBox="0 0 60 60" class="w-full h-full">
+                                <rect width="60" height="60" fill="#FEF08A"/>
+                                <circle cx="30" cy="30" r="22" fill="#FDE047" stroke="#1E1B2E" stroke-width="2"/>
+                                <!-- Heart-shaped sunglasses -->
+                                <path d="M18,24 C16,21 21,19 23,22 C25,19 30,21 28,24 L23,29 Z" fill="#FF5E99" stroke="#1E1B2E" stroke-width="1.8"/>
+                                <path d="M32,24 C30,21 35,19 37,22 C39,19 44,21 42,24 L37,29 Z" fill="#FF5E99" stroke="#1E1B2E" stroke-width="1.8"/>
+                                <line x1="28" y1="24" x2="32" y2="24" stroke="#1E1B2E" stroke-width="2"/>
+                                <!-- Big Winking Smile -->
+                                <path d="M23,35 Q30,42 37,35" fill="none" stroke="#1E1B2E" stroke-width="2.5" stroke-linecap="round"/>
+                                <!-- Sparkles -->
+                                <circle cx="12" cy="14" r="2.5" fill="#34D399"/>
+                                <circle cx="48" cy="14" r="2.5" fill="#FF5E99"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-display text-sm sm:text-base font-bold text-ink truncate">Auntie Aura</span>
+                                <span class="px-1.5 py-0.5 rounded-full bg-emerald-200 border border-ink text-[9px] font-extrabold uppercase text-ink">Good Vibe</span>
+                            </div>
+                            <div class="text-[11px] font-bold text-emerald-800 truncate">Wholesome Tough-Love</div>
+                            <p class="hidden sm:block text-[11px] text-ink/75 font-medium leading-tight mt-0.5 line-clamp-1">
+                                Roasts you gently, then hands you an iced coffee & a hug.
+                            </p>
+                        </div>
+                    </button>
+
+                    <!-- Persona 2: Chaos Colin (The Toxic Enabler) -->
+                    <button type="button" onclick="selectReader('colin')" id="reader-btn-colin" class="rounded-2xl p-2.5 sm:p-3 bg-white/80 border-2 border-ink/25 hover:border-ink text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden">
+                        <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-bubblegum border-2 border-ink shrink-0 overflow-hidden flex items-center justify-center shadow-[0_2px_0_#1E1B2E]">
+                            <!-- Cute Chaos Colin Devil-Cat Imp SVG Avatar -->
+                            <svg viewBox="0 0 60 60" class="w-full h-full">
+                                <rect width="60" height="60" fill="#FBCFE8"/>
+                                <!-- Devil Horns -->
+                                <polygon points="15,22 12,8 25,16" fill="#FF5E99" stroke="#1E1B2E" stroke-width="2" stroke-linejoin="round"/>
+                                <polygon points="45,22 48,8 35,16" fill="#FF5E99" stroke="#1E1B2E" stroke-width="2" stroke-linejoin="round"/>
+                                <circle cx="30" cy="32" r="20" fill="#DDD6FE" stroke="#1E1B2E" stroke-width="2"/>
+                                <!-- Mischievous Slanted Eyes -->
+                                <line x1="19" y1="25" x2="27" y2="28" stroke="#1E1B2E" stroke-width="2.5" stroke-linecap="round"/>
+                                <line x1="41" y1="25" x2="33" y2="28" stroke="#1E1B2E" stroke-width="2.5" stroke-linecap="round"/>
+                                <circle cx="23" cy="29" r="2.2" fill="#1E1B2E"/>
+                                <circle cx="37" cy="29" r="2.2" fill="#1E1B2E"/>
+                                <!-- Evil Grin with Little Fang -->
+                                <path d="M21,37 Q30,44 39,37" fill="none" stroke="#1E1B2E" stroke-width="2.5" stroke-linecap="round"/>
+                                <polygon points="33,39 35,43 37,38" fill="#FFFFFF" stroke="#1E1B2E" stroke-width="1.2"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-display text-sm sm:text-base font-bold text-ink truncate">Chaos Colin</span>
+                                <span class="px-1.5 py-0.5 rounded-full bg-pink-300 border border-ink text-[9px] font-extrabold uppercase text-ink">Toxic 😈</span>
+                            </div>
+                            <div class="text-[11px] font-bold text-pink-700 truncate">Unhinged Instigator</div>
+                            <p class="hidden sm:block text-[11px] text-ink/75 font-medium leading-tight mt-0.5 line-clamp-1">
+                                Loves drama, roasts your ex, & tells you to double-text.
+                            </p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. SELECT CATEGORY (4 Fun Pills) -->
+            <div class="space-y-1.5 shrink-0">
+                <span class="font-display text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5 px-0.5">
+                    <span class="w-5 h-5 rounded-full bg-ink text-white text-[11px] inline-flex items-center justify-center">2</span>
+                    What's The Drama About?
+                </span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button type="button" onclick="selectCategory('love')" data-cat="love" class="cat-pill pop-card-sm rounded-xl p-2 sm:p-2.5 bg-pink-200 text-left transition flex items-center gap-2">
+                        <span class="text-lg sm:text-xl shrink-0">💘</span>
+                        <div class="min-w-0">
+                            <div class="font-display text-xs font-bold text-ink truncate">Love & Exes</div>
+                            <div class="text-[10px] text-ink/70 font-medium truncate">Crushes & red flags</div>
+                        </div>
+                    </button>
+
+                    <button type="button" onclick="selectCategory('career')" data-cat="career" class="cat-pill rounded-xl p-2 sm:p-2.5 bg-white/80 border-2 border-ink/20 hover:border-ink text-left transition flex items-center gap-2">
+                        <span class="text-lg sm:text-xl shrink-0">💸</span>
+                        <div class="min-w-0">
+                            <div class="font-display text-xs font-bold text-ink truncate">Career & Cash</div>
+                            <div class="text-[10px] text-ink/70 font-medium truncate">Jobs, bosses & bag</div>
+                        </div>
+                    </button>
+
+                    <button type="button" onclick="selectCategory('growth')" data-cat="growth" class="cat-pill rounded-xl p-2 sm:p-2.5 bg-white/80 border-2 border-ink/20 hover:border-ink text-left transition flex items-center gap-2">
+                        <span class="text-lg sm:text-xl shrink-0">🧠</span>
+                        <div class="min-w-0">
+                            <div class="font-display text-xs font-bold text-ink truncate">Me, Myself & I</div>
+                            <div class="text-[10px] text-ink/70 font-medium truncate">Glow-ups & habits</div>
+                        </div>
+                    </button>
+
+                    <button type="button" onclick="selectCategory('general')" data-cat="general" class="cat-pill rounded-xl p-2 sm:p-2.5 bg-white/80 border-2 border-ink/20 hover:border-ink text-left transition flex items-center gap-2">
+                        <span class="text-lg sm:text-xl shrink-0">🔮</span>
+                        <div class="min-w-0">
+                            <div class="font-display text-xs font-bold text-ink truncate">General Vibes</div>
+                            <div class="text-[10px] text-ink/70 font-medium truncate">Surprise plot twists</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. QUESTION INPUT WITH CASUAL DICE ROULETTE -->
+            <div class="space-y-1.5 shrink-0">
+                <div class="flex items-center justify-between px-0.5">
+                    <label for="userQuestionInput" class="font-display text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-ink text-white text-[11px] inline-flex items-center justify-center">3</span>
+                        Spill Your Question
+                    </label>
+                    <button type="button" onclick="rollSnarkyQuestion()" class="px-2.5 py-1 rounded-full bg-sunny border-2 border-ink text-ink text-[11px] font-bold flex items-center gap-1 shadow-[0_2px_0_#1E1B2E] active:translate-y-0.5 transition">
+                        🎲 Random Question
+                    </button>
+                </div>
+                <div class="relative">
+                    <input
+                        id="userQuestionInput"
+                        type="text"
+                        maxlength="140"
+                        placeholder="e.g., Are they actually busy, or am I getting ghosted in HD?"
+                        class="w-full rounded-xl bg-white border-2 border-ink focus:outline-none focus:ring-2 focus:ring-grape px-3.5 py-2.5 sm:py-3 text-sm sm:text-base text-ink placeholder-ink/40 font-semibold shadow-[0_3px_0_#1E1B2E]"
+                    >
+                </div>
+            </div>
+
+            <!-- 4. SPREAD SELECTOR (1-Card vs 3-Card) & BOUNCY CTA -->
+            <div class="pop-card rounded-2xl p-2.5 sm:p-3.5 bg-white flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
+                <!-- Spread Toggle -->
+                <div class="flex items-center gap-1.5 bg-lilac p-1 rounded-xl border-2 border-ink">
+                    <button type="button" onclick="selectSpread(1)" id="spread-toggle-1" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-display text-xs font-bold transition text-ink/70 hover:text-ink">
+                        ⚡ 1-Card <span class="text-[10px] font-sans font-semibold opacity-80">Quick Vibe</span>
+                    </button>
+                    <button type="button" onclick="selectSpread(3)" id="spread-toggle-3" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-display text-xs font-bold transition bg-sunny text-ink border-2 border-ink shadow-[0_2px_0_#1E1B2E]">
+                        ✨ 3-Card <span class="text-[10px] font-sans font-semibold opacity-90">Past • Present • Future</span>
+                    </button>
+                </div>
+
+                <!-- Primary CTA -->
+                <button
+                    type="button"
+                    onclick="startShuffleStage()"
+                    class="pop-btn px-6 py-2.5 sm:py-3 rounded-xl bg-bubblegum hover:bg-pink-500 text-white font-display font-bold text-sm sm:text-base tracking-wide flex items-center justify-center gap-2"
+                >
+                    <span>Draw My Fate</span>
+                    <i class="ph-fill ph-sparkle text-sunny text-lg"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- =====================================================
+             STAGE 2: INTERACTIVE DECK PICK (Zero-Scroll Viewport)
+        ====================================================== -->
+        <section id="stage-draw" class="hidden h-full w-full flex flex-col justify-between items-center py-1 overflow-hidden">
+
+            <!-- Reader Live Speech Bubble -->
+            <div class="w-full pop-card rounded-2xl p-3 sm:p-4 bg-white flex items-center gap-3 shrink-0">
+                <div id="drawReaderAvatar" class="w-12 h-12 rounded-2xl border-2 border-ink shrink-0 overflow-hidden shadow-[0_2px_0_#1E1B2E]"></div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                        <span id="drawReaderName" class="font-display text-xs sm:text-sm font-bold text-grape">Auntie Aura</span>
+                        <span class="px-2 py-0.5 rounded-full bg-sunny border border-ink text-[11px] font-bold text-ink">
+                            Pick <strong id="drawRemainingCount">3</strong> card(s)
+                        </span>
+                    </div>
+                    <p id="drawReaderQuip" class="text-xs sm:text-sm font-semibold text-ink/90 leading-snug mt-1">
+                        "Take a deep breath, babe! Tap the cards calling your name..."
+                    </p>
+                </div>
+            </div>
+
+            <!-- Center Fanned Tarot Deck (Tap cards to draw) -->
+            <div class="flex-1 w-full flex flex-col items-center justify-center relative my-1">
+                <div class="text-center mb-2">
+                    <span class="px-3 py-1 rounded-full bg-white border-2 border-ink shadow-[0_2px_0_#1E1B2E] font-display text-xs font-bold text-ink">
+                        👇 Tap Any Card Below To Pull It!
+                    </span>
+                </div>
+
+                <!-- Interactive Fan Row -->
+                <div id="fannedDeckRow" class="flex items-center justify-center flex-wrap max-w-2xl px-4 py-2">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Selected Slots Indicator + Quick Action Bar -->
+            <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-2.5 pop-card rounded-2xl p-2.5 sm:p-3 bg-white shrink-0">
+                <div id="drawnSlotsPreview" class="flex items-center gap-1.5 flex-wrap justify-center">
+                    <!-- Shows Past / Present / Future mini pills -->
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="reshuffleFan()" class="pop-card-sm px-3 py-1.5 rounded-xl bg-lilac hover:bg-purple-200 text-ink font-display text-xs font-bold flex items-center gap-1">
+                        <i class="ph-bold ph-shuffle"></i> Shuffle
+                    </button>
+                    <button onclick="instantAutoDraw()" class="pop-card-sm flex-1 sm:flex-initial px-3.5 py-1.5 rounded-xl bg-sunny hover:bg-amber-300 text-ink font-display text-xs font-bold flex items-center justify-center gap-1">
+                        <i class="ph-fill ph-lightning"></i> Auto-Pick For Me
+                    </button>
+                    <button onclick="resetToSetup()" class="px-2 py-1.5 text-ink/60 hover:text-ink font-bold text-xs">
+                        Back
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================
+             STAGE 3: THE COMPACT READING & ROAST STAGE (Zero-Scroll)
+        ====================================================== -->
+        <section id="stage-reading" class="hidden h-full w-full flex flex-col justify-between gap-2 overflow-hidden">
+
+            <!-- Top Bar: Position Switcher Tabs + Instant Persona Switcher -->
+            <div class="flex flex-wrap items-center justify-between gap-1.5 shrink-0">
+                <!-- Position / Verdict Tabs -->
+                <div id="readingPositionTabs" class="flex items-center gap-1 bg-white p-1 rounded-xl border-2 border-ink shadow-[0_2px_0_#1E1B2E] overflow-x-auto max-w-full">
+                    <!-- Dynamically populated: [Past] [Present] [Future] [✨ The Tea] -->
+                </div>
+
+                <!-- Live Reader Persona Switcher (Flip between Good Auntie Aura & Toxic Chaos Colin!) -->
+                <div class="flex items-center gap-1 bg-white p-1 rounded-xl border-2 border-ink shadow-[0_2px_0_#1E1B2E]">
+                    <button onclick="switchReaderDuringReading('aura')" id="live-reader-aura" class="px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition">
+                        😇 Auntie Aura
+                    </button>
+                    <button onclick="switchReaderDuringReading('colin')" id="live-reader-colin" class="px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition">
+                        😈 Chaos Colin
+                    </button>
+                </div>
+            </div>
+
+            <!-- Center Stage: Active Card Artwork + Reader's Roast Panel -->
+            <div id="readingActivePanel" class="flex-1 min-h-0 pop-card rounded-2xl p-3 sm:p-5 bg-white flex flex-col md:flex-row items-center md:items-stretch gap-3 sm:gap-5 overflow-hidden relative">
+                <!-- Populated dynamically by renderActiveReadingTab() -->
+            </div>
+
+            <!-- Bottom Action Bar -->
+            <div class="shrink-0 flex items-center justify-between gap-2">
+                <button onclick="resetToSetup()" class="pop-card-sm px-3.5 py-2 rounded-xl bg-white hover:bg-lilac text-ink font-display text-xs font-bold flex items-center gap-1.5">
+                    <i class="ph-bold ph-arrows-counter-clockwise"></i> Ask Another
+                </button>
+
+                <div class="flex items-center gap-2">
+                    <button id="flipAllActionBtn" onclick="flipAllCardsNow()" class="pop-card-sm px-3.5 py-2 rounded-xl bg-sunny hover:bg-amber-300 text-ink font-display text-xs font-bold flex items-center gap-1.5">
+                        <i class="ph-bold ph-eye"></i> Flip All
+                    </button>
+                    <button id="copyRoastBtn" onclick="copyCurrentRoast()" class="pop-card-sm px-3.5 py-2 rounded-xl bg-bubblegum hover:bg-pink-500 text-white font-display text-xs font-bold flex items-center gap-1.5">
+                        <i class="ph-bold ph-share-network"></i> Share Roast
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==========================================
+         MODAL 1: THE 78-CARD DECK BROWSER
+    =========================================== -->
+    <div id="grimoireModal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+        <div class="pop-card rounded-3xl max-w-4xl w-full h-[86dvh] bg-cream flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-4 sm:px-6 py-3.5 bg-sunny border-b-2 border-ink flex items-center justify-between gap-2 shrink-0">
+                <div>
+                    <h3 class="font-display text-lg sm:text-xl font-bold text-ink">✨ The 78-Card Vibe Deck</h3>
+                    <p class="text-xs text-ink/75 font-semibold">Tap any card to see how Auntie Aura & Chaos Colin interpret it</p>
+                </div>
+                <button onclick="closeGrimoireModal()" class="pop-card-sm w-8 h-8 rounded-full bg-white text-ink hover:bg-pink-100 flex items-center justify-center font-bold">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <!-- Search & Suit Filter Bar -->
+            <div class="px-4 sm:px-6 py-2.5 bg-lilac border-b-2 border-ink flex flex-wrap items-center gap-2 shrink-0">
+                <input
+                    type="text"
+                    id="grimoireSearch"
+                    oninput="renderGrimoireGrid()"
+                    placeholder="Search card (e.g., The Fool, The Tower, Cups)..."
+                    class="flex-1 min-w-[180px] px-3 py-1.5 rounded-xl bg-white border-2 border-ink text-xs font-semibold text-ink placeholder-ink/45 focus:outline-none"
+                >
+                <select id="grimoireSuit" onchange="renderGrimoireGrid()" class="px-3 py-1.5 rounded-xl bg-white border-2 border-ink text-ink text-xs font-bold">
+                    <option value="ALL">All 78 Cards</option>
+                    <option value="Major Arcana">Major Arcana (22)</option>
+                    <option value="Wands">Wands • Fire 🔥 (14)</option>
+                    <option value="Cups">Cups • Water 💧 (14)</option>
+                    <option value="Swords">Swords • Air ⚔️ (14)</option>
+                    <option value="Pentacles">Pentacles • Earth 🪙 (14)</option>
+                </select>
+            </div>
+
+            <!-- Scrollable Grid / Card Detail View -->
+            <div id="grimoireBody" class="flex-1 overflow-y-auto thin-scroll p-4 sm:p-6">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 2: THE BURN BOOK (Saved Readings)
+    =========================================== -->
+    <div id="burnBookModal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+        <div class="pop-card rounded-3xl max-w-2xl w-full h-[82dvh] bg-cream flex flex-col overflow-hidden">
+            <div class="px-4 sm:px-6 py-3.5 bg-pink-200 border-b-2 border-ink flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📓</span>
+                    <div>
+                        <h3 class="font-display text-lg sm:text-xl font-bold text-ink">The Burn Book</h3>
+                        <p class="text-xs text-ink/75 font-semibold">Your past readings & questionable life choices</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearBurnBook()" class="pop-card-sm px-2.5 py-1 rounded-lg bg-white text-rose-600 text-xs font-bold hover:bg-rose-50">
+                        Clear All
+                    </button>
+                    <button onclick="closeBurnBookModal()" class="pop-card-sm w-8 h-8 rounded-full bg-white text-ink flex items-center justify-center">
+                        <i class="ph-bold ph-x"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="burnBookList" class="flex-1 overflow-y-auto thin-scroll p-4 sm:p-6 space-y-3">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         JAVASCRIPT ENGINE: 2 PERSONAS + 78 CARDS
+    =========================================== -->
+    <script>
+        /**************************************************************
+         * 1. PLAYFUL POP SYNTHESIZER SOUND EFFECTS
+         **************************************************************/
+        let audioEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (AC) audioCtx = new AC();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playSound(type = 'tap') {
+            if (!audioEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+
+                if (type === 'shuffle') {
+                    [330, 392, 493.88, 587.33].forEach((f, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(f, now + idx * 0.045);
+                        gain.gain.setValueAtTime(0.001, now + idx * 0.045);
+                        gain.gain.exponentialRampToValueAtTime(0.06, now + idx * 0.045 + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.045 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.045);
+                        osc.stop(now + idx * 0.045 + 0.28);
+                    });
+                } else if (type === 'flip') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, now + idx * 0.03);
+                        gain.gain.setValueAtTime(0.001, now + idx * 0.03);
+                        gain.gain.exponentialRampToValueAtTime(0.06 / (idx + 1), now + idx * 0.03 + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.03 + 0.45);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.03);
+                        osc.stop(now + idx * 0.03 + 0.5);
+                    });
+                } else {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, now);
+                    osc.frequency.exponentialRampToValueAtTime(760, now + 0.09);
+                    gain.gain.setValueAtTime(0.04, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                }
+            } catch (e) {}
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audioIcon');
+            icon.className = audioEnabled ? 'ph-fill ph-speaker-high text-ink text-base' : 'ph-fill ph-speaker-slash text-ink/40 text-base';
+            if (audioEnabled) playSound('tap');
+        }
+
+        /**************************************************************
+         * 2. TWO CONTRASTING TEASING PERSONAS (GOOD VS. TOXIC)
+         **************************************************************/
+        const READERS = {
+            aura: {
+                id: 'aura',
+                name: 'Auntie Aura',
+                title: 'Wholesome Tough-Love Bestie',
+                emoji: '😇',
+                pillClass: 'bg-emerald-200 text-ink border-ink',
+                boxBg: 'bg-amber-50 border-ink',
+                tagline: '"I\'ll hype you up, babe, right after I roast your taste!"',
+                shuffleQuips: [
+                    '"Hold my iced coffee, sweetie—I\'m shuffling out the bad vibes for you!"',
+                    '"Okay babe, deep breath! Pick the card that feels like a warm hug (or a gentle wake-up slap)."',
+                    '"Sprinkling a little cinnamon and common sense on this deck for you..."'
+                ],
+                voiceWrap: (cardName, isRev, coreMeaning, cat, posTitle) => {
+                    const openers = [
+                        `Okay honey, look at **${cardName}${isRev ? ' (Upside-Down!)' : ''}** showing up for **${posTitle}**! I say this with so much love:`,
+                        `*Takes a sip of iced matcha.* Babe, **${cardName}${isRev ? ' (Reversed)' : ''}** in **${posTitle}** is gently tugging your sleeve:`,
+                        `Sweetheart, I'm holding your hand while I tell you this about **${cardName}${isRev ? ' (Reversed)' : ''}** in **${posTitle}**:`
+                    ];
+                    const closers = {
+                        love: `You deserve someone who texts back fast AND makes you feel safe. Don't settle for breadcrumbs when you're the whole bakery!`,
+                        career: `Get that bag, drink some water, and remember your worth isn't measured by your email response time!`,
+                        growth: `Be nice to yourself today, okay? You're doing way better than your overthinking brain gives you credit for.`,
+                        general: `Everything is working out for you, even the messy parts. Adjust your crown and keep glowing!`
+                    };
+                    const pick = openers[cardName.length % openers.length];
+                    return `${pick} ${coreMeaning} ${closers[cat]}`;
+                },
+                verdictIntro: (q, catLabel) => `Babe, you asked *"${q}"* about **${catLabel}**, and here is my wholesome tough-love breakdown:`
+            },
+            colin: {
+                id: 'colin',
+                name: 'Chaos Colin',
+                title: 'Unhinged Toxic Instigator',
+                emoji: '😈',
+                pillClass: 'bg-pink-300 text-ink border-ink',
+                boxBg: 'bg-fuchsia-50 border-ink',
+                tagline: '"Do it for the plot! Send the risky text! Quit on a Tuesday!"',
+                shuffleQuips: [
+                    '"Shuffling for maximum drama! Pick a card before your common sense kicks in!"',
+                    '"Ooh, I hope you pull The Tower so we can watch fireworks together! Tap a card!"',
+                    '"Your angels told me to behave, so I locked them in the closet. Pick a card, bestie!"'
+                ],
+                voiceWrap: (cardName, isRev, coreMeaning, cat, posTitle) => {
+                    const openers = [
+                        `LMAOOO stop everything!! **${cardName}${isRev ? ' (Upside-Down!)' : ''}** in **${posTitle}**?! Oh, you are SO messy for this:`,
+                        `*Cackles in 4K.* Bestie, **${cardName}${isRev ? ' (Reversed)' : ''}** just flew out for **${posTitle}** to expose you:`,
+                        `Wait, no way you pulled **${cardName}${isRev ? ' (Reversed)' : ''}** for **${posTitle}**! Grab the popcorn:`
+                    ];
+                    const closers = {
+                        love: `Honestly? Double-text them, post a thirst trap on your close friends story, or block them mid-typing just for the plot!`,
+                        career: `Start applying for jobs way above your pay grade and take a 45-minute bathroom break on company time!`,
+                        growth: `Why "heal peacefully" when you can be hot, petty, and slightly delusional? Let your intrusive thoughts drive for a mile!`,
+                        general: `If life gives you lemons, squeeze them into your haters' eyes and do whatever makes the funniest story later!`
+                    };
+                    const pick = openers[cardName.length % openers.length];
+                    return `${pick} ${coreMeaning} ${closers[cat]}`;
+                },
+                verdictIntro: (q, catLabel) => `Bestie, you asked *"${q}"* for **${catLabel}**, and I am living for the absolute circus in these cards:`
+            }
+        };
+
+        /**************************************************************
+         * 3. COMPLETE 78-CARD CASUAL, FUNNY & TEASING DATABASE
+         **************************************************************/
+        const MAJOR_ARCANA = [
+            {
+                id: 1, number: 0, numeral: "0", name: "The Fool", arcana: "Major Arcana", suit: "Major", element: "Air",
+                kwUp: ["YOLO Mode", "Fresh Start", "Zero Plan"], kwRev: ["Clown Behavior", "Tripping", "Overthinking"],
+                up: {
+                    love: "You're diving into a crush with zero parachute and 100% vibes. It's cute, just check if they have a mattress on a bedframe first.",
+                    career: "Time to try something totally new even if you have no clue what you're doing. Fake it till you make it!",
+                    growth: "New era unlocked! Pack light and leave your old cringe memories at the curb.",
+                    general: "Main character leap of faith! You don't have a map, you're just vibing, and somehow the universe loves it."
+                },
+                rev: {
+                    love: "Put the clown shoes down! You're either ignoring neon red flags or too scared to even say hi.",
+                    career: "Maybe don't impulse-quit your job without checking your bank account first.",
+                    growth: "You're either doing reckless stunts to avoid your feelings or stalling because you want a 'sign.' This is the sign.",
+                    general: "Look where you're walking! You're about to trip over an obvious bad decision."
+                }
+            },
+            {
+                id: 2, number: 1, numeral: "I", name: "The Magician", arcana: "Major Arcana", suit: "Major", element: "Air",
+                kwUp: ["Rizz God", "Manifesting", "Big Brain"], kwRev: ["All Talk", "Scammer Vibes", "Slacking"],
+                up: {
+                    love: "Your charm is at 100% right now. You could flirt with a brick wall and get its number.",
+                    career: "You actually have all the skills to pull this off. Pitch the idea and ask for more money!",
+                    growth: "Stop waiting for luck—you already have everything you need to make it happen.",
+                    general: "Peak manifestation energy! Whatever you talk about today is probably going to happen."
+                },
+                rev: {
+                    love: "Someone is talking a big game with zero follow-through. Watch out for smooth-talking fakers.",
+                    career: "You're sitting on huge talent while scrolling TikTok for three hours. Lock in!",
+                    growth: "Stop doubting your own sauce, or stop trying to finesse your way out of doing the work.",
+                    general: "Ten browser tabs open in your brain and nothing is actually getting finished."
+                }
+            },
+            {
+                id: 3, number: 2, numeral: "II", name: "The High Priestess", arcana: "Major Arcana", suit: "Major", element: "Water",
+                kwUp: ["Gut Feeling", "I Knew It", "Secret Tea"], kwRev: ["Ignoring Intuition", "Gossip", "Delulu"],
+                up: {
+                    love: "Your gut already knows the truth about them, even if your brain is writing fanfiction.",
+                    career: "Keep your next move on mute. Not everyone at work needs to know your business.",
+                    growth: "Your intuition is literally texting you in ALL CAPS. Listen to your first instinct.",
+                    general: "You already know the tea before anyone spills it. Sit back, sip your drink, and watch."
+                },
+                rev: {
+                    love: "You're asking five group chats for advice on something your gut answered two weeks ago.",
+                    career: "Watch out for messy office gossip and people being fake-nice on Slack.",
+                    growth: "You're drowning out your own common sense with too much noise. Unplug for an hour.",
+                    general: "Stop pretending you don't see the truth just because the fantasy is more fun."
+                }
+            },
+            {
+                id: 4, number: 3, numeral: "III", name: "The Empress", arcana: "Major Arcana", suit: "Major", element: "Earth",
+                kwUp: ["Treat Yourself", "Baddie Glow", "Abundance"], kwRev: ["Burnt Out", "Mommying Adults", "Dry Spell"],
+                up: {
+                    love: "You're glowing and magnetic right now. Expect spoiled dates, sweet texts, and top-tier attention.",
+                    career: "Creative ideas turn into easy money. Trust your taste and put your work out there.",
+                    growth: "Soft life era! Buy the iced latte, put on a face mask, and treat yourself like royalty.",
+                    general: "Good vibes, good food, and things growing in your favor. Enjoy the lush energy!"
+                },
+                rev: {
+                    love: "Stop adopting grown adults like fixer-upper projects! You're a date, not their mom.",
+                    career: "You're exhausted because you've been doing everyone else's job. Log off on time today.",
+                    growth: "Your social battery is blinking red. Cancel the plans and recharge on the couch.",
+                    general: "You're giving way too much energy to people who barely clap for you."
+                }
+            },
+            {
+                id: 5, number: 4, numeral: "IV", name: "The Emperor", arcana: "Major Arcana", suit: "Major", element: "Fire",
+                kwUp: ["Boss Energy", "Solid Boundaries", "CEO Mode"], kwRev: ["Control Freak", "Stubborn", "Man-Child"],
+                up: {
+                    love: "Someone steady, protective, and actually grown-up—or you setting rock-solid standards.",
+                    career: "Take charge of the room. Being organized and direct gets you promoted right now.",
+                    growth: "A little routine and self-discipline will fix 80% of what you're stressing over.",
+                    general: "You're the boss of your own life. Make the call and stand ten toes down."
+                },
+                rev: {
+                    love: "Either someone is being a total control freak, or they have the maturity of a toddler.",
+                    career: "Micromanager alert! Nod politely while planning your next move.",
+                    growth: "Your sleep schedule and daily routine are in goblin mode. Pull it together!",
+                    general: "Stubborn ego clashes—nobody wants to admit they're wrong."
+                }
+            },
+            {
+                id: 6, number: 5, numeral: "V", name: "The Hierophant", arcana: "Major Arcana", suit: "Major", element: "Earth",
+                kwUp: ["Old School", "Official Labels", "Mentor"], kwRev: ["Rule Breaker", "Rebel Era", "Ditch Tradition"],
+                up: {
+                    love: "No sneaky links—this is 'what are we?' turning into official labels and meeting the friends.",
+                    career: "Follow the playbook for now, learn from a pro, and collect the easy win.",
+                    growth: "Stick to the basics that actually work instead of overcomplicating your life.",
+                    general: "Keep it classic and reliable today. No need for wild experiments."
+                },
+                rev: {
+                    love: "Who cares what a relationship is 'supposed' to look like? Do what works for you.",
+                    career: "Boring corporate rules are cramping your style. Time to innovate.",
+                    growth: "Stop living for your relatives' approval and write your own rules.",
+                    general: "Break the mold and do your own weird thing without apologizing."
+                }
+            },
+            {
+                id: 7, number: 6, numeral: "VI", name: "The Lovers", arcana: "Major Arcana", suit: "Major", element: "Air",
+                kwUp: ["Spicy Chemistry", "Big Choice", "Soulmate Vibe"], kwRev: ["Red Flag Parade", "Messy Ex", "Indecision"],
+                up: {
+                    love: "Sparks are flying! Either you found your person or you're about to have a very fun weekend.",
+                    career: "A great collab or a big fork in the road. Pick what actually excites you.",
+                    growth: "Be real with yourself about what you actually want—stop people-pleasing.",
+                    general: "A major choice is in front of you. Pick with your whole heart, not out of fear."
+                },
+                rev: {
+                    love: "You're collecting red flags like limited-edition stickers. Step away from the toxic ex!",
+                    career: "A work partnership is feeling sketchy or out of sync.",
+                    growth: "You want two opposite things at the same time and you're stressing yourself out.",
+                    general: "Temptation and messy choices made after midnight. Put the phone on Airplane Mode!"
+                }
+            },
+            {
+                id: 8, number: 7, numeral: "VII", name: "The Chariot", arcana: "Major Arcana", suit: "Major", element: "Water",
+                kwUp: ["Full Speed", "Winning", "Main Character"], kwRev: ["No Brakes", "Road Rage", "Spinning Out"],
+                up: {
+                    love: "Make the first move! Confidence cuts through weeks of awkward texting.",
+                    career: "Lock in and floor it. Nothing can stop your momentum this week.",
+                    growth: "You're in the driver's seat of your emotions instead of letting them drag you around.",
+                    general: "Big victory energy! Keep your eyes on the prize and breeze past the drama."
+                },
+                rev: {
+                    love: "Trying to rush a relationship at 100 mph when you barely know their middle name.",
+                    career: "Running around busy all day but getting nothing important done.",
+                    growth: "You're trying to control things that aren't yours to drive. Let go of the wheel a bit.",
+                    general: "Delays and detours—stop pushing a door that says PULL."
+                }
+            },
+            {
+                id: 9, number: 8, numeral: "VIII", name: "Strength", arcana: "Major Arcana", suit: "Major", element: "Fire",
+                kwUp: ["Unbothered", "Soft Power", "Brave"], kwRev: ["Petty Crashout", "Hanger", "Self-Doubt"],
+                up: {
+                    love: "Killing them with kindness and calm confidence instead of starting a petty text war.",
+                    career: "Handling workplace chaos like an absolute pro without breaking a sweat.",
+                    growth: "You didn't lose your cool when you totally could have. That's elite growth!",
+                    general: "You're way stronger than this problem. Handle it with cool, unbothered grace."
+                },
+                rev: {
+                    love: "Insecurity is making you overreact. Eat a snack before you reply to that text.",
+                    career: "Impostor syndrome is lying to you—stop acting like you don't belong in the room.",
+                    growth: "You've been holding it together too long and need a good rant or a nap.",
+                    general: "Low patience and high drama. Don't let petty people bait you into a crashout."
+                }
+            },
+            {
+                id: 10, number: 9, numeral: "IX", name: "The Hermit", arcana: "Major Arcana", suit: "Major", element: "Earth",
+                kwUp: ["Do Not Disturb", "Cozy Solo Era", "Me Time"], kwRev: ["Couch Goblin", "Ghosting Friends", "Lonely"],
+                up: {
+                    love: "Taking a breather from dating apps to remember how fun your own company is.",
+                    career: "Put your headphones on and work solo—meetings will only slow you down today.",
+                    growth: "Canceling plans tonight is 100% spiritually approved. Enjoy your cozy bed!",
+                    general: "Mute the group chat for a bit. You'll figure it out once everyone stops talking at you."
+                },
+                rev: {
+                    love: "Being single is fine, but hiding in your room for six months won't get you a date.",
+                    career: "Refusing to ask a quick question and spending three hours stuck on a task.",
+                    growth: "There's 'healing solitude' and then there's rotting in the dark eating dry cereal. Open a window!",
+                    general: "You've gone full cave-goblin. Go touch grass and grab coffee with a friend."
+                }
+            },
+            {
+                id: 11, number: 10, numeral: "X", name: "Wheel of Fortune", arcana: "Major Arcana", suit: "Major", element: "Fire",
+                kwUp: ["Plot Twist!", "Lucky Break", "Jackpot"], kwRev: ["Here We Go Again", "Glitchy Week", "Plot Loop"],
+                up: {
+                    love: "Fate is spinning a fun surprise into your DMs or social life. Say yes to going out!",
+                    career: "Right place, right time! A lucky break is headed your way.",
+                    growth: "The slump is over and the wheel is turning back up in your favor.",
+                    general: "Surprise plot twist! Good luck and random coincidences are lining up for you."
+                },
+                rev: {
+                    love: "Why are you dating the exact same walking red flag in a different font? Break the loop!",
+                    career: "Annoying tech glitches or schedule changes. Roll with it and don't panic.",
+                    growth: "Stop blaming 'bad luck' for habits you repeat every Tuesday.",
+                    general: "A chaotic week where plans change last minute. Laugh it off; it'll pass fast."
+                }
+            },
+            {
+                id: 12, number: 11, numeral: "XI", name: "Justice", arcana: "Major Arcana", suit: "Major", element: "Air",
+                kwUp: ["Receipts Out", "Karma", "Fair Play"], kwRev: ["Double Standard", "Unfair", "Dodging Blame"],
+                up: {
+                    love: "Equal effort only! If they match your energy, keep them; if not, court is adjourned.",
+                    career: "Contracts, negotiations, and fair pay work out in your favor.",
+                    growth: "Own your mistakes honestly, forgive yourself, and move on with a clean slate.",
+                    general: "Karma is delivering packages today! If you've been cool, expect a reward."
+                },
+                rev: {
+                    love: "Someone is pulling a massive double standard—acting mad when you do what they do.",
+                    career: "Office politics feel biased right now. Keep your email receipts saved!",
+                    growth: "Stop making excuses for a habit that's clearly tripping you up.",
+                    general: "Something feels a little shady or one-sided. Read the fine print."
+                }
+            },
+            {
+                id: 13, number: 12, numeral: "XII", name: "The Hanged Man", arcana: "Major Arcana", suit: "Major", element: "Water",
+                kwUp: ["Chill & Wait", "New Perspective", "Pause"], kwRev: ["Wasting Time", "Stalling", "Martyr Vibes"],
+                up: {
+                    love: "Stop chasing and let them come to you. Doing nothing is your smartest move right now.",
+                    career: "Things are on pause for a reason. Look at the problem upside-down for a fresh idea.",
+                    growth: "Stop trying to force an answer today. Let life simmer for a minute.",
+                    general: "You're in the cosmic waiting room. Put down the stress and just vibe."
+                },
+                rev: {
+                    love: "Putting your life on hold waiting for someone to 'be ready' is a trap. Move on!",
+                    career: "Stalling on a career move because you're overthinking the worst-case scenario.",
+                    growth: "Stop bending over backwards for people who wouldn't step over a puddle for you.",
+                    general: "You're stuck because you won't let go of something that already expired."
+                }
+            },
+            {
+                id: 14, number: 13, numeral: "XIII", name: "Death", arcana: "Major Arcana", suit: "Major", element: "Water",
+                kwUp: ["Big Glow-Up", "Chapter Closed", "Rebirth"], kwRev: ["Clinging On", "Zombie Ex", "Fear of Change"],
+                up: {
+                    love: "Chill, nobody's dying—just an old situationship or bad dating habit that needed to go!",
+                    career: "Out with the old job or routine, in with a way better upgrade.",
+                    growth: "Total butterfly transformation! Delete the old chats and step into your new era.",
+                    general: "Slam the door on yesterday so something ten times better can walk in."
+                },
+                rev: {
+                    love: "Texting an ex out of boredom is like reheating week-old fast food. Don't do it!",
+                    career: "Staying somewhere miserable just because you're used to it.",
+                    growth: "Stop dragging a dead habit around—give it a funeral and move on!",
+                    general: "Resisting change is making it awkward. Rip the band-aid off!"
+                }
+            },
+            {
+                id: 15, number: 14, numeral: "XIV", name: "Temperance", arcana: "Major Arcana", suit: "Major", element: "Fire",
+                kwUp: ["Smooth Balance", "No Rush", "Good Mix"], kwRev: ["Zero Chill", "Chaotic Binge", "Extra"],
+                up: {
+                    love: "Easy, drama-free pacing. You don't need to rush or play mind games.",
+                    career: "You're the calm genius keeping the whole project from turning into a circus.",
+                    growth: "A little bit of salad, a little bit of cake. Balance is your superpower right now.",
+                    general: "Everything blends smoothly when you take your time and keep your cool."
+                },
+                rev: {
+                    love: "Going from 0 to 100 on date one, or hot-and-cold texting drama. Find some chill!",
+                    career: "Drinking four coffees and crashing by 2 PM. Fix your work-life balance.",
+                    growth: "You're swinging between 'perfect routine' and 'total chaos gremlin' with no middle gear.",
+                    general: "Too much of a good thing is making a mess. Pace yourself!"
+                }
+            },
+            {
+                id: 16, number: 15, numeral: "XV", name: "The Devil", arcana: "Major Arcana", suit: "Major", element: "Earth",
+                kwUp: ["Spicy Trouble", "Obsession", "Guilty Pleasure"], kwRev: ["Got The Ick!", "Breaking Free", "Detox"],
+                up: {
+                    love: "Toxic, magnetic chemistry that feels amazing tonight and gives you a headache tomorrow.",
+                    career: "Staying for the paycheck even though the job drives you crazy.",
+                    growth: "Doomscrolling at 2 AM or impulse shopping—your bad habits are calling the shots.",
+                    general: "Temptation is knocking! It's fun, it's a little bad for you, and you know it."
+                },
+                rev: {
+                    love: "Hallelujah, you finally caught 'the ick' and broke the spell!",
+                    career: "Reclaiming your free time and refusing to be married to your inbox.",
+                    growth: "Deleting the app, breaking the bad habit, and choosing peace over drama.",
+                    general: "The chains are off! You just realized you can walk away whenever you want."
+                }
+            },
+            {
+                id: 17, number: 16, numeral: "XVI", name: "The Tower", arcana: "Major Arcana", suit: "Major", element: "Fire",
+                kwUp: ["Plot Explosion!", "Truth Bomb", "Chaos Reset"], kwRev: ["Dodged A Bullet", "Rumbling", "Denial"],
+                up: {
+                    love: "Sudden truth bomb or breakup that clears out a fake fantasy so real love can happen.",
+                    career: "Workplace Shake-up! Grab popcorn while management figures out their mess.",
+                    growth: "Your comfort zone just got blown up, and honestly, it was getting cramped anyway.",
+                    general: "Dumpster fire alert! Let the shaky stuff collapse—you'll build something way cooler on the lot."
+                },
+                rev: {
+                    love: "You smell smoke in the relationship, so stop pretending it's a scented candle.",
+                    career: "You narrowly dodged a work disaster—take the hint and update your resume.",
+                    growth: "Stop duct-taping a situation that clearly needs to fall apart.",
+                    general: "A close call! Walk away from the wobbling Jenga tower before it falls on you."
+                }
+            },
+            {
+                id: 18, number: 17, numeral: "XVII", name: "The Star", arcana: "Major Arcana", suit: "Major", element: "Air",
+                kwUp: ["Main Character Glow", "Wish Granted", "Healing"], kwRev: ["Jaded", "Meh Vibes", "Pessimism"],
+                up: {
+                    love: "Hopeful, sweet, genuine romance after a rough patch. Your faith in love is restored!",
+                    career: "Creative flow and people noticing how talented you actually are.",
+                    growth: "Post-cry skin glow! You survived the storm and now you look iconic.",
+                    general: "Make a wish! The universe is handing you a fresh, sparkly chapter."
+                },
+                rev: {
+                    love: "You're acting so cynical about dating that you're scaring off the cute ones.",
+                    career: "Comparing your behind-the-scenes to everyone else's highlight reel.",
+                    growth: "Stop being a hater toward your own dreams. Let yourself be excited again!",
+                    general: "Your battery is drained. Log off, nap, and get your sparkle back."
+                }
+            },
+            {
+                id: 19, number: 18, numeral: "XVIII", name: "The Moon", arcana: "Major Arcana", suit: "Major", element: "Water",
+                kwUp: ["3AM Overthinking", "Mixed Signals", "Mystery"], kwRev: ["Secrets Exposed", "Clarity", "Aha Moment"],
+                up: {
+                    love: "Confusing vibes or your brain inventing a whole movie out of a delayed text.",
+                    career: "Nobody at work is giving straight answers right now. Wait before signing anything.",
+                    growth: "Don't trust your thoughts after 11 PM—your anxiety is writing fiction.",
+                    general: "Things are foggy and a little sus. Wait for all the facts before jumping."
+                },
+                rev: {
+                    love: "The mask slips! Either a secret comes out or the mixed signals finally make sense.",
+                    career: "Misunderstandings clear up and you see who's actually on your side.",
+                    growth: "Waking up and realizing the thing you stressed over wasn't even real.",
+                    general: "The lights come on and the mystery is solved!"
+                }
+            },
+            {
+                id: 20, number: 19, numeral: "XIX", name: "The Sun", arcana: "Major Arcana", suit: "Major", element: "Fire",
+                kwUp: ["Big Win!", "Pure Joy", "Golden Era"], kwRev: ["Delayed Win", "Fake Smile", "Ego Check"],
+                up: {
+                    love: "Warm, obvious, green-flag romance! Zero guessing games, just good vibes.",
+                    career: "Spotlight's on you! Expect praise, a bonus, or a big career win.",
+                    growth: "Confidence on 100! You're happy, thriving, and impossible to ignore.",
+                    general: "Best card in the deck! Everything is sunny, fun, and going your way."
+                },
+                rev: {
+                    love: "Looking cute for the photo while low-key bickering in the car.",
+                    career: "You're still winning, it's just taking an extra week to clear.",
+                    growth: "You don't have to force toxic positivity when you're tired. Keep it real.",
+                    general: "A tiny cloud in front of the sun—still a good day, just slightly dramatic."
+                }
+            },
+            {
+                id: 21, number: 20, numeral: "XX", name: "Judgement", arcana: "Major Arcana", suit: "Major", element: "Fire",
+                kwUp: ["Wake-Up Call", "Level Up", "Final Decision"], kwRev: ["Hitting Snooze", "Self-Doubt", "Over-Judging"],
+                up: {
+                    love: "Decision time: either lock it in for real or wrap up the season finale.",
+                    career: "You're ready for a bigger stage. Answer the call and upgrade your career.",
+                    growth: "Forgive your past cringe—you didn't know better then, and now you do!",
+                    general: "Ding-ding! Your cosmic alarm clock is ringing. Time to make your big move."
+                },
+                rev: {
+                    love: "Over-analyzing an old breakup or refusing to make a decision.",
+                    career: "Playing small because you're worried what random people might think.",
+                    growth: "Stop roasting yourself harder than your enemies ever could.",
+                    general: "Quit hitting snooze on a choice you already know the answer to."
+                }
+            },
+            {
+                id: 22, number: 21, numeral: "XXI", name: "The World", arcana: "Major Arcana", suit: "Major", element: "Earth",
+                kwUp: ["Mic Drop", "Goal Unlocked", "Victory Lap"], kwRev: ["Almost There", "Loose Ends", "No Closure"],
+                up: {
+                    love: "Happy, whole, and thriving—whether coupled up or loving your single life.",
+                    career: "Mission accomplished! Pop the bubbly and celebrate finishing a huge goal.",
+                    growth: "You actually learned the lesson and leveled up. Look at you go!",
+                    general: "Season finale win! Take your bow and get ready for a brand new adventure."
+                },
+                rev: {
+                    love: "Asking for 'one more closure talk' when you just want an excuse to see them.",
+                    career: "Slacking at 95% completion—push through the last five minutes!",
+                    growth: "Tie up your loose ends so you can enjoy your win in peace.",
+                    general: "You're two steps from the finish line—don't stop now!"
+                }
+            }
+        ];
+
+        const SUIT_META = {
+            Wands: { element: "Fire", emoji: "🔥", domain: "Passions, Bold Moves & Drama" },
+            Cups: { element: "Water", emoji: "💧", domain: "Feelings, Crushes & Daydreams" },
+            Swords: { element: "Air", emoji: "⚔️", domain: "Overthinking, Truths & Tea" },
+            Pentacles: { element: "Earth", emoji: "🪙", domain: "Money, Career & Real Life" }
+        };
+
+        const RANKS_META = [
+            {
+                rank: 1, name: "Ace", numeral: "I",
+                kwUp: ["Fresh Spark", "New Offer", "Big Yes"], kwRev: ["False Start", "Fumbled Bag", "Delayed"],
+                up: {
+                    love: (s) => s === 'Cups' ? "New crush alert! Butterflies and sweet texts incoming." : s === 'Wands' ? "Spicy chemistry and instant attraction!" : s === 'Swords' ? "A super honest talk clears the air." : "A solid, green-flag romantic offer.",
+                    career: (s) => `A shiny new opportunity in ${SUIT_META[s].domain.toLowerCase()} lands in your lap!`,
+                    growth: (s) => `Fresh burst of motivation and a clean slate.`,
+                    general: (s) => `New beginnings! Grab the opportunity while it's hot.`
+                },
+                rev: {
+                    love: (s) => `Slow replies and stalled sparks—someone is fumbling the opening move.`,
+                    career: (s) => `A delayed project or missed email. Double-check your details.`,
+                    growth: (s) => `Trying to start fresh while still holding onto yesterday's mood.`,
+                    general: (s) => `Timing is a bit off right now—wait a beat before launching.`
+                }
+            },
+            {
+                rank: 2, name: "Two", numeral: "II",
+                kwUp: ["Teamwork", "Two Options", "Balance"], kwRev: ["Indecision", "Mixed Vibes", "Juggling Too Much"],
+                up: {
+                    love: (s) => s === 'Cups' ? "Mutual crush! They actually like you back just as much." : s === 'Swords' ? "Taking off the blindfold and picking between two options." : "Planning fun future moves together.",
+                    career: (s) => `Juggling two priorities like a pro or teaming up with a great partner.`,
+                    growth: (s) => `Finding your balance between two choices.`,
+                    general: (s) => `Decisions and partnerships take center stage today.`
+                },
+                rev: {
+                    love: (s) => `One-sided texting or stalling on a choice until both options get bored.`,
+                    career: (s) => `Doing way too much multitasking at once. Drop a tab!`,
+                    growth: (s) => `Stuck in 'idk, what do you want to do?' mode.`,
+                    general: (s) => `Out of sync—pause and reorganize your priorities.`
+                }
+            },
+            {
+                rank: 3, name: "Three", numeral: "III",
+                kwUp: ["Squad Energy", "Growth", "Plot Twist"], kwRev: ["Messy Drama", "Third Wheel", "Healing"],
+                up: {
+                    love: (s) => s === 'Swords' ? "Ouch—heartbreak or hurt feelings. Cry it out, eat ice cream, and block them!" : s === 'Cups' ? "Fun night out, celebrating with friends, and social butterflies!" : "Your plans are starting to take off nicely.",
+                    career: (s) => s === 'Pentacles' ? "Dream team energy! People love working with you right now." : "Your hard work is starting to show real momentum.",
+                    growth: (s) => s === 'Swords' ? "Being honest about what hurt you so you can actually heal." : "Growing faster with help from your friends.",
+                    general: (s) => s === 'Swords' ? "A sharp truth stings for a minute, then sets you free." : "Good momentum and group celebrations!"
+                },
+                rev: {
+                    love: (s) => s === 'Swords' ? "Finally getting over the heartbreak and laughing again!" : "Third-wheel awkwardness or gossipy friends meddling.",
+                    career: (s) => "Group project chaos where nobody reads the instructions.",
+                    growth: (s) => "Letting go of old grudges so you can enjoy your week.",
+                    general: (s) => "Miscommunications in the group chat—clarify before assuming."
+                }
+            },
+            {
+                rank: 4, name: "Four", numeral: "IV",
+                kwUp: ["Cozy Stability", "Nap Time", "Boundaries"], kwRev: ["Boredom", "Restless", "Hoarding"],
+                up: {
+                    love: (s) => s === 'Cups' ? "So busy staring at one text that didn't come through, you're missing cuties IRL." : s === 'Wands' ? "Party time! Relationship milestones and happy celebrations." : "Protecting your heart and chilling in your comfort zone.",
+                    career: (s) => s === 'Pentacles' ? "Saving your money and guarding your budget like a dragon." : s === 'Swords' ? "Mental health day! Close the laptop and take a nap." : "Solid, stable progress at work.",
+                    growth: (s) => "Protecting your peace and saying no to draining plans.",
+                    general: (s) => "Cozy, stable vibes—take a breather and enjoy what you have."
+                },
+                rev: {
+                    love: (s) => "Shaking off a dry spell and getting back out there!",
+                    career: (s) => "Retail therapy spree or restless urge to switch jobs.",
+                    growth: (s) => "Your comfort zone is getting boring—try something new today.",
+                    general: (s) => "Time to wake up from your nap and stir up some fun."
+                }
+            },
+            {
+                rank: 5, name: "Five", numeral: "V",
+                kwUp: ["Spicy Drama", "Plot Bump", "Petty Argument"], kwRev: ["Making Up", "Moving On", "Peace Treaty"],
+                up: {
+                    love: (s) => s === 'Swords' ? "Winning the argument just to sleep on the couch alone. Was it worth it?" : s === 'Cups' ? "Pouting over what went wrong instead of seeing what's still good." : "Petty bickering or competing for attention.",
+                    career: (s) => "Annoying workplace competition or unexpected bill annoyance.",
+                    growth: (s) => "Don't attend every argument you're invited to today.",
+                    general: (s) => "A little mid-week chaos! Keep your sense of humor."
+                },
+                rev: {
+                    love: (s) => "Dropping the petty fight and calling a truce.",
+                    career: (s) => "Bouncing back from a budget dip or leaving office drama behind.",
+                    growth: (s) => "Choosing peace over proving you were right.",
+                    general: (s) => "The drama blows over and things calm back down."
+                }
+            },
+            {
+                rank: 6, name: "Six", numeral: "VI",
+                kwUp: ["Sweet Relief", "Nostalgia", "Victory"], kwRev: ["Stuck In The Past", "Strings Attached", "Ego"],
+                up: {
+                    love: (s) => s === 'Cups' ? "Someone from your past pops up with a 'hey stranger' text!" : s === 'Swords' ? "Sailing away from toxic drama toward calmer waters." : "Sweet gestures, generosity, and feeling appreciated.",
+                    career: (s) => s === 'Wands' ? "Everybody's clapping for you! Take your victory lap." : "Fair rewards, helpful mentors, or smoother workdays.",
+                    growth: (s) => "Leaving a stressful chapter behind and feeling lighter.",
+                    general: (s) => "Good karma, sweet memories, and well-earned wins!"
+                },
+                rev: {
+                    love: (s) => "Rose-tinted glasses are making your ex look way cooler than they actually were.",
+                    career: (s) => "Watch out for 'favors' at work that come with extra chores.",
+                    growth: (s) => "Stop comparing today to five years ago—live in the now!",
+                    general: (s) => "Let go of yesterday's storyline and look forward."
+                }
+            },
+            {
+                rank: 7, name: "Seven", numeral: "VII",
+                kwUp: ["Sneaky Vibes", "Too Many Choices", "Hold Ground"], kwRev: ["Busted!", "Clarity", "Picking One"],
+                up: {
+                    love: (s) => s === 'Swords' ? "Somebody is being sneaky or hiding their phone screen!" : s === 'Cups' ? "Daydreaming about 5 different crushes and texting none of them." : "Standing firm on your standards.",
+                    career: (s) => s === 'Swords' ? "Work smarter, not harder—and watermark your ideas!" : "Long-term hustle is starting to pay off, stay patient.",
+                    growth: (s) => "Separate cute daydreams from actual reality.",
+                    general: (s) => "Play your cards close to your chest and stay sharp."
+                },
+                rev: {
+                    love: (s) => "The secret comes out, or you finally narrow down your options!",
+                    career: (s) => "Impostor syndrome check—you know more than you think.",
+                    growth: (s) => "Being 100% honest with yourself instead of making excuses.",
+                    general: (s) => "The illusion pops and you see the obvious move."
+                }
+            },
+            {
+                rank: 8, name: "Eight", numeral: "VIII",
+                kwUp: ["Fast Texts", "Leveling Up", "Walking Away"], kwRev: ["Overthinking", "Rushing", "Stuck"],
+                up: {
+                    love: (s) => s === 'Cups' ? "Walking away from a 'meh' situation to find something that actually excites you." : s === 'Swords' ? "You're trapped in an imaginary problem your own brain invented!" : "Fast texts, exciting plans, and rapid movement.",
+                    career: (s) => s === 'Pentacles' ? "Mastering your craft and getting really good at what you do." : s === 'Wands' ? "Fast emails, quick offers, and sudden green lights!" : "Breaking out of a boring work rut.",
+                    growth: (s) => "Realizing you can take off the mental blindfold whenever you want.",
+                    general: (s) => "Things speed up fast once you make up your mind!"
+                },
+                rev: {
+                    love: (s) => "Staying out of habit, or rushing into things way too fast.",
+                    career: (s) => "Bored with repetitive tasks—switch up your playlist and power through.",
+                    growth: (s) => "Stop talking yourself into a corner.",
+                    general: (s) => "Take a breath before hitting send on that impulsive message."
+                }
+            },
+            {
+                rank: 9, name: "Nine", numeral: "IX",
+                kwUp: ["Rich Single Auntie", "Wish Card", "3AM Brain"], kwRev: ["Over-Budget", "Waking Up", "Guarded"],
+                up: {
+                    love: (s) => s === 'Pentacles' ? "Hot, independent, and spoiling yourself! Anyone who dates you has to beat your solo peace." : s === 'Swords' ? "3 AM anxiety spiral over a totally normal conversation." : s === 'Cups' ? "Wish granted! Smug, happy, treat-yourself energy." : "Keeping your guard up after past drama.",
+                    career: (s) => s === 'Pentacles' ? "Financial glow-up! Enjoy the nice things you worked for." : "Almost at the finish line—one last push!",
+                    growth: (s) => s === 'Swords' ? "Go to sleep! Nothing good is figured out at 3:15 AM." : "Loving your own company and feeling proud of how far you've come.",
+                    general: (s) => s === 'Cups' ? "Treat yourself—your wish is coming true!" : "Solo confidence and resilience."
+                },
+                rev: {
+                    love: (s) => "Lowering your 10-foot defensive wall just a tiny bit.",
+                    career: (s) => "Check your banking app before clicking 'Checkout' on that cart!",
+                    growth: (s) => "Realizing your 3 AM worries weren't actually a big deal in the morning.",
+                    general: (s) => "Let people help you instead of doing everything alone."
+                }
+            },
+            {
+                rank: 10, name: "Ten", numeral: "X",
+                kwUp: ["Big Finale", "Doing Too Much", "Jackpot"], kwRev: ["Dropping Baggage", "Survived It", "Relief"],
+                up: {
+                    love: (s) => s === 'Cups' ? "Rom-com happy ending and pure wholesome bliss!" : s === 'Swords' ? "So dramatic it's almost funny—the absolute end of a dead dynamic so you can rise from the ashes!" : "Long-term stability, or carrying the whole relationship on your back.",
+                    career: (s) => s === 'Wands' ? "Stop saying yes to every task! You're carrying ten logs at once." : s === 'Pentacles' ? "Big money, long-term security, and boss-level success." : "Wrapping up a major chapter.",
+                    growth: (s) => s === 'Swords' ? "Okay drama royal, pull the swords out and grab brunch—the worst is over!" : "Completing a huge personal milestone.",
+                    general: (s) => "Full circle moment! Either a huge win or time to drop heavy baggage."
+                },
+                rev: {
+                    love: (s) => "Bouncing back from drama and refusing to carry someone else's baggage.",
+                    career: (s) => "Delegating the annoying work and reclaiming your weekend.",
+                    growth: (s) => "Putting down the 50-pound backpack of other people's problems.",
+                    general: (s) => "Sweet relief—the dramatic finale is officially behind you!"
+                }
+            },
+            {
+                rank: 11, name: "Page", numeral: "PG",
+                kwUp: ["Flirty Text", "FBI Stalking", "New Idea"], kwRev: ["Immature", "Left On Read", "Gossip"],
+                up: {
+                    love: (s) => s === 'Swords' ? "Checking their stories from a burner account—we see you, detective!" : s === 'Cups' ? "A cute, slightly shy confession or sweet DM!" : "Playful banter and fun new crushes.",
+                    career: (s) => `Fresh idea or exciting news in ${SUIT_META[s].domain.toLowerCase()}.`,
+                    growth: (s) => "Stay curious and let yourself be a beginner at something fun.",
+                    general: (s) => "Ping! Expect an interesting text, invite, or piece of gossip today."
+                },
+                rev: {
+                    love: (s) => "Childish games and dry texting. Don't babysit a grown adult!",
+                    career: (s) => "Procrastinating on an assignment until an hour before the deadline.",
+                    growth: (s) => "Use your words instead of giving passive-aggressive hints.",
+                    general: (s) => "Verify the rumor before you forward it to the group chat."
+                }
+            },
+            {
+                rank: 12, name: "Knight", numeral: "KN",
+                kwUp: ["Bold Move", "Chaotic Hottie", "Fast Action"], kwRev: ["Heartbreaker", "Flaky", "Zero Chill"],
+                up: {
+                    love: (s) => s === 'Wands' ? "Super hot, super fun, and probably allergic to commitment—enjoy with caution!" : s === 'Cups' ? "Romantic playlists and grand gestures!" : s === 'Pentacles' ? "Slow, loyal, and actually shows up on time." : "Bold, direct pursuit with zero filter.",
+                    career: (s) => `Charging full speed ahead on your ${s} goals!`,
+                    growth: (s) => "Taking bold action instead of sitting around thinking about it.",
+                    general: (s) => "Fast movement, road trips, or someone dramatic entering the chat!"
+                },
+                rev: {
+                    love: (s) => "Classic ghoster/player energy, or someone picking arguments for sport.",
+                    career: (s) => "Rushing through work and making silly typos, or total procrastination.",
+                    growth: (s) => "All gas, no brakes! Slow down before you crash into a wall.",
+                    general: (s) => "Watch out for flaky plans and impulsive promises."
+                }
+            },
+            {
+                rank: 13, name: "Queen", numeral: "QN",
+                kwUp: ["Main Character", "Baddie Energy", "Intuitive"], kwRev: ["Petty Mode", "Salty", "Overthinking"],
+                up: {
+                    love: (s) => s === 'Swords' ? "High standards, sharp wit, and zero tolerance for nonsense. Iconic!" : s === 'Wands' ? "Life of the party—everybody in the room has a crush on you." : s === 'Cups' ? "Sweet, psychic, and emotionally dialed-in." : "Spoiled, grounded, high-value partner energy.",
+                    career: (s) => `Running the show effortlessly with ${s} confidence.`,
+                    growth: (s) => "Knowing your worth without needing anyone else to validate it.",
+                    general: (s) => "Crown on straight! You're magnetic and totally in your element."
+                },
+                rev: {
+                    love: (s) => "Being extra salty or testing your partner with secret traps.",
+                    career: (s) => "Catty office drama or burnout from doing too much.",
+                    growth: (s) => "Don't let a bad mood make you forget who you are.",
+                    general: (s) => "Take a breath before roasting someone into oblivion."
+                }
+            },
+            {
+                rank: 14, name: "King", numeral: "KG",
+                kwUp: ["Big Boss", "Emotionally Mature", "Provider"], kwRev: ["Ego Trip", "Stubborn", "Player"],
+                up: {
+                    love: (s) => s === 'Cups' ? "Emotionally mature, calm, and communicates like an adult—rare gem alert!" : s === 'Pentacles' ? "Picking up the dinner tab and offering rock-solid loyalty." : s === 'Swords' ? "Smart, honest, and gives great advice." : "Bold, protective, and exciting.",
+                    career: (s) => `Top-tier boss moves in ${SUIT_META[s].domain.toLowerCase()}. Own the room!`,
+                    growth: (s) => "Total mastery over your reactions and mindset.",
+                    general: (s) => "Big boss energy! Lead the way and set the standard."
+                },
+                rev: {
+                    love: (s) => "Selfish ego trips, stubborn silence, or manipulative guilt-tripping.",
+                    career: (s) => "Dealing with a bossy know-it-all at work.",
+                    growth: (s) => "Being way too stubborn to admit you changed your mind.",
+                    general: (s) => "Don't let someone on a power trip boss you around."
+                }
+            }
+        ];
+
+        // Build complete 78-card array
+        const FULL_DECK = [...MAJOR_ARCANA];
+        let cardCounter = 23;
+        Object.keys(SUIT_META).forEach((suit) => {
+            RANKS_META.forEach((r) => {
+                FULL_DECK.push({
+                    id: cardCounter++,
+                    number: r.rank,
+                    numeral: r.numeral,
+                    name: `${r.name} of ${suit}`,
+                    arcana: "Minor Arcana",
+                    suit: suit,
+                    element: SUIT_META[suit].element,
+                    kwUp: r.kwUp,
+                    kwRev: r.kwRev,
+                    up: {
+                        love: r.up.love(suit),
+                        career: r.up.career(suit),
+                        growth: r.up.growth(suit),
+                        general: r.up.general(suit)
+                    },
+                    rev: {
+                        love: r.rev.love(suit),
+                        career: r.rev.career(suit),
+                        growth: r.rev.growth(suit),
+                        general: r.rev.general(suit)
+                    }
+                });
+            });
+        });
+
+        const SNARKY_QUESTIONS = {
+            love: [
+                "Are they actually busy, or am I getting ghosted in HD?",
+                "Should I double-text them or throw my phone into the ocean?",
+                "Is this soulmate chemistry or am I just bored on a Tuesday?",
+                "What happens if I reply to their story with fire emojis right now?",
+                "Why do I keep falling for people who don't own a bedframe?"
+            ],
+            career: [
+                "Should I quit my job and sell iced coffee on a beach?",
+                "Am I getting promoted soon, or just given extra work for free?",
+                "What happens if I stop putting exclamation points in my work emails?",
+                "How do I get rich without waking up at 5 AM?",
+                "Is my boss intimated by my genius or am I just loud?"
+            ],
+            growth: [
+                "Am I protecting my peace, or just avoiding my responsibilities?",
+                "What delulu habit of mine is currently running the show?",
+                "Is this my intuition talking, or did I just drink too much iced coffee?",
+                "How do I stop sabotaging my sleep schedule every night?",
+                "What's the main character glow-up move I'm ignoring?"
+            ],
+            general: [
+                "What hilarious plot twist is headed my way this week?",
+                "Roast my current life vibe in three cards or less!",
+                "What obvious sign from the universe am I pretending not to see?",
+                "Where is the drama coming from next, and how do I win?",
+                "Give me the tea I'm too scared to ask my friends!"
+            ]
+        };
+
+        const CATEGORY_LABELS = {
+            love: "Love & Exes 💘",
+            career: "Career & Cash 💸",
+            growth: "Me, Myself & I 🧠",
+            general: "General Vibes 🔮"
+        };
+
+        /**************************************************************
+         * 4. PLAYFUL QUIRKY POP-TAROT SVG ARTWORK RENDERERS
+         **************************************************************/
+        function renderCardBackSVG() {
+            return `
+            <svg viewBox="0 0 200 320" class="w-full h-full bg-[#7C3AED]">
+                <rect width="200" height="320" fill="#7C3AED"/>
+                <!-- Checkered Quirky Border -->
+                <rect x="10" y="10" width="180" height="300" rx="12" fill="#F3E8FF" stroke="#1E1B2E" stroke-width="4"/>
+                <rect x="18" y="18" width="164" height="284" rx="8" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3"/>
+                <!-- Fun Sunburst & Stars -->
+                <circle cx="100" cy="160" r="56" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3.5"/>
+                <polygon points="100,92 115,138 162,138 124,166 138,212 100,184 62,212 76,166 38,138 85,138" fill="#FFFFFF" stroke="#1E1B2E" stroke-width="3" stroke-linejoin="round"/>
+                <!-- Sassy Winking Eye in Center -->
+                <ellipse cx="100" cy="162" rx="18" ry="12" fill="#34D399" stroke="#1E1B2E" stroke-width="2.5"/>
+                <circle cx="100" cy="162" r="6" fill="#1E1B2E"/>
+                <circle cx="103" cy="159" r="2" fill="#FFFFFF"/>
+                <!-- Corner Stickers -->
+                <circle cx="36" cy="38" r="8" fill="#FFD13B" stroke="#1E1B2E" stroke-width="2.5"/>
+                <circle cx="164" cy="38" r="8" fill="#34D399" stroke="#1E1B2E" stroke-width="2.5"/>
+                <circle cx="36" cy="282" r="8" fill="#34D399" stroke="#1E1B2E" stroke-width="2.5"/>
+                <circle cx="164" cy="282" r="8" fill="#FFD13B" stroke="#1E1B2E" stroke-width="2.5"/>
+            </svg>`;
+        }
+
+        function renderCardFrontSVG(card) {
+            const palettes = {
+                Major: { bg: '#FEF08A', cardBg: '#FFFDF7', accent: '#FF5E99', badge: '#DDD6FE' },
+                Wands: { bg: '#FED7AA', cardBg: '#FFFDF7', accent: '#F97316', badge: '#FEF08A' },
+                Cups: { bg: '#BAE6FD', cardBg: '#FFFDF7', accent: '#0EA5E9', badge: '#FCE7F3' },
+                Swords: { bg: '#E9D5FF', cardBg: '#FFFDF7', accent: '#8B5CF6', badge: '#E0F2FE' },
+                Pentacles: { bg: '#A7F3D0', cardBg: '#FFFDF7', accent: '#10B981', badge: '#FEF08A' }
+            };
+            const pal = palettes[card.suit] || palettes.Major;
+
+            let centerArt = '';
+            if (card.suit === 'Major') {
+                const doodles = [
+                    // Sun / Starburst Face
+                    `<circle cx="100" cy="142" r="44" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3.5"/>
+                     <circle cx="86" cy="136" r="4" fill="#1E1B2E"/><circle cx="114" cy="136" r="4" fill="#1E1B2E"/>
+                     <path d="M88,152 Q100,162 112,152" fill="none" stroke="#1E1B2E" stroke-width="3.5" stroke-linecap="round"/>`,
+                    // Crystal Ball & Sparkles
+                    `<ellipse cx="100" cy="182" rx="32" ry="10" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3"/>
+                     <circle cx="100" cy="140" r="40" fill="#C4B5FD" stroke="#1E1B2E" stroke-width="3.5"/>
+                     <polygon points="100,112 106,132 126,138 106,144 100,164 94,144 74,138 94,132" fill="#FFF" stroke="#1E1B2E" stroke-width="2"/>`,
+                    // Heart & Lightning Bolt
+                    `<path d="M100,178 C100,178 56,148 56,120 C56,102 76,94 100,116 C124,94 144,102 144,120 C144,148 100,178 100,178 Z" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
+                     <polygon points="104,102 88,136 104,136 94,168 118,128 100,128" fill="#FFD13B" stroke="#1E1B2E" stroke-width="2.5" stroke-linejoin="round"/>`,
+                    // Crescent Moon & Cloud
+                    `<path d="M112,102 A38,38 0 1,0 138,162 A28,28 0 1,1 112,102 Z" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
+                     <circle cx="75" cy="118" r="6" fill="#34D399" stroke="#1E1B2E" stroke-width="2"/>`
+                ];
+                centerArt = doodles[card.id % doodles.length];
+            } else if (card.suit === 'Wands') {
+                centerArt = `
+                    <circle cx="100" cy="142" r="42" fill="#FFEDD5" stroke="#1E1B2E" stroke-width="3"/>
+                    <path d="M100,90 C128,118 124,152 100,176 C76,152 72,118 100,90 Z" fill="#F97316" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M100,118 C114,134 112,154 100,168 C88,154 86,134 100,118 Z" fill="#FFD13B" stroke="#1E1B2E" stroke-width="2.5"/>
+                `;
+            } else if (card.suit === 'Cups') {
+                centerArt = `
+                    <circle cx="100" cy="142" r="42" fill="#E0F2FE" stroke="#1E1B2E" stroke-width="3"/>
+                    <path d="M68,112 L132,112 C132,152 114,164 100,164 C86,164 68,152 68,112 Z" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <rect x="94" y="164" width="12" height="22" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3"/>
+                    <rect x="76" y="184" width="48" height="8" rx="4" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3"/>
+                `;
+            } else if (card.suit === 'Swords') {
+                centerArt = `
+                    <circle cx="100" cy="142" r="42" fill="#F3E8FF" stroke="#1E1B2E" stroke-width="3"/>
+                    <polygon points="100,86 110,156 100,168 90,156" fill="#38BDF8" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
+                    <rect x="74" y="154" width="52" height="10" rx="5" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3"/>
+                    <rect x="95" y="164" width="10" height="22" rx="3" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3"/>
+                `;
+            } else {
+                centerArt = `
+                    <circle cx="100" cy="142" r="44" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3.5"/>
+                    <polygon points="100,104 110,130 138,130 115,146 124,174 100,157 76,174 85,146 62,130 90,130" fill="#34D399" stroke="#1E1B2E" stroke-width="3" stroke-linejoin="round"/>
+                `;
+            }
+
+            return `
+            <svg viewBox="0 0 200 320" class="w-full h-full select-none">
+                <rect width="200" height="320" fill="${pal.bg}"/>
+                <rect x="10" y="10" width="180" height="300" rx="12" fill="${pal.cardBg}" stroke="#1E1B2E" stroke-width="4"/>
+
+                <!-- Top Pill Numeral -->
+                <rect x="65" y="22" width="70" height="24" rx="12" fill="${pal.badge}" stroke="#1E1B2E" stroke-width="2.5"/>
+                <text x="100" y="38" text-anchor="middle" fill="#1E1B2E" font-family="Fredoka, sans-serif" font-size="12" font-weight="700">${card.numeral}</text>
+
+                <!-- Center Illustration -->
+                ${centerArt}
+
+                <!-- Bottom Pop Label Box -->
+                <rect x="18" y="236" width="164" height="58" rx="10" fill="${pal.badge}" stroke="#1E1B2E" stroke-width="3"/>
+                <text x="100" y="260" text-anchor="middle" fill="#1E1B2E" font-family="Fredoka, sans-serif" font-size="13" font-weight="700">${card.name}</text>
+                <text x="100" y="280" text-anchor="middle" fill="#1E1B2E" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" font-weight="700" opacity="0.75">${card.arcana.toUpperCase()} • ${card.element.toUpperCase()}</text>
+            </svg>`;
+        }
+
+        /**************************************************************
+         * 5. APPLICATION STATE & INTERACTIVE LOGIC
+         **************************************************************/
+        let appState = {
+            reader: 'aura',
+            category: 'love',
+            spreadCount: 3,
+            question: '',
+            deckOrder: [],
+            drawnCards: [],
+            activeTabIndex: 0
+        };
+
+        function getReaderAvatarSVG(readerId) {
+            const btn = document.getElementById(`reader-btn-${readerId}`);
+            if (!btn) return '';
+            const svg = btn.querySelector('svg');
+            return svg ? svg.outerHTML : '';
+        }
+
+        function selectReader(readerId) {
+            playSound('tap');
+            appState.reader = readerId;
+            const btnAura = document.getElementById('reader-btn-aura');
+            const btnColin = document.getElementById('reader-btn-colin');
+
+            if (readerId === 'aura') {
+                btnAura.className = "persona-aura-active rounded-2xl p-2.5 sm:p-3 text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden";
+                btnColin.className = "rounded-2xl p-2.5 sm:p-3 bg-white/80 border-2 border-ink/25 hover:border-ink text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden";
+            } else {
+                btnColin.className = "persona-colin-active rounded-2xl p-2.5 sm:p-3 text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden";
+                btnAura.className = "rounded-2xl p-2.5 sm:p-3 bg-white/80 border-2 border-ink/25 hover:border-ink text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden";
+            }
+            document.getElementById('readerActiveTagline').textContent = READERS[readerId].tagline;
+        }
+
+        function selectCategory(cat) {
+            playSound('tap');
+            appState.category = cat;
+            const bgMap = {
+                love: 'bg-pink-200',
+                career: 'bg-amber-200',
+                growth: 'bg-emerald-200',
+                general: 'bg-purple-200'
+            };
+            document.querySelectorAll('.cat-pill').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = `cat-pill pop-card-sm rounded-xl p-2 sm:p-2.5 ${bgMap[cat]} text-left transition flex items-center gap-2`;
+                } else {
+                    btn.className = "cat-pill rounded-xl p-2 sm:p-2.5 bg-white/80 border-2 border-ink/20 hover:border-ink text-left transition flex items-center gap-2";
+                }
+            });
+            const qList = SNARKY_QUESTIONS[cat];
+            document.getElementById('userQuestionInput').placeholder = `e.g., ${qList[0]}`;
+        }
+
+        function rollSnarkyQuestion() {
+            playSound('tap');
+            const list = SNARKY_QUESTIONS[appState.category];
+            const input = document.getElementById('userQuestionInput');
+            const current = input.value;
+            let candidates = list.filter(q => q !== current);
+            if (!candidates.length) candidates = list;
+            input.value = candidates[Math.floor(Math.random() * candidates.length)];
+        }
+
+        function selectSpread(count) {
+            playSound('tap');
+            appState.spreadCount = count;
+            const b1 = document.getElementById('spread-toggle-1');
+            const b3 = document.getElementById('spread-toggle-3');
+            const activeCls = "flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-display text-xs font-bold transition bg-sunny text-ink border-2 border-ink shadow-[0_2px_0_#1E1B2E]";
+            const idleCls = "flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-display text-xs font-bold transition text-ink/70 hover:text-ink";
+            b1.className = count === 1 ? activeCls : idleCls;
+            b3.className = count === 3 ? activeCls : idleCls;
+        }
+
+        function cryptoShuffleDeck() {
+            const copy = [...FULL_DECK];
+            const rand = new Uint32Array(copy.length);
+            window.crypto.getRandomValues(rand);
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = rand[i] % (i + 1);
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function switchStage(stageId) {
+            ['stage-setup', 'stage-draw', 'stage-reading'].forEach(id => {
+                const el = document.getElementById(id);
+                if (id === stageId) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+
+        function startShuffleStage() {
+            playSound('shuffle');
+            const rawQ = document.getElementById('userQuestionInput').value.trim();
+            const fallbackList = SNARKY_QUESTIONS[appState.category];
+            appState.question = rawQ || fallbackList[0];
+            appState.drawnCards = [];
+            appState.deckOrder = cryptoShuffleDeck();
+
+            const reader = READERS[appState.reader];
+            document.getElementById('drawReaderAvatar').innerHTML = getReaderAvatarSVG(appState.reader);
+            document.getElementById('drawReaderName').textContent = `${reader.emoji} ${reader.name} (${reader.title})`;
+            document.getElementById('drawReaderQuip').textContent = reader.shuffleQuips[Math.floor(Math.random() * reader.shuffleQuips.length)];
+            document.getElementById('drawRemainingCount').textContent = appState.spreadCount;
+
+            renderFanDeck();
+            renderDrawnSlotsPreview();
+            switchStage('stage-draw');
+        }
+
+        function renderFanDeck() {
+            const container = document.getElementById('fannedDeckRow');
+            const fanCount = 11;
+            let html = '';
+            for (let i = 0; i < fanCount; i++) {
+                const angle = (i - (fanCount - 1) / 2) * 3.5;
+                const yOffset = Math.abs(i - (fanCount - 1) / 2) * 2.2;
+                html += `
+                <button
+                    type="button"
+                    onclick="pickCardFromFan(this, ${i})"
+                    style="transform: rotate(${angle}deg) translateY(${yOffset}px); margin-left: ${i === 0 ? '0px' : '-16px'};"
+                    class="fan-card w-16 h-26 sm:w-20 sm:h-32 rounded-xl shadow-md border-2 border-ink overflow-hidden shrink-0 focus:outline-none"
+                    title="Pull Tarot Card"
+                >
+                    ${renderCardBackSVG()}
+                </button>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function getSpreadSlotMeta(index) {
+            if (appState.spreadCount === 1) {
+                return { title: "The Vibe Check", desc: "Your unfiltered answer right now" };
+            }
+            const slots = [
+                { title: "1. The Past", desc: "How this whole story started" },
+                { title: "2. The Present", desc: "What's actually going on right now" },
+                { title: "3. The Future", desc: "Where this is heading next" }
+            ];
+            return slots[index];
+        }
+
+        function renderDrawnSlotsPreview() {
+            const preview = document.getElementById('drawnSlotsPreview');
+            let html = '';
+            for (let i = 0; i < appState.spreadCount; i++) {
+                const slot = getSpreadSlotMeta(i);
+                const filled = appState.drawnCards[i];
+                html += `
+                <div class="px-2.5 py-1 rounded-xl border-2 border-ink ${filled ? 'bg-mint text-ink font-bold shadow-[0_2px_0_#1E1B2E]' : 'bg-gray-100 text-ink/45 font-semibold'} text-xs flex items-center gap-1">
+                    <i class="ph-fill ${filled ? 'ph-check-circle' : 'ph-circle-dashed'}"></i>
+                    <span>${slot.title}</span>
+                </div>`;
+            }
+            preview.innerHTML = html;
+            const rem = Math.max(0, appState.spreadCount - appState.drawnCards.length);
+            document.getElementById('drawRemainingCount').textContent = rem;
+        }
+
+        function pickCardFromFan(btnEl) {
+            if (appState.drawnCards.length >= appState.spreadCount) return;
+            playSound('flip');
+            btnEl.classList.add('picked');
+
+            const cardIndex = appState.drawnCards.length;
+            const selectedCard = appState.deckOrder[cardIndex];
+            const randByte = new Uint8Array(1);
+            window.crypto.getRandomValues(randByte);
+            const isReversed = (randByte[0] % 2) === 1;
+            const slotMeta = getSpreadSlotMeta(cardIndex);
+
+            appState.drawnCards.push({
+                card: selectedCard,
+                isReversed: isReversed,
+                flipped: false,
+                positionTitle: slotMeta.title,
+                positionDesc: slotMeta.desc
+            });
+
+            renderDrawnSlotsPreview();
+
+            if (appState.drawnCards.length === appState.spreadCount) {
+                setTimeout(() => launchReadingStage(), 280);
+            }
+        }
+
+        function reshuffleFan() {
+            playSound('shuffle');
+            appState.drawnCards = [];
+            appState.deckOrder = cryptoShuffleDeck();
+            const row = document.getElementById('fannedDeckRow');
+            row.classList.add('shuffling-anim');
+            setTimeout(() => {
+                row.classList.remove('shuffling-anim');
+                renderFanDeck();
+                renderDrawnSlotsPreview();
+            }, 340);
+        }
+
+        function instantAutoDraw() {
+            playSound('flip');
+            while (appState.drawnCards.length < appState.spreadCount) {
+                const idx = appState.drawnCards.length;
+                const selectedCard = appState.deckOrder[idx];
+                const randByte = new Uint8Array(1);
+                window.crypto.getRandomValues(randByte);
+                const isReversed = (randByte[0] % 2) === 1;
+                const slotMeta = getSpreadSlotMeta(idx);
+                appState.drawnCards.push({
+                    card: selectedCard,
+                    isReversed,
+                    flipped: true,
+                    positionTitle: slotMeta.title,
+                    positionDesc: slotMeta.desc
+                });
+            }
+            launchReadingStage();
+        }
+
+        function launchReadingStage() {
+            if (appState.drawnCards.length > 0) {
+                appState.drawnCards[0].flipped = true;
+            }
+            appState.activeTabIndex = 0;
+            saveReadingToBurnBook();
+            switchStage('stage-reading');
+            updateLiveReaderButtons();
+            renderReadingTabs();
+            renderActiveReadingTab();
+        }
+
+        function updateLiveReaderButtons() {
+            const bAura = document.getElementById('live-reader-aura');
+            const bColin = document.getElementById('live-reader-colin');
+            if (appState.reader === 'aura') {
+                bAura.className = "px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition bg-emerald-300 text-ink border border-ink shadow-[0_1px_0_#1E1B2E]";
+                bColin.className = "px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition text-ink/60 hover:text-ink";
+            } else {
+                bColin.className = "px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition bg-pink-300 text-ink border border-ink shadow-[0_1px_0_#1E1B2E]";
+                bAura.className = "px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition text-ink/60 hover:text-ink";
+            }
+        }
+
+        function switchReaderDuringReading(newReaderId) {
+            playSound('tap');
+            appState.reader = newReaderId;
+            updateLiveReaderButtons();
+            renderActiveReadingTab();
+        }
+
+        function renderReadingTabs() {
+            const tabContainer = document.getElementById('readingPositionTabs');
+            let html = '';
+            appState.drawnCards.forEach((item, idx) => {
+                const isActive = appState.activeTabIndex === idx;
+                html += `
+                <button
+                    onclick="selectReadingTab(${idx})"
+                    class="px-2.5 sm:px-3 py-1 rounded-lg font-display text-xs font-bold transition flex items-center gap-1 whitespace-nowrap ${isActive ? 'bg-sunny text-ink border border-ink shadow-[0_1px_0_#1E1B2E]' : 'text-ink/70 hover:text-ink'}"
+                >
+                    <span>${item.positionTitle}</span>
+                    ${item.flipped ? `<span class="text-[10px] opacity-75 hidden sm:inline">• ${item.card.name}</span>` : `<span>🔒</span>`}
+                </button>`;
+            });
+
+            // Final Summary Tea Tab
+            const isVerdict = appState.activeTabIndex === appState.drawnCards.length;
+            html += `
+            <button
+                onclick="selectReadingTab(${appState.drawnCards.length})"
+                class="px-2.5 sm:px-3 py-1 rounded-lg font-display text-xs font-bold transition flex items-center gap-1 whitespace-nowrap ${isVerdict ? 'bg-bubblegum text-white border border-ink shadow-[0_1px_0_#1E1B2E]' : 'text-bubblegum hover:bg-pink-100'}"
+            >
+                <span>☕ TL;DR Tea</span>
+            </button>`;
+
+            tabContainer.innerHTML = html;
+
+            const allFlipped = appState.drawnCards.every(c => c.flipped);
+            const flipBtn = document.getElementById('flipAllActionBtn');
+            if (flipBtn) {
+                flipBtn.style.display = allFlipped ? 'none' : 'flex';
+            }
+        }
+
+        function selectReadingTab(idx) {
+            playSound('flip');
+            appState.activeTabIndex = idx;
+            if (idx < appState.drawnCards.length && !appState.drawnCards[idx].flipped) {
+                appState.drawnCards[idx].flipped = true;
+            }
+            renderReadingTabs();
+            renderActiveReadingTab();
+        }
+
+        function flipSingleCard(idx) {
+            playSound('flip');
+            appState.drawnCards[idx].flipped = !appState.drawnCards[idx].flipped;
+            renderReadingTabs();
+            renderActiveReadingTab();
+        }
+
+        function flipAllCardsNow() {
+            playSound('flip');
+            appState.drawnCards.forEach(c => c.flipped = true);
+            renderReadingTabs();
+            renderActiveReadingTab();
+        }
+
+        function formatBoldMarkdown(str) {
+            return str
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-grape font-extrabold">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em class="underline decoration-wavy decoration-pink-400">$1</em>');
+        }
+
+        function renderActiveReadingTab() {
+            const panel = document.getElementById('readingActivePanel');
+            const reader = READERS[appState.reader];
+
+            // Final TL;DR Tea Verdict View
+            if (appState.activeTabIndex === appState.drawnCards.length) {
+                appState.drawnCards.forEach(c => c.flipped = true);
+                renderReadingTabs();
+
+                const catLabel = CATEGORY_LABELS[appState.category];
+                const intro = reader.verdictIntro(appState.question, catLabel);
+
+                let bulletsHtml = '';
+                appState.drawnCards.forEach((item) => {
+                    const c = item.card;
+                    const core = item.isReversed ? c.rev[appState.category] : c.up[appState.category];
+                    bulletsHtml += `
+                    <div class="p-2.5 rounded-xl bg-cream border-2 border-ink flex items-start gap-2.5 shadow-[0_2px_0_#1E1B2E]">
+                        <div class="px-2 py-0.5 rounded-lg bg-sunny border border-ink font-display text-[11px] font-bold text-ink shrink-0 mt-0.5">
+                            ${item.positionTitle}
+                        </div>
+                        <div class="text-xs sm:text-sm text-ink leading-snug">
+                            <strong class="font-display text-grape">${c.name} ${item.isReversed ? '(Upside-Down)' : '(Upright)'}:</strong>
+                            <span class="font-medium ml-1">${core}</span>
+                        </div>
+                    </div>`;
+                });
+
+                const finalChallenge = appState.reader === 'aura'
+                    ? `"Drink a big glass of water, block anyone who makes you feel weird, and do one nice thing for yourself in the next hour!"`
+                    : `"Screenshot this reading, send it to your group chat with zero context, and go do whatever chaotic thing you were trying to talk yourself out of!"`;
+
+                panel.innerHTML = `
+                <div class="w-full h-full flex flex-col justify-between overflow-y-auto thin-scroll pr-1 space-y-2.5">
+                    <div class="flex items-center gap-3 border-b-2 border-ink/15 pb-2 shrink-0">
+                        <div class="w-11 h-11 rounded-2xl border-2 border-ink overflow-hidden shrink-0 shadow-[0_2px_0_#1E1B2E]">
+                            ${getReaderAvatarSVG(appState.reader)}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-display text-sm sm:text-base font-bold text-ink">${reader.emoji} ${reader.name}'s Final Tea</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${reader.pillClass}">${catLabel}</span>
+                            </div>
+                            <p class="text-xs text-ink/80 font-semibold mt-0.5">${formatBoldMarkdown(intro)}</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 flex-1">
+                        ${bulletsHtml}
+                    </div>
+
+                    <div class="p-3 rounded-xl ${reader.boxBg} border-2 border-ink shadow-[0_2px_0_#1E1B2E] shrink-0">
+                        <span class="font-display font-bold text-xs text-ink uppercase block">✨ Dare From ${reader.name}:</span>
+                        <p class="text-xs sm:text-sm font-bold text-grape mt-0.5">${finalChallenge}</p>
+                    </div>
+                </div>`;
+                return;
+            }
+
+            // Individual Card View
+            const item = appState.drawnCards[appState.activeTabIndex];
+            const card = item.card;
+            const isRev = item.isReversed;
+            const kws = isRev ? card.kwRev : card.kwUp;
+            const rawMeaning = isRev ? card.rev[appState.category] : card.up[appState.category];
+            const fullRoast = reader.voiceWrap(card.name, isRev, rawMeaning, appState.category, item.positionTitle);
+
+            const nextIdx = appState.activeTabIndex + 1;
+            const nextLabel = nextIdx < appState.drawnCards.length
+                ? `Next Card: ${appState.drawnCards[nextIdx].positionTitle} →`
+                : `See Final Tea ☕`;
+
+            const otherReaderName = appState.reader === 'aura' ? 'Chaos Colin 😈' : 'Auntie Aura 😇';
+            const otherReaderId = appState.reader === 'aura' ? 'colin' : 'aura';
+
+            panel.innerHTML = `
+                <!-- Left Column: Interactive 3D Pop Tarot Card -->
+                <div class="flex flex-col items-center justify-center shrink-0">
+                    <div
+                        onclick="flipSingleCard(${appState.activeTabIndex})"
+                        class="w-32 h-52 sm:w-44 sm:h-72 perspective-1000 cursor-pointer group relative"
+                        title="Tap to flip card"
+                    >
+                        <div class="card-3d-inner ${item.flipped ? 'is-flipped' : ''}">
+                            <!-- Card Back -->
+                            <div class="card-face shadow-lg border-2 border-ink">
+                                ${renderCardBackSVG()}
+                                <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                    <span class="px-2.5 py-1 rounded-full bg-sunny border-2 border-ink font-display text-xs font-bold text-ink shadow">Tap to Flip!</span>
+                                </div>
+                            </div>
+                            <!-- Card Front -->
+                            <div class="card-face card-face-front shadow-lg border-2 border-ink">
+                                <div class="w-full h-full ${isRev ? 'reversed-artwork' : ''}">
+                                    ${renderCardFrontSVG(card)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="text-[11px] font-bold text-ink/70 mt-1.5">
+                        ${item.flipped ? (isRev ? '🙃 Upside-Down (Chaotic)' : '✨ Upright (Direct Hit)') : '👆 Tap Card To Flip'}
+                    </span>
+                </div>
+
+                <!-- Right Column: Reader's Roast & Card Details -->
+                <div class="flex-1 min-w-0 h-full flex flex-col justify-between overflow-y-auto thin-scroll pr-1">
+                    <div class="space-y-2">
+                        <!-- Top Position & Orientation Header -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink/10 pb-2">
+                            <div>
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-grape block">${item.positionTitle} — ${item.positionDesc}</span>
+                                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink leading-tight">
+                                    ${card.name}
+                                </h2>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-display font-bold border-2 border-ink shadow-[0_2px_0_#1E1B2E] ${isRev ? 'bg-pink-200 text-ink' : 'bg-mint text-ink'}">
+                                ${isRev ? '🙃 Reversed' : '✨ Upright'}
+                            </span>
+                        </div>
+
+                        <!-- Snarky Keywords -->
+                        <div class="flex flex-wrap gap-1.5">
+                            ${kws.map(k => `<span class="px-2.5 py-0.5 rounded-full bg-lilac border border-ink text-ink text-[11px] font-bold">#${k}</span>`).join('')}
+                        </div>
+
+                        <!-- Reader Speech Box -->
+                        <div class="p-3 sm:p-3.5 rounded-2xl ${reader.boxBg} border-2 border-ink shadow-[0_3px_0_#1E1B2E] relative mt-1">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <div class="w-7 h-7 rounded-xl border border-ink overflow-hidden shrink-0">
+                                    ${getReaderAvatarSVG(appState.reader)}
+                                </div>
+                                <span class="font-display text-xs sm:text-sm font-bold text-ink">${reader.emoji} ${reader.name} says:</span>
+                                <span class="text-[11px] text-ink/60 font-semibold truncate">re: "${appState.question}"</span>
+                            </div>
+                            <p class="text-xs sm:text-sm font-semibold text-ink leading-relaxed">
+                                ${formatBoldMarkdown(fullRoast)}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Card Navigation Footer inside Panel -->
+                    <div class="pt-2 mt-2 border-t-2 border-ink/10 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                        <button
+                            onclick="switchReaderDuringReading('${otherReaderId}')"
+                            class="text-xs font-bold text-grape hover:underline flex items-center gap-1"
+                        >
+                            🔄 Hear what ${otherReaderName} says
+                        </button>
+                        <button
+                            onclick="selectReadingTab(${nextIdx})"
+                            class="pop-card-sm px-3.5 py-1.5 rounded-xl bg-sunny hover:bg-amber-300 text-ink font-display font-bold text-xs transition"
+                        >
+                            ${nextLabel}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function resetToSetup() {
+            playSound('tap');
+            switchStage('stage-setup');
+        }
+
+        /**************************************************************
+         * 6. BURN BOOK (JOURNAL) & 78-CARD DECK MODAL
+         **************************************************************/
+        const BURN_BOOK_KEY = 'mysticdraw_pop_burnbook_v3';
+
+        function getBurnBook() {
+            try {
+                const raw = localStorage.getItem(BURN_BOOK_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveReadingToBurnBook() {
+            try {
+                const list = getBurnBook();
+                const entry = {
+                    id: Date.now(),
+                    date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' • ' + new Date().toLocaleDateString(),
+                    reader: `${READERS[appState.reader].emoji} ${READERS[appState.reader].name}`,
+                    category: CATEGORY_LABELS[appState.category],
+                    question: appState.question,
+                    cards: appState.drawnCards.map(d => ({
+                        name: d.card.name,
+                        isReversed: d.isReversed,
+                        pos: d.positionTitle,
+                        roast: d.isReversed ? d.card.rev[appState.category] : d.card.up[appState.category]
+                    }))
+                };
+                list.unshift(entry);
+                localStorage.setItem(BURN_BOOK_KEY, JSON.stringify(list.slice(0, 25)));
+                updateBurnBookBadge();
+            } catch (e) {}
+        }
+
+        function updateBurnBookBadge() {
+            const badge = document.getElementById('burnBookBadge');
+            if (badge) badge.textContent = getBurnBook().length;
+        }
+
+        function openBurnBookModal() {
+            playSound('tap');
+            const modal = document.getElementById('burnBookModal');
+            const listEl = document.getElementById('burnBookList');
+            const items = getBurnBook();
+
+            if (!items.length) {
+                listEl.innerHTML = `
+                <div class="text-center py-12 text-ink/60 font-bold">
+                    <span class="text-4xl block mb-2">📓</span>
+                    Your Burn Book is empty! Draw some cards first so we can save the tea.
+                </div>`;
+            } else {
+                listEl.innerHTML = items.map(item => `
+                <div class="pop-card-sm p-3.5 rounded-2xl bg-white space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-ink/15 pb-1.5">
+                        <span class="font-display text-xs font-bold text-grape">${item.reader} • ${item.category}</span>
+                        <span class="text-[10px] font-bold text-ink/50">${item.date}</span>
+                    </div>
+                    <p class="text-xs font-bold text-ink">"${item.question}"</p>
+                    <div class="space-y-1 pt-1">
+                        ${item.cards.map(c => `
+                            <div class="text-xs text-ink/85">
+                                <span class="font-bold text-ink">${c.pos} — ${c.name} ${c.isReversed ? '(Rev)' : ''}:</span>
+                                <span class="font-medium ml-1">${c.roast}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`).join('');
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeBurnBookModal() {
+            document.getElementById('burnBookModal').classList.add('hidden');
+        }
+
+        function clearBurnBook() {
+            localStorage.removeItem(BURN_BOOK_KEY);
+            updateBurnBookBadge();
+            openBurnBookModal();
+        }
+
+        function copyCurrentRoast() {
+            const reader = READERS[appState.reader];
+            const summaryLines = appState.drawnCards.map(d => {
+                const text = d.isReversed ? d.card.rev[appState.category] : d.card.up[appState.category];
+                return `${d.positionTitle}: ${d.card.name} (${d.isReversed ? 'Reversed' : 'Upright'}) — ${text}`;
+            }).join('\n');
+
+            const shareText = `✨ Tarot & Tea Reading with ${reader.emoji} ${reader.name}\nQuestion: "${appState.question}"\n${summaryLines}`;
+
+            const ta = document.createElement('textarea');
+            ta.value = shareText;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+
+            const btn = document.getElementById('copyRoastBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i class="ph-bold ph-check"></i> Copied!`;
+            setTimeout(() => { btn.innerHTML = orig; }, 1800);
+        }
+
+        /* 78-Card Deck Browser Modal */
+        function openGrimoireModal() {
+            playSound('tap');
+            document.getElementById('grimoireModal').classList.remove('hidden');
+            renderGrimoireGrid();
+        }
+
+        function closeGrimoireModal() {
+            document.getElementById('grimoireModal').classList.add('hidden');
+        }
+
+        function renderGrimoireGrid() {
+            const query = (document.getElementById('grimoireSearch').value || '').toLowerCase();
+            const suitFilter = document.getElementById('grimoireSuit').value;
+            const body = document.getElementById('grimoireBody');
+
+            const filtered = FULL_DECK.filter(c => {
+                const matchSuit = suitFilter === 'ALL'
+                    || (suitFilter === 'Major Arcana' && c.arcana === 'Major Arcana')
+                    || c.suit === suitFilter;
+                const matchText = c.name.toLowerCase().includes(query)
+                    || c.kwUp.some(k => k.toLowerCase().includes(query))
+                    || c.kwRev.some(k => k.toLowerCase().includes(query));
+                return matchSuit && matchText;
+            });
+
+            body.innerHTML = `
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                ${filtered.map(c => `
+                    <button
+                        onclick="inspectGrimoireCard(${c.id})"
+                        class="pop-card-sm p-2.5 rounded-2xl bg-white hover:bg-lilac text-left transition flex flex-col items-center group"
+                    >
+                        <div class="w-24 h-38 rounded-xl overflow-hidden border-2 border-ink group-hover:scale-105 transition">
+                            ${renderCardFrontSVG(c)}
+                        </div>
+                        <div class="mt-2 text-center w-full">
+                            <div class="font-display text-xs font-bold text-ink truncate">${c.name}</div>
+                            <div class="text-[10px] font-bold text-grape truncate">#${c.kwUp[0]}</div>
+                        </div>
+                    </button>
+                `).join('')}
+            </div>`;
+        }
+
+        function inspectGrimoireCard(cardId) {
+            playSound('flip');
+            const c = FULL_DECK.find(x => x.id === cardId);
+            if (!c) return;
+            const body = document.getElementById('grimoireBody');
+            body.innerHTML = `
+            <div class="space-y-4">
+                <button onclick="renderGrimoireGrid()" class="pop-card-sm px-3 py-1.5 rounded-xl bg-white text-ink font-display text-xs font-bold flex items-center gap-1.5">
+                    <i class="ph-bold ph-arrow-left"></i> Back to All 78 Cards
+                </button>
+                <div class="flex flex-col md:flex-row gap-5 items-center md:items-start">
+                    <div class="w-40 h-64 rounded-2xl overflow-hidden border-2 border-ink shadow-[0_4px_0_#1E1B2E] shrink-0">
+                        ${renderCardFrontSVG(c)}
+                    </div>
+                    <div class="flex-1 space-y-3">
+                        <div>
+                            <span class="text-xs font-bold uppercase text-grape">${c.arcana} • ${c.element}</span>
+                            <h4 class="font-display text-2xl font-bold text-ink">${c.name}</h4>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="pop-card-sm p-3 rounded-2xl bg-emerald-50 space-y-1.5">
+                                <div class="font-display text-xs font-bold text-emerald-800 uppercase">✨ Upright Vibes</div>
+                                <p class="text-xs text-ink"><strong>💘 Love:</strong> ${c.up.love}</p>
+                                <p class="text-xs text-ink"><strong>💸 Career:</strong> ${c.up.career}</p>
+                                <p class="text-xs text-ink"><strong>🧠 Self:</strong> ${c.up.growth}</p>
+                                <p class="text-xs text-ink"><strong>🔮 General:</strong> ${c.up.general}</p>
+                            </div>
+                            <div class="pop-card-sm p-3 rounded-2xl bg-pink-50 space-y-1.5">
+                                <div class="font-display text-xs font-bold text-pink-800 uppercase">🙃 Reversed Vibes</div>
+                                <p class="text-xs text-ink"><strong>💘 Love:</strong> ${c.rev.love}</p>
+                                <p class="text-xs text-ink"><strong>💸 Career:</strong> ${c.rev.career}</p>
+                                <p class="text-xs text-ink"><strong>🧠 Self:</strong> ${c.rev.growth}</p>
+                                <p class="text-xs text-ink"><strong>🔮 General:</strong> ${c.rev.general}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateBurnBookBadge();
+        });
+    </script>
+</body>
+</html>
