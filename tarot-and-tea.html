@@ -1,709 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarot &amp; Tea — Playful Tarot | Timeflo Experiences</title>
-    <meta name="description" content="Choose your tarot reader, draw from 78 cards, and save playful readings and cosmic roasts to your Burn Book with Tarot &amp; Tea.">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Fredoka (Bouncy Playful Display) & Plus Jakarta Sans (Clean Casual UI) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        display: ['"Fredoka"', 'sans-serif'],
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                    },
-                    colors: {
-                        cream: '#FFFDF7',
-                        lilac: '#F3E8FF',
-                        bubblegum: '#FF5E99',
-                        sunny: '#FFD13B',
-                        mint: '#34D399',
-                        grape: '#7C3AED',
-                        ink: '#1E1B2E'
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            box-sizing: border-box;
-        }
-        html, body {
-            height: 100dvh;
-            width: 100vw;
-            overflow: hidden;
-            background: linear-gradient(135deg, #FFF7ED 0%, #F5F3FF 50%, #FDF2F8 100%);
-            color: #1E1B2E;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            user-select: none;
-        }
-
-        /* Neo-brutalist Pop Tarot Borders & Shadows */
-        .pop-card {
-            background: #FFFFFF;
-            border: 2.5px solid #1E1B2E;
-            box-shadow: 0 4px 0 #1E1B2E;
-        }
-        .pop-card-sm {
-            background: #FFFFFF;
-            border: 2px solid #1E1B2E;
-            box-shadow: 0 3px 0 #1E1B2E;
-        }
-        .pop-btn {
-            border: 2.5px solid #1E1B2E;
-            box-shadow: 0 4px 0 #1E1B2E;
-            transition: transform 0.12s ease, box-shadow 0.12s ease;
-        }
-        .pop-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #1E1B2E;
-        }
-
-        /* Active Reader States */
-        .persona-aura-active {
-            background: linear-gradient(135deg, #FEF3C7 0%, #DCFCE7 100%) !important;
-            border: 2.5px solid #1E1B2E !important;
-            box-shadow: 0 4px 0 #1E1B2E !important;
-        }
-        .persona-colin-active {
-            background: linear-gradient(135deg, #FCE7F3 0%, #F3E8FF 100%) !important;
-            border: 2.5px solid #1E1B2E !important;
-            box-shadow: 0 4px 0 #1E1B2E !important;
-        }
-
-        /* Custom subtle scrollbars for inner panels/modals */
-        .thin-scroll::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        .thin-scroll::-webkit-scrollbar-track {
-            background: rgba(30, 27, 46, 0.05);
-            border-radius: 99px;
-        }
-        .thin-scroll::-webkit-scrollbar-thumb {
-            background: rgba(124, 58, 237, 0.35);
-            border-radius: 99px;
-        }
-
-        /* 3D Card Flip Containers */
-        .perspective-1000 {
-            perspective: 1200px;
-        }
-        .card-3d-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-            transform-style: preserve-3d;
-        }
-        .card-3d-inner.is-flipped {
-            transform: rotateY(180deg);
-        }
-        .card-face {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            border-radius: 14px;
-            overflow: hidden;
-        }
-        .card-face-front {
-            transform: rotateY(180deg);
-        }
-        .reversed-artwork {
-            transform: rotate(180deg);
-        }
-
-        /* Fan Deck Card Animations */
-        .fan-card {
-            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.25);
-        }
-        .fan-card:hover {
-            transform: translateY(-16px) scale(1.08) !important;
-            z-index: 30 !important;
-        }
-        .fan-card.picked {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-45px) scale(0.75) !important;
-        }
-
-        @keyframes wiggle {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-6deg) translateX(-8px); }
-            75% { transform: rotate(6deg) translateX(8px); }
-        }
-        .shuffling-anim {
-            animation: wiggle 0.32s ease-in-out infinite;
-        }
-        .timeflo-back {
-            position: relative;
-            z-index: 30;
-            flex-shrink: 0;
-            padding: 6px 12px;
-            background: #F3E8FF;
-            border-bottom: 1px solid #1E1B2E22;
-            font-size: 12px;
-            font-weight: 700;
-            color: #7C3AED;
-        }
-        .timeflo-back a { text-decoration: underline; text-underline-offset: 3px; }
-        .timeflo-back a:focus-visible { outline: 2px solid #7C3AED; outline-offset: 3px; }
-        header > button { min-width: 0; }
-        @media (max-width: 380px) {
-            header { padding-left: 8px !important; padding-right: 8px !important; }
-            header > button > div:first-child { display: none; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tarot &amp; Tea — Mystic Readings | Timeflo Experiences</title>
+<meta name="description" content="Draw from 78 cards and receive witty, sarcastic cosmic readings from The Oracle.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+:root{
+  --ink:#0d0b14;--surface:#14101f;--surface2:#1c1630;--surface3:#241e3d;
+  --gold:#c9a84c;--gold-light:#e8c96a;--purple:#7c5cbf;--purple-light:#9b7dd4;
+  --rose:#c2556e;--teal:#3a9e8c;--text:#e8e2f5;--text-muted:#9a90b8;
+  --border:rgba(201,168,76,0.18);--border-s:rgba(201,168,76,0.38);
+}
+html,body{height:100dvh;width:100%;overflow:hidden;background:var(--ink);color:var(--text);font-family:'Inter',sans-serif;user-select:none;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 20% 10%,rgba(124,92,191,.15) 0%,transparent 55%),
+             radial-gradient(ellipse at 80% 90%,rgba(194,85,110,.10) 0%,transparent 55%),
+             linear-gradient(160deg,#0d0b14 0%,#14101f 50%,#0d0b14 100%);}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(1px 1px at 15% 20%,rgba(201,168,76,.5) 0%,transparent 100%),
+                   radial-gradient(1px 1px at 35% 8%,rgba(255,255,255,.3) 0%,transparent 100%),
+                   radial-gradient(1.5px 1.5px at 72% 15%,rgba(201,168,76,.4) 0%,transparent 100%),
+                   radial-gradient(1px 1px at 88% 30%,rgba(255,255,255,.25) 0%,transparent 100%),
+                   radial-gradient(1px 1px at 55% 5%,rgba(201,168,76,.35) 0%,transparent 100%),
+                   radial-gradient(1.5px 1.5px at 10% 65%,rgba(255,255,255,.2) 0%,transparent 100%),
+                   radial-gradient(1px 1px at 92% 70%,rgba(201,168,76,.3) 0%,transparent 100%),
+                   radial-gradient(1px 1px at 45% 85%,rgba(255,255,255,.2) 0%,transparent 100%),
+                   radial-gradient(1.5px 1.5px at 25% 92%,rgba(201,168,76,.4) 0%,transparent 100%);}
+.glass{background:rgba(28,22,48,.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);}
+.glass-s{background:rgba(36,30,61,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border-s);}
+.fd{font-family:'Cinzel',serif;}
+.sc{scrollbar-width:thin;scrollbar-color:rgba(124,92,191,.4) transparent;}
+.sc::-webkit-scrollbar{width:4px;}.sc::-webkit-scrollbar-thumb{background:rgba(124,92,191,.4);border-radius:99px;}
+.btn-g{background:linear-gradient(135deg,#c9a84c,#e8c96a,#c9a84c);color:var(--ink);font-family:'Cinzel',serif;font-weight:700;border:1px solid rgba(201,168,76,.6);box-shadow:0 2px 16px rgba(201,168,76,.25);transition:all .2s;cursor:pointer;}
+.btn-g:active{transform:translateY(1px);}
+.btn-gh{background:rgba(124,92,191,.12);color:var(--text);border:1px solid rgba(124,92,191,.3);transition:all .2s;cursor:pointer;}
+.btn-gh:hover{border-color:rgba(124,92,191,.55);background:rgba(124,92,191,.18);}
+.timeflo-back{position:relative;z-index:30;flex-shrink:0;padding:5px 14px;background:rgba(124,92,191,.1);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--purple-light);}
+.timeflo-back a{text-decoration:none;color:inherit;}.timeflo-back a:hover{text-decoration:underline;}
+.perspective{perspective:1200px;}
+.c3d{position:relative;width:100%;height:100%;transition:transform .65s cubic-bezier(.22,1,.36,1);transform-style:preserve-3d;}
+.c3d.flipped{transform:rotateY(180deg);}
+.cface{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;overflow:hidden;}
+.cface-f{transform:rotateY(180deg);}
+.rev-art{transform:rotate(180deg);}
+.fan-c{transition:all .25s cubic-bezier(.2,.9,.3,1.25);cursor:pointer;}
+.fan-c:hover{transform:translateY(-18px) scale(1.1) !important;z-index:30 !important;filter:drop-shadow(0 8px 20px rgba(201,168,76,.4));}
+.fan-c.picked{opacity:0;pointer-events:none;transform:translateY(-50px) scale(.7) !important;}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg) translateX(-6px)}75%{transform:rotate(5deg) translateX(6px)}}
+.shuf{animation:wiggle .3s ease-in-out infinite;}
+@keyframes pglow{0%,100%{box-shadow:0 0 10px rgba(201,168,76,.2)}50%{box-shadow:0 0 22px rgba(201,168,76,.45)}}
+.aglow{animation:pglow 3s ease-in-out infinite;}
+@keyframes forb{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.forb{animation:forb 4s ease-in-out infinite;}
+#app{position:relative;z-index:10;display:flex;flex-direction:column;height:100dvh;width:100%;}
+header{flex-shrink:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--border);background:rgba(13,11,20,.85);backdrop-filter:blur(16px);}
+main{flex:1;min-height:0;display:flex;flex-direction:column;max-width:720px;width:100%;margin:0 auto;padding:12px 14px;overflow:hidden;}
+section{display:none;flex:1;min-height:0;flex-direction:column;}
+section.active{display:flex;overflow-y:auto;}
+.cat-p{border-radius:10px;padding:10px 12px;background:rgba(28,22,48,.6);border:1px solid var(--border);text-align:left;display:flex;align-items:center;gap:10px;transition:all .2s;cursor:pointer;}
+.cat-p:hover,.cat-p.active{background:rgba(124,92,191,.15);border-color:rgba(124,92,191,.5);}
+.cat-p.active{border-color:var(--gold);background:rgba(201,168,76,.08);}
+input[type=text],select{background:rgba(28,22,48,.7);border:1px solid var(--border-s);color:var(--text);font-family:'Inter',sans-serif;border-radius:10px;outline:none;transition:border-color .2s;}
+input[type=text]::placeholder{color:var(--text-muted);}
+input[type=text]:focus{border-color:rgba(201,168,76,.5);}
+select option{background:var(--surface2);color:var(--text);}
+.tab-p{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:var(--text-muted);background:transparent;border:1px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.tab-p.active{color:var(--gold);background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.3);}
+.tab-p:hover:not(.active){color:var(--text);background:rgba(255,255,255,.04);}
+.sp-opt{flex:1;text-align:center;padding:7px 10px;border-radius:8px;font-size:12px;font-family:'Cinzel',serif;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all .2s;border:1px solid transparent;background:transparent;}
+.sp-opt.active{background:rgba(201,168,76,.15);border-color:rgba(201,168,76,.4);color:var(--gold-light);}
+.badge{display:inline-flex;align-items:center;justify-content:center;padding:1px 7px;border-radius:99px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.35);color:var(--gold);font-size:10px;font-weight:700;}
+.kw{padding:3px 10px;border-radius:99px;background:rgba(124,92,191,.15);border:1px solid rgba(124,92,191,.3);color:var(--purple-light);font-size:11px;font-weight:600;}
+.obox{background:rgba(28,22,48,.7);border:1px solid rgba(201,168,76,.22);border-radius:12px;}
+.modal{position:fixed;inset:0;background:rgba(13,11,20,.85);backdrop-filter:blur(8px);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal.hidden{display:none;}
+.mbox{background:var(--surface2);border:1px solid var(--border-s);border-radius:18px;box-shadow:0 24px 64px rgba(0,0,0,.7);max-width:720px;width:100%;max-height:86dvh;display:flex;flex-direction:column;overflow:hidden;}
+.slot-p{padding:5px 12px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text-muted);}
+.slot-p.filled{border-color:rgba(201,168,76,.4);color:var(--gold);background:rgba(201,168,76,.08);}
+@media(max-width:480px){main{padding:10px 12px;}header{padding:0 12px;}}
+</style>
 </head>
-<body class="h-[100dvh] w-screen overflow-hidden flex flex-col relative select-none">
-
-    <!-- Decorative Floating Pastel Stickers in Background -->
-    <div class="fixed -top-16 -left-16 w-64 h-64 bg-sunny/30 rounded-full blur-3xl pointer-events-none z-0"></div>
-    <div class="fixed -bottom-16 -right-16 w-72 h-72 bg-bubblegum/20 rounded-full blur-3xl pointer-events-none z-0"></div>
-
-    <!-- ==========================================
-         COMPACT TOP HEADER (Fixed ~54px)
-    =========================================== -->
-    <header class="relative z-30 h-14 shrink-0 px-3 sm:px-6 border-b-2 border-ink bg-white/85 backdrop-blur-md flex items-center justify-between">
-        <!-- Brand Logo (Resets to Setup) -->
-        <button onclick="resetToSetup()" class="flex items-center gap-2 group text-left py-1">
-            <div class="w-9 h-9 rounded-xl bg-sunny border-2 border-ink shadow-[0_2px_0_#1E1B2E] flex items-center justify-center group-hover:rotate-6 transition">
-                <i class="ph-fill ph-sparkle text-ink text-lg"></i>
-            </div>
-            <div>
-                <span class="font-display text-lg sm:text-xl font-bold text-ink tracking-tight block leading-none">Tarot &amp; Tea</span>
-                <span class="text-[10px] font-bold text-grape uppercase tracking-wider block">Vibe Check Tarot ✨</span>
-            </div>
+<body>
+<div id="app">
+  <header>
+    <button onclick="resetToSetup()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:4px 0;">
+      <div class="forb" style="width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8c96a,#c9a84c,#7c5cbf);border:1px solid rgba(201,168,76,.5);flex-shrink:0;"></div>
+      <div>
+        <span class="fd" style="font-size:16px;font-weight:700;color:var(--gold);letter-spacing:.04em;display:block;line-height:1.1;">Tarot &amp; Tea</span>
+        <span style="font-size:10px;color:var(--text-muted);font-weight:500;letter-spacing:.06em;text-transform:uppercase;">Cosmic Readings</span>
+      </div>
+    </button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="openGrimoireModal()" class="btn-gh" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;">
+        <i class="ph-fill ph-cards" style="color:var(--purple-light);font-size:14px;"></i><span>Deck</span>
+      </button>
+      <button onclick="openBurnBookModal()" class="btn-gh" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;">
+        <i class="ph-fill ph-notebook" style="color:var(--rose);font-size:14px;"></i><span>Journal</span>
+        <span id="burnBadge" class="badge">0</span>
+      </button>
+      <button onclick="toggleAudio()" class="btn-gh" style="padding:6px;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">
+        <i id="audioIcon" class="ph-fill ph-speaker-high" style="font-size:15px;"></i>
+      </button>
+    </div>
+  </header>
+  <nav class="timeflo-back"><a href="experiences.html">&#8592; Timeflo Experiences</a></nav>
+  <main>
+    <!-- STAGE 1: SETUP -->
+    <section id="stage-setup" class="active" style="gap:12px;">
+      <div style="text-align:center;flex-shrink:0;padding:2px 0 6px;">
+        <div class="aglow forb" style="width:50px;height:50px;border-radius:50%;margin:0 auto 8px;background:radial-gradient(circle at 35% 35%,#e8c96a,#9b7dd4,#c2556e);border:2px solid rgba(201,168,76,.45);"></div>
+        <h1 class="fd" style="font-size:clamp(14px,4vw,18px);color:var(--gold);letter-spacing:.06em;font-weight:700;">The Oracle Awaits</h1>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:3px;font-style:italic;">"Ask something interesting. I've seen it all."</p>
+      </div>
+      <div style="flex-shrink:0;">
+        <p style="font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">What's the matter?</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button type="button" onclick="selectCategory('love')" data-cat="love" class="cat-p active">
+            <span style="font-size:18px;flex-shrink:0;">&#128152;</span>
+            <div><div class="fd" style="font-size:11px;font-weight:600;color:var(--text);">Love &amp; Exes</div><div style="font-size:10px;color:var(--text-muted);">Crushes &amp; red flags</div></div>
+          </button>
+          <button type="button" onclick="selectCategory('career')" data-cat="career" class="cat-p">
+            <span style="font-size:18px;flex-shrink:0;">&#128184;</span>
+            <div><div class="fd" style="font-size:11px;font-weight:600;color:var(--text);">Career &amp; Cash</div><div style="font-size:10px;color:var(--text-muted);">Jobs &amp; the bag</div></div>
+          </button>
+          <button type="button" onclick="selectCategory('growth')" data-cat="growth" class="cat-p">
+            <span style="font-size:18px;flex-shrink:0;">&#129504;</span>
+            <div><div class="fd" style="font-size:11px;font-weight:600;color:var(--text);">Mind &amp; Soul</div><div style="font-size:10px;color:var(--text-muted);">Growth &amp; habits</div></div>
+          </button>
+          <button type="button" onclick="selectCategory('general')" data-cat="general" class="cat-p">
+            <span style="font-size:18px;flex-shrink:0;">&#128302;</span>
+            <div><div class="fd" style="font-size:11px;font-weight:600;color:var(--text);">General Vibes</div><div style="font-size:10px;color:var(--text-muted);">Surprise twists</div></div>
+          </button>
+        </div>
+      </div>
+      <div style="flex-shrink:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <label for="qInput" style="font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;">Your Question</label>
+          <button type="button" onclick="rollQ()" class="btn-gh" style="padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;">&#127922; Random</button>
+        </div>
+        <input id="qInput" type="text" maxlength="140" placeholder="e.g., Are they actually busy, or just avoiding me?" style="width:100%;padding:11px 14px;font-size:14px;font-weight:500;">
+      </div>
+      <div class="glass" style="border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;">
+        <div style="display:flex;background:rgba(13,11,20,.6);border-radius:10px;padding:3px;border:1px solid var(--border);flex:1;gap:3px;">
+          <button type="button" onclick="selectSpread(1)" id="sp1" class="sp-opt">&#9889; 1 Card</button>
+          <button type="button" onclick="selectSpread(3)" id="sp3" class="sp-opt active">&#10022; 3 Cards</button>
+        </div>
+        <button type="button" onclick="startShuffle()" class="btn-g" style="padding:11px 20px;border-radius:10px;font-size:13px;white-space:nowrap;display:flex;align-items:center;gap:6px;">
+          Draw Fate <i class="ph-fill ph-sparkle" style="font-size:15px;"></i>
         </button>
-
-        <!-- Right Quick Modals: 78-Card Deck, Burn Book Journal, Audio -->
-        <div class="flex items-center gap-1.5 sm:gap-2">
-            <button onclick="openGrimoireModal()" class="pop-card-sm px-2.5 py-1.5 rounded-xl bg-lilac hover:bg-purple-200 text-ink text-xs font-bold flex items-center gap-1.5 active:translate-y-0.5 transition">
-                <i class="ph-fill ph-cards text-grape text-sm"></i>
-                <span class="hidden sm:inline">78 Cards</span>
-            </button>
-
-            <button onclick="openBurnBookModal()" class="pop-card-sm px-2.5 py-1.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-ink text-xs font-bold flex items-center gap-1.5 active:translate-y-0.5 transition">
-                <i class="ph-fill ph-notebook text-bubblegum text-sm"></i>
-                <span class="hidden sm:inline">Burn Book</span>
-                <span id="burnBookBadge" class="px-1.5 py-0.2 rounded-full bg-ink text-white text-[10px] font-bold">0</span>
-            </button>
-
-            <button id="audioToggleBtn" onclick="toggleAudio()" title="Toggle Sound Effects" class="pop-card-sm w-8 h-8 rounded-xl bg-white hover:bg-amber-50 text-ink flex items-center justify-center active:translate-y-0.5 transition">
-                <i id="audioIcon" class="ph-fill ph-speaker-high text-ink text-base"></i>
-            </button>
+      </div>
+    </section>
+    <!-- STAGE 2: DRAW -->
+    <section id="stage-draw" style="gap:12px;">
+      <div class="glass" style="border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+        <div class="aglow" style="width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8c96a,#9b7dd4);border:1px solid rgba(201,168,76,.45);flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+            <span class="fd" style="font-size:13px;color:var(--gold);font-weight:600;">The Oracle</span>
+            <span class="badge">Pick <strong id="remCount">3</strong></span>
+          </div>
+          <p id="quip" style="font-size:12px;color:var(--text);font-weight:500;line-height:1.4;font-style:italic;"></p>
         </div>
-    </header>
-    <nav class="timeflo-back" aria-label="Timeflo"><a href="experiences.html">← Timeflo Experiences</a></nav>
-
-    <!-- ==========================================
-         MAIN ZERO-SCROLL VIEWPORT STAGE
-    =========================================== -->
-    <main class="relative z-10 flex-1 w-full max-w-3xl mx-auto px-3 sm:px-5 py-2.5 sm:py-4 flex flex-col justify-between overflow-hidden">
-
-        <!-- =====================================================
-             STAGE 1: COMPACT SETUP (2 Personas + Category + Question)
-        ====================================================== -->
-        <section id="stage-setup" class="h-full w-full flex flex-col justify-between gap-2 overflow-hidden">
-
-            <!-- 1. PICK YOUR READER (Good/Wholesome vs. Toxic/Chaotic) -->
-            <div class="space-y-1.5 shrink-0">
-                <div class="flex items-center justify-between px-0.5">
-                    <span class="font-display text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded-full bg-ink text-white text-[11px] inline-flex items-center justify-center">1</span>
-                        Pick Your Tarot Bestie
-                    </span>
-                    <span id="readerActiveTagline" class="text-[11px] font-semibold text-grape truncate max-w-[195px] sm:max-w-none">
-                        "I'll hype you up, babe, right after I roast your taste!"
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
-                    <!-- Persona 1: Auntie Aura (The Good / Wholesome Tease) -->
-                    <button type="button" onclick="selectReader('aura')" id="reader-btn-aura" class="persona-aura-active rounded-2xl p-2.5 sm:p-3 bg-white border-2 border-ink/20 text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden">
-                        <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-sunny border-2 border-ink shrink-0 overflow-hidden flex items-center justify-center shadow-[0_2px_0_#1E1B2E]">
-                            <!-- Cute Auntie Aura SVG Avatar -->
-                            <svg viewBox="0 0 60 60" class="w-full h-full">
-                                <rect width="60" height="60" fill="#FEF08A"/>
-                                <circle cx="30" cy="30" r="22" fill="#FDE047" stroke="#1E1B2E" stroke-width="2"/>
-                                <!-- Heart-shaped sunglasses -->
-                                <path d="M18,24 C16,21 21,19 23,22 C25,19 30,21 28,24 L23,29 Z" fill="#FF5E99" stroke="#1E1B2E" stroke-width="1.8"/>
-                                <path d="M32,24 C30,21 35,19 37,22 C39,19 44,21 42,24 L37,29 Z" fill="#FF5E99" stroke="#1E1B2E" stroke-width="1.8"/>
-                                <line x1="28" y1="24" x2="32" y2="24" stroke="#1E1B2E" stroke-width="2"/>
-                                <!-- Big Winking Smile -->
-                                <path d="M23,35 Q30,42 37,35" fill="none" stroke="#1E1B2E" stroke-width="2.5" stroke-linecap="round"/>
-                                <!-- Sparkles -->
-                                <circle cx="12" cy="14" r="2.5" fill="#34D399"/>
-                                <circle cx="48" cy="14" r="2.5" fill="#FF5E99"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-display text-sm sm:text-base font-bold text-ink truncate">Auntie Aura</span>
-                                <span class="px-1.5 py-0.5 rounded-full bg-emerald-200 border border-ink text-[9px] font-extrabold uppercase text-ink">Good Vibe</span>
-                            </div>
-                            <div class="text-[11px] font-bold text-emerald-800 truncate">Wholesome Tough-Love</div>
-                            <p class="hidden sm:block text-[11px] text-ink/75 font-medium leading-tight mt-0.5 line-clamp-1">
-                                Roasts you gently, then hands you an iced coffee & a hug.
-                            </p>
-                        </div>
-                    </button>
-
-                    <!-- Persona 2: Chaos Colin (The Toxic Enabler) -->
-                    <button type="button" onclick="selectReader('colin')" id="reader-btn-colin" class="rounded-2xl p-2.5 sm:p-3 bg-white/80 border-2 border-ink/25 hover:border-ink text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden">
-                        <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-bubblegum border-2 border-ink shrink-0 overflow-hidden flex items-center justify-center shadow-[0_2px_0_#1E1B2E]">
-                            <!-- Cute Chaos Colin Devil-Cat Imp SVG Avatar -->
-                            <svg viewBox="0 0 60 60" class="w-full h-full">
-                                <rect width="60" height="60" fill="#FBCFE8"/>
-                                <!-- Devil Horns -->
-                                <polygon points="15,22 12,8 25,16" fill="#FF5E99" stroke="#1E1B2E" stroke-width="2" stroke-linejoin="round"/>
-                                <polygon points="45,22 48,8 35,16" fill="#FF5E99" stroke="#1E1B2E" stroke-width="2" stroke-linejoin="round"/>
-                                <circle cx="30" cy="32" r="20" fill="#DDD6FE" stroke="#1E1B2E" stroke-width="2"/>
-                                <!-- Mischievous Slanted Eyes -->
-                                <line x1="19" y1="25" x2="27" y2="28" stroke="#1E1B2E" stroke-width="2.5" stroke-linecap="round"/>
-                                <line x1="41" y1="25" x2="33" y2="28" stroke="#1E1B2E" stroke-width="2.5" stroke-linecap="round"/>
-                                <circle cx="23" cy="29" r="2.2" fill="#1E1B2E"/>
-                                <circle cx="37" cy="29" r="2.2" fill="#1E1B2E"/>
-                                <!-- Evil Grin with Little Fang -->
-                                <path d="M21,37 Q30,44 39,37" fill="none" stroke="#1E1B2E" stroke-width="2.5" stroke-linecap="round"/>
-                                <polygon points="33,39 35,43 37,38" fill="#FFFFFF" stroke="#1E1B2E" stroke-width="1.2"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-display text-sm sm:text-base font-bold text-ink truncate">Chaos Colin</span>
-                                <span class="px-1.5 py-0.5 rounded-full bg-pink-300 border border-ink text-[9px] font-extrabold uppercase text-ink">Toxic 😈</span>
-                            </div>
-                            <div class="text-[11px] font-bold text-pink-700 truncate">Unhinged Instigator</div>
-                            <p class="hidden sm:block text-[11px] text-ink/75 font-medium leading-tight mt-0.5 line-clamp-1">
-                                Loves drama, roasts your ex, & tells you to double-text.
-                            </p>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 2. SELECT CATEGORY (4 Fun Pills) -->
-            <div class="space-y-1.5 shrink-0">
-                <span class="font-display text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5 px-0.5">
-                    <span class="w-5 h-5 rounded-full bg-ink text-white text-[11px] inline-flex items-center justify-center">2</span>
-                    What's The Drama About?
-                </span>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <button type="button" onclick="selectCategory('love')" data-cat="love" class="cat-pill pop-card-sm rounded-xl p-2 sm:p-2.5 bg-pink-200 text-left transition flex items-center gap-2">
-                        <span class="text-lg sm:text-xl shrink-0">💘</span>
-                        <div class="min-w-0">
-                            <div class="font-display text-xs font-bold text-ink truncate">Love & Exes</div>
-                            <div class="text-[10px] text-ink/70 font-medium truncate">Crushes & red flags</div>
-                        </div>
-                    </button>
-
-                    <button type="button" onclick="selectCategory('career')" data-cat="career" class="cat-pill rounded-xl p-2 sm:p-2.5 bg-white/80 border-2 border-ink/20 hover:border-ink text-left transition flex items-center gap-2">
-                        <span class="text-lg sm:text-xl shrink-0">💸</span>
-                        <div class="min-w-0">
-                            <div class="font-display text-xs font-bold text-ink truncate">Career & Cash</div>
-                            <div class="text-[10px] text-ink/70 font-medium truncate">Jobs, bosses & bag</div>
-                        </div>
-                    </button>
-
-                    <button type="button" onclick="selectCategory('growth')" data-cat="growth" class="cat-pill rounded-xl p-2 sm:p-2.5 bg-white/80 border-2 border-ink/20 hover:border-ink text-left transition flex items-center gap-2">
-                        <span class="text-lg sm:text-xl shrink-0">🧠</span>
-                        <div class="min-w-0">
-                            <div class="font-display text-xs font-bold text-ink truncate">Me, Myself & I</div>
-                            <div class="text-[10px] text-ink/70 font-medium truncate">Glow-ups & habits</div>
-                        </div>
-                    </button>
-
-                    <button type="button" onclick="selectCategory('general')" data-cat="general" class="cat-pill rounded-xl p-2 sm:p-2.5 bg-white/80 border-2 border-ink/20 hover:border-ink text-left transition flex items-center gap-2">
-                        <span class="text-lg sm:text-xl shrink-0">🔮</span>
-                        <div class="min-w-0">
-                            <div class="font-display text-xs font-bold text-ink truncate">General Vibes</div>
-                            <div class="text-[10px] text-ink/70 font-medium truncate">Surprise plot twists</div>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 3. QUESTION INPUT WITH CASUAL DICE ROULETTE -->
-            <div class="space-y-1.5 shrink-0">
-                <div class="flex items-center justify-between px-0.5">
-                    <label for="userQuestionInput" class="font-display text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded-full bg-ink text-white text-[11px] inline-flex items-center justify-center">3</span>
-                        Spill Your Question
-                    </label>
-                    <button type="button" onclick="rollSnarkyQuestion()" class="px-2.5 py-1 rounded-full bg-sunny border-2 border-ink text-ink text-[11px] font-bold flex items-center gap-1 shadow-[0_2px_0_#1E1B2E] active:translate-y-0.5 transition">
-                        🎲 Random Question
-                    </button>
-                </div>
-                <div class="relative">
-                    <input
-                        id="userQuestionInput"
-                        type="text"
-                        maxlength="140"
-                        placeholder="e.g., Are they actually busy, or am I getting ghosted in HD?"
-                        class="w-full rounded-xl bg-white border-2 border-ink focus:outline-none focus:ring-2 focus:ring-grape px-3.5 py-2.5 sm:py-3 text-sm sm:text-base text-ink placeholder-ink/40 font-semibold shadow-[0_3px_0_#1E1B2E]"
-                    >
-                </div>
-            </div>
-
-            <!-- 4. SPREAD SELECTOR (1-Card vs 3-Card) & BOUNCY CTA -->
-            <div class="pop-card rounded-2xl p-2.5 sm:p-3.5 bg-white flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
-                <!-- Spread Toggle -->
-                <div class="flex items-center gap-1.5 bg-lilac p-1 rounded-xl border-2 border-ink">
-                    <button type="button" onclick="selectSpread(1)" id="spread-toggle-1" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-display text-xs font-bold transition text-ink/70 hover:text-ink">
-                        ⚡ 1-Card <span class="text-[10px] font-sans font-semibold opacity-80">Quick Vibe</span>
-                    </button>
-                    <button type="button" onclick="selectSpread(3)" id="spread-toggle-3" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-display text-xs font-bold transition bg-sunny text-ink border-2 border-ink shadow-[0_2px_0_#1E1B2E]">
-                        ✨ 3-Card <span class="text-[10px] font-sans font-semibold opacity-90">Past • Present • Future</span>
-                    </button>
-                </div>
-
-                <!-- Primary CTA -->
-                <button
-                    type="button"
-                    onclick="startShuffleStage()"
-                    class="pop-btn px-6 py-2.5 sm:py-3 rounded-xl bg-bubblegum hover:bg-pink-500 text-white font-display font-bold text-sm sm:text-base tracking-wide flex items-center justify-center gap-2"
-                >
-                    <span>Draw My Fate</span>
-                    <i class="ph-fill ph-sparkle text-sunny text-lg"></i>
-                </button>
-            </div>
-        </section>
-
-        <!-- =====================================================
-             STAGE 2: INTERACTIVE DECK PICK (Zero-Scroll Viewport)
-        ====================================================== -->
-        <section id="stage-draw" class="hidden h-full w-full flex flex-col justify-between items-center py-1 overflow-hidden">
-
-            <!-- Reader Live Speech Bubble -->
-            <div class="w-full pop-card rounded-2xl p-3 sm:p-4 bg-white flex items-center gap-3 shrink-0">
-                <div id="drawReaderAvatar" class="w-12 h-12 rounded-2xl border-2 border-ink shrink-0 overflow-hidden shadow-[0_2px_0_#1E1B2E]"></div>
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center justify-between">
-                        <span id="drawReaderName" class="font-display text-xs sm:text-sm font-bold text-grape">Auntie Aura</span>
-                        <span class="px-2 py-0.5 rounded-full bg-sunny border border-ink text-[11px] font-bold text-ink">
-                            Pick <strong id="drawRemainingCount">3</strong> card(s)
-                        </span>
-                    </div>
-                    <p id="drawReaderQuip" class="text-xs sm:text-sm font-semibold text-ink/90 leading-snug mt-1">
-                        "Take a deep breath, babe! Tap the cards calling your name..."
-                    </p>
-                </div>
-            </div>
-
-            <!-- Center Fanned Tarot Deck (Tap cards to draw) -->
-            <div class="flex-1 w-full flex flex-col items-center justify-center relative my-1">
-                <div class="text-center mb-2">
-                    <span class="px-3 py-1 rounded-full bg-white border-2 border-ink shadow-[0_2px_0_#1E1B2E] font-display text-xs font-bold text-ink">
-                        👇 Tap Any Card Below To Pull It!
-                    </span>
-                </div>
-
-                <!-- Interactive Fan Row -->
-                <div id="fannedDeckRow" class="flex items-center justify-center flex-wrap max-w-2xl px-4 py-2">
-                    <!-- Populated dynamically -->
-                </div>
-            </div>
-
-            <!-- Selected Slots Indicator + Quick Action Bar -->
-            <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-2.5 pop-card rounded-2xl p-2.5 sm:p-3 bg-white shrink-0">
-                <div id="drawnSlotsPreview" class="flex items-center gap-1.5 flex-wrap justify-center">
-                    <!-- Shows Past / Present / Future mini pills -->
-                </div>
-
-                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button onclick="reshuffleFan()" class="pop-card-sm px-3 py-1.5 rounded-xl bg-lilac hover:bg-purple-200 text-ink font-display text-xs font-bold flex items-center gap-1">
-                        <i class="ph-bold ph-shuffle"></i> Shuffle
-                    </button>
-                    <button onclick="instantAutoDraw()" class="pop-card-sm flex-1 sm:flex-initial px-3.5 py-1.5 rounded-xl bg-sunny hover:bg-amber-300 text-ink font-display text-xs font-bold flex items-center justify-center gap-1">
-                        <i class="ph-fill ph-lightning"></i> Auto-Pick For Me
-                    </button>
-                    <button onclick="resetToSetup()" class="px-2 py-1.5 text-ink/60 hover:text-ink font-bold text-xs">
-                        Back
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- =====================================================
-             STAGE 3: THE COMPACT READING & ROAST STAGE (Zero-Scroll)
-        ====================================================== -->
-        <section id="stage-reading" class="hidden h-full w-full flex flex-col justify-between gap-2 overflow-hidden">
-
-            <!-- Top Bar: Position Switcher Tabs + Instant Persona Switcher -->
-            <div class="flex flex-wrap items-center justify-between gap-1.5 shrink-0">
-                <!-- Position / Verdict Tabs -->
-                <div id="readingPositionTabs" class="flex items-center gap-1 bg-white p-1 rounded-xl border-2 border-ink shadow-[0_2px_0_#1E1B2E] overflow-x-auto max-w-full">
-                    <!-- Dynamically populated: [Past] [Present] [Future] [✨ The Tea] -->
-                </div>
-
-                <!-- Live Reader Persona Switcher (Flip between Good Auntie Aura & Toxic Chaos Colin!) -->
-                <div class="flex items-center gap-1 bg-white p-1 rounded-xl border-2 border-ink shadow-[0_2px_0_#1E1B2E]">
-                    <button onclick="switchReaderDuringReading('aura')" id="live-reader-aura" class="px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition">
-                        😇 Auntie Aura
-                    </button>
-                    <button onclick="switchReaderDuringReading('colin')" id="live-reader-colin" class="px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition">
-                        😈 Chaos Colin
-                    </button>
-                </div>
-            </div>
-
-            <!-- Center Stage: Active Card Artwork + Reader's Roast Panel -->
-            <div id="readingActivePanel" class="flex-1 min-h-0 pop-card rounded-2xl p-3 sm:p-5 bg-white flex flex-col md:flex-row items-center md:items-stretch gap-3 sm:gap-5 overflow-hidden relative">
-                <!-- Populated dynamically by renderActiveReadingTab() -->
-            </div>
-
-            <!-- Bottom Action Bar -->
-            <div class="shrink-0 flex items-center justify-between gap-2">
-                <button onclick="resetToSetup()" class="pop-card-sm px-3.5 py-2 rounded-xl bg-white hover:bg-lilac text-ink font-display text-xs font-bold flex items-center gap-1.5">
-                    <i class="ph-bold ph-arrows-counter-clockwise"></i> Ask Another
-                </button>
-
-                <div class="flex items-center gap-2">
-                    <button id="flipAllActionBtn" onclick="flipAllCardsNow()" class="pop-card-sm px-3.5 py-2 rounded-xl bg-sunny hover:bg-amber-300 text-ink font-display text-xs font-bold flex items-center gap-1.5">
-                        <i class="ph-bold ph-eye"></i> Flip All
-                    </button>
-                    <button id="copyRoastBtn" onclick="copyCurrentRoast()" class="pop-card-sm px-3.5 py-2 rounded-xl bg-bubblegum hover:bg-pink-500 text-white font-display text-xs font-bold flex items-center gap-1.5">
-                        <i class="ph-bold ph-share-network"></i> Share Roast
-                    </button>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ==========================================
-         MODAL 1: THE 78-CARD DECK BROWSER
-    =========================================== -->
-    <div id="grimoireModal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
-        <div class="pop-card rounded-3xl max-w-4xl w-full h-[86dvh] bg-cream flex flex-col overflow-hidden">
-            <!-- Modal Header -->
-            <div class="px-4 sm:px-6 py-3.5 bg-sunny border-b-2 border-ink flex items-center justify-between gap-2 shrink-0">
-                <div>
-                    <h3 class="font-display text-lg sm:text-xl font-bold text-ink">✨ The 78-Card Vibe Deck</h3>
-                    <p class="text-xs text-ink/75 font-semibold">Tap any card to see how Auntie Aura & Chaos Colin interpret it</p>
-                </div>
-                <button onclick="closeGrimoireModal()" class="pop-card-sm w-8 h-8 rounded-full bg-white text-ink hover:bg-pink-100 flex items-center justify-center font-bold">
-                    <i class="ph-bold ph-x"></i>
-                </button>
-            </div>
-
-            <!-- Search & Suit Filter Bar -->
-            <div class="px-4 sm:px-6 py-2.5 bg-lilac border-b-2 border-ink flex flex-wrap items-center gap-2 shrink-0">
-                <input
-                    type="text"
-                    id="grimoireSearch"
-                    oninput="renderGrimoireGrid()"
-                    placeholder="Search card (e.g., The Fool, The Tower, Cups)..."
-                    class="flex-1 min-w-[180px] px-3 py-1.5 rounded-xl bg-white border-2 border-ink text-xs font-semibold text-ink placeholder-ink/45 focus:outline-none"
-                >
-                <select id="grimoireSuit" onchange="renderGrimoireGrid()" class="px-3 py-1.5 rounded-xl bg-white border-2 border-ink text-ink text-xs font-bold">
-                    <option value="ALL">All 78 Cards</option>
-                    <option value="Major Arcana">Major Arcana (22)</option>
-                    <option value="Wands">Wands • Fire 🔥 (14)</option>
-                    <option value="Cups">Cups • Water 💧 (14)</option>
-                    <option value="Swords">Swords • Air ⚔️ (14)</option>
-                    <option value="Pentacles">Pentacles • Earth 🪙 (14)</option>
-                </select>
-            </div>
-
-            <!-- Scrollable Grid / Card Detail View -->
-            <div id="grimoireBody" class="flex-1 overflow-y-auto thin-scroll p-4 sm:p-6">
-                <!-- Populated dynamically -->
-            </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;">
+        <p style="font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Tap a card to draw</p>
+        <div id="fanRow" style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;max-width:100%;padding:8px;"></div>
+      </div>
+      <div class="glass" style="border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;">
+        <div id="slotsPrev" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="reshuffleFan()" class="btn-gh" style="padding:7px 12px;border-radius:8px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;"><i class="ph-bold ph-shuffle"></i> Shuffle</button>
+          <button onclick="autoDraw()" class="btn-g" style="padding:7px 12px;border-radius:8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;"><i class="ph-fill ph-lightning"></i> Auto</button>
+          <button onclick="resetToSetup()" style="padding:7px;border-radius:8px;font-size:11px;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;">Back</button>
         </div>
+      </div>
+    </section>
+    <!-- STAGE 3: READING -->
+    <section id="stage-reading" style="gap:10px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <div id="readTabs" style="display:flex;align-items:center;gap:2px;background:rgba(13,11,20,.6);padding:3px;border-radius:10px;border:1px solid var(--border);overflow-x:auto;max-width:100%;flex:1;" class="sc"></div>
+      </div>
+      <div id="readPanel" class="glass-s" style="flex:1;min-height:0;border-radius:16px;padding:14px;display:flex;flex-direction:column;overflow:hidden;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
+        <button onclick="resetToSetup()" class="btn-gh" style="padding:9px 14px;border-radius:10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;"><i class="ph-bold ph-arrows-counter-clockwise"></i> New Reading</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button id="flipAllBtn" onclick="flipAll()" class="btn-gh" style="padding:9px 14px;border-radius:10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;"><i class="ph-bold ph-eye"></i> Reveal All</button>
+          <button id="shareBtn" onclick="shareReading()" class="btn-g" style="padding:9px 14px;border-radius:10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;"><i class="ph-bold ph-share-network"></i> Share</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<!-- DECK MODAL -->
+<div id="deckModal" class="modal hidden">
+  <div class="mbox">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div><h3 class="fd" style="font-size:15px;font-weight:700;color:var(--gold);">The 78-Card Deck</h3><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Tap any card to explore its meaning</p></div>
+      <button onclick="closeGrimoireModal()" class="btn-gh" style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="ph-bold ph-x" style="font-size:13px;"></i></button>
     </div>
-
-    <!-- ==========================================
-         MODAL 2: THE BURN BOOK (Saved Readings)
-    =========================================== -->
-    <div id="burnBookModal" class="fixed inset-0 z-50 hidden bg-ink/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
-        <div class="pop-card rounded-3xl max-w-2xl w-full h-[82dvh] bg-cream flex flex-col overflow-hidden">
-            <div class="px-4 sm:px-6 py-3.5 bg-pink-200 border-b-2 border-ink flex items-center justify-between shrink-0">
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl">📓</span>
-                    <div>
-                        <h3 class="font-display text-lg sm:text-xl font-bold text-ink">The Burn Book</h3>
-                        <p class="text-xs text-ink/75 font-semibold">Your past readings & questionable life choices</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="clearBurnBook()" class="pop-card-sm px-2.5 py-1 rounded-lg bg-white text-rose-600 text-xs font-bold hover:bg-rose-50">
-                        Clear All
-                    </button>
-                    <button onclick="closeBurnBookModal()" class="pop-card-sm w-8 h-8 rounded-full bg-white text-ink flex items-center justify-center">
-                        <i class="ph-bold ph-x"></i>
-                    </button>
-                </div>
-            </div>
-            <div id="burnBookList" class="flex-1 overflow-y-auto thin-scroll p-4 sm:p-6 space-y-3">
-                <!-- Populated dynamically -->
-            </div>
-        </div>
+    <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0;">
+      <input type="text" id="deckSearch" oninput="renderDeckGrid()" placeholder="Search cards..." style="flex:1;min-width:140px;padding:7px 12px;font-size:12px;">
+      <select id="deckSuit" onchange="renderDeckGrid()" style="padding:7px 12px;font-size:12px;font-weight:600;border-radius:10px;cursor:pointer;">
+        <option value="ALL">All 78 Cards</option>
+        <option value="Major Arcana">Major Arcana (22)</option>
+        <option value="Wands">Wands &#128293;</option>
+        <option value="Cups">Cups &#128167;</option>
+        <option value="Swords">Swords &#9876;&#65039;</option>
+        <option value="Pentacles">Pentacles &#129689;</option>
+      </select>
     </div>
-
-    <!-- ==========================================
-         JAVASCRIPT ENGINE: 2 PERSONAS + 78 CARDS
-    =========================================== -->
-    <script>
-        /**************************************************************
-         * 1. PLAYFUL POP SYNTHESIZER SOUND EFFECTS
-         **************************************************************/
-        let audioEnabled = true;
-        let audioCtx = null;
-
-        function initAudio() {
-            if (!audioCtx) {
-                const AC = window.AudioContext || window.webkitAudioContext;
-                if (AC) audioCtx = new AC();
-            }
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        }
-
-        function playSound(type = 'tap') {
-            if (!audioEnabled) return;
-            try {
-                initAudio();
-                if (!audioCtx) return;
-                const now = audioCtx.currentTime;
-
-                if (type === 'shuffle') {
-                    [330, 392, 493.88, 587.33].forEach((f, idx) => {
-                        const osc = audioCtx.createOscillator();
-                        const gain = audioCtx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(f, now + idx * 0.045);
-                        gain.gain.setValueAtTime(0.001, now + idx * 0.045);
-                        gain.gain.exponentialRampToValueAtTime(0.06, now + idx * 0.045 + 0.02);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.045 + 0.25);
-                        osc.connect(gain);
-                        gain.connect(audioCtx.destination);
-                        osc.start(now + idx * 0.045);
-                        osc.stop(now + idx * 0.045 + 0.28);
-                    });
-                } else if (type === 'flip') {
-                    [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
-                        const osc = audioCtx.createOscillator();
-                        const gain = audioCtx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(f, now + idx * 0.03);
-                        gain.gain.setValueAtTime(0.001, now + idx * 0.03);
-                        gain.gain.exponentialRampToValueAtTime(0.06 / (idx + 1), now + idx * 0.03 + 0.02);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.03 + 0.45);
-                        osc.connect(gain);
-                        gain.connect(audioCtx.destination);
-                        osc.start(now + idx * 0.03);
-                        osc.stop(now + idx * 0.03 + 0.5);
-                    });
-                } else {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(580, now);
-                    osc.frequency.exponentialRampToValueAtTime(760, now + 0.09);
-                    gain.gain.setValueAtTime(0.04, now);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.15);
-                }
-            } catch (e) {}
-        }
-
-        function toggleAudio() {
-            audioEnabled = !audioEnabled;
-            const icon = document.getElementById('audioIcon');
-            icon.className = audioEnabled ? 'ph-fill ph-speaker-high text-ink text-base' : 'ph-fill ph-speaker-slash text-ink/40 text-base';
-            if (audioEnabled) playSound('tap');
-        }
-
-        /**************************************************************
-         * 2. TWO CONTRASTING TEASING PERSONAS (GOOD VS. TOXIC)
-         **************************************************************/
-        const READERS = {
-            aura: {
-                id: 'aura',
-                name: 'Auntie Aura',
-                title: 'Wholesome Tough-Love Bestie',
-                emoji: '😇',
-                pillClass: 'bg-emerald-200 text-ink border-ink',
-                boxBg: 'bg-amber-50 border-ink',
-                tagline: '"I\'ll hype you up, babe, right after I roast your taste!"',
-                shuffleQuips: [
-                    '"Hold my iced coffee, sweetie—I\'m shuffling out the bad vibes for you!"',
-                    '"Okay babe, deep breath! Pick the card that feels like a warm hug (or a gentle wake-up slap)."',
-                    '"Sprinkling a little cinnamon and common sense on this deck for you..."'
-                ],
-                voiceWrap: (cardName, isRev, coreMeaning, cat, posTitle) => {
-                    const openers = [
-                        `Okay honey, look at **${cardName}${isRev ? ' (Upside-Down!)' : ''}** showing up for **${posTitle}**! I say this with so much love:`,
-                        `*Takes a sip of iced matcha.* Babe, **${cardName}${isRev ? ' (Reversed)' : ''}** in **${posTitle}** is gently tugging your sleeve:`,
-                        `Sweetheart, I'm holding your hand while I tell you this about **${cardName}${isRev ? ' (Reversed)' : ''}** in **${posTitle}**:`
-                    ];
-                    const closers = {
-                        love: `You deserve someone who texts back fast AND makes you feel safe. Don't settle for breadcrumbs when you're the whole bakery!`,
-                        career: `Get that bag, drink some water, and remember your worth isn't measured by your email response time!`,
-                        growth: `Be nice to yourself today, okay? You're doing way better than your overthinking brain gives you credit for.`,
-                        general: `Everything is working out for you, even the messy parts. Adjust your crown and keep glowing!`
-                    };
-                    const pick = openers[cardName.length % openers.length];
-                    return `${pick} ${coreMeaning} ${closers[cat]}`;
-                },
-                verdictIntro: (q, catLabel) => `Babe, you asked *"${q}"* about **${catLabel}**, and here is my wholesome tough-love breakdown:`
-            },
-            colin: {
-                id: 'colin',
-                name: 'Chaos Colin',
-                title: 'Unhinged Toxic Instigator',
-                emoji: '😈',
-                pillClass: 'bg-pink-300 text-ink border-ink',
-                boxBg: 'bg-fuchsia-50 border-ink',
-                tagline: '"Do it for the plot! Send the risky text! Quit on a Tuesday!"',
-                shuffleQuips: [
-                    '"Shuffling for maximum drama! Pick a card before your common sense kicks in!"',
-                    '"Ooh, I hope you pull The Tower so we can watch fireworks together! Tap a card!"',
-                    '"Your angels told me to behave, so I locked them in the closet. Pick a card, bestie!"'
-                ],
-                voiceWrap: (cardName, isRev, coreMeaning, cat, posTitle) => {
-                    const openers = [
-                        `LMAOOO stop everything!! **${cardName}${isRev ? ' (Upside-Down!)' : ''}** in **${posTitle}**?! Oh, you are SO messy for this:`,
-                        `*Cackles in 4K.* Bestie, **${cardName}${isRev ? ' (Reversed)' : ''}** just flew out for **${posTitle}** to expose you:`,
-                        `Wait, no way you pulled **${cardName}${isRev ? ' (Reversed)' : ''}** for **${posTitle}**! Grab the popcorn:`
-                    ];
-                    const closers = {
-                        love: `Honestly? Double-text them, post a thirst trap on your close friends story, or block them mid-typing just for the plot!`,
-                        career: `Start applying for jobs way above your pay grade and take a 45-minute bathroom break on company time!`,
-                        growth: `Why "heal peacefully" when you can be hot, petty, and slightly delusional? Let your intrusive thoughts drive for a mile!`,
-                        general: `If life gives you lemons, squeeze them into your haters' eyes and do whatever makes the funniest story later!`
-                    };
-                    const pick = openers[cardName.length % openers.length];
-                    return `${pick} ${coreMeaning} ${closers[cat]}`;
-                },
-                verdictIntro: (q, catLabel) => `Bestie, you asked *"${q}"* for **${catLabel}**, and I am living for the absolute circus in these cards:`
-            }
-        };
-
-        /**************************************************************
-         * 3. COMPLETE 78-CARD CASUAL, FUNNY & TEASING DATABASE
-         **************************************************************/
-        const MAJOR_ARCANA = [
+    <div id="deckBody" style="flex:1;overflow-y:auto;padding:14px 18px;" class="sc"></div>
+  </div>
+</div>
+<!-- JOURNAL MODAL -->
+<div id="journalModal" class="modal hidden">
+  <div class="mbox" style="max-width:560px;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div><h3 class="fd" style="font-size:15px;font-weight:700;color:var(--gold);">Reading Journal</h3><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Your past readings &amp; cosmic receipts</p></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button onclick="clearJournal()" style="padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;color:var(--rose);background:rgba(194,85,110,.1);border:1px solid rgba(194,85,110,.25);cursor:pointer;">Clear All</button>
+        <button onclick="closeJournalModal()" class="btn-gh" style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="ph-bold ph-x" style="font-size:13px;"></i></button>
+      </div>
+    </div>
+    <div id="journalList" style="flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px;" class="sc"></div>
+  </div>
+</div>
+<script>
+const MAJOR_ARCANA = [
             {
                 id: 1, number: 0, numeral: "0", name: "The Fool", arcana: "Major Arcana", suit: "Major", element: "Air",
                 kwUp: ["YOLO Mode", "Fresh Start", "Zero Plan"], kwRev: ["Clown Behavior", "Tripping", "Overthinking"],
@@ -1364,784 +893,970 @@
         /**************************************************************
          * 4. PLAYFUL QUIRKY POP-TAROT SVG ARTWORK RENDERERS
          **************************************************************/
-        function renderCardBackSVG() {
-            return `
-            <svg viewBox="0 0 200 320" class="w-full h-full bg-[#7C3AED]">
-                <rect width="200" height="320" fill="#7C3AED"/>
-                <!-- Checkered Quirky Border -->
-                <rect x="10" y="10" width="180" height="300" rx="12" fill="#F3E8FF" stroke="#1E1B2E" stroke-width="4"/>
-                <rect x="18" y="18" width="164" height="284" rx="8" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3"/>
-                <!-- Fun Sunburst & Stars -->
-                <circle cx="100" cy="160" r="56" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3.5"/>
-                <polygon points="100,92 115,138 162,138 124,166 138,212 100,184 62,212 76,166 38,138 85,138" fill="#FFFFFF" stroke="#1E1B2E" stroke-width="3" stroke-linejoin="round"/>
-                <!-- Sassy Winking Eye in Center -->
-                <ellipse cx="100" cy="162" rx="18" ry="12" fill="#34D399" stroke="#1E1B2E" stroke-width="2.5"/>
-                <circle cx="100" cy="162" r="6" fill="#1E1B2E"/>
-                <circle cx="103" cy="159" r="2" fill="#FFFFFF"/>
-                <!-- Corner Stickers -->
-                <circle cx="36" cy="38" r="8" fill="#FFD13B" stroke="#1E1B2E" stroke-width="2.5"/>
-                <circle cx="164" cy="38" r="8" fill="#34D399" stroke="#1E1B2E" stroke-width="2.5"/>
-                <circle cx="36" cy="282" r="8" fill="#34D399" stroke="#1E1B2E" stroke-width="2.5"/>
-                <circle cx="164" cy="282" r="8" fill="#FFD13B" stroke="#1E1B2E" stroke-width="2.5"/>
-            </svg>`;
-        }
-
-        function renderCardFrontSVG(card) {
-            const palettes = {
-                Major: { bg: '#FEF08A', cardBg: '#FFFDF7', accent: '#FF5E99', badge: '#DDD6FE' },
-                Wands: { bg: '#FED7AA', cardBg: '#FFFDF7', accent: '#F97316', badge: '#FEF08A' },
-                Cups: { bg: '#BAE6FD', cardBg: '#FFFDF7', accent: '#0EA5E9', badge: '#FCE7F3' },
-                Swords: { bg: '#E9D5FF', cardBg: '#FFFDF7', accent: '#8B5CF6', badge: '#E0F2FE' },
-                Pentacles: { bg: '#A7F3D0', cardBg: '#FFFDF7', accent: '#10B981', badge: '#FEF08A' }
-            };
-            const pal = palettes[card.suit] || palettes.Major;
-
-            let centerArt = '';
-            if (card.suit === 'Major') {
-                const doodles = [
-                    // Sun / Starburst Face
-                    `<circle cx="100" cy="142" r="44" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3.5"/>
-                     <circle cx="86" cy="136" r="4" fill="#1E1B2E"/><circle cx="114" cy="136" r="4" fill="#1E1B2E"/>
-                     <path d="M88,152 Q100,162 112,152" fill="none" stroke="#1E1B2E" stroke-width="3.5" stroke-linecap="round"/>`,
-                    // Crystal Ball & Sparkles
-                    `<ellipse cx="100" cy="182" rx="32" ry="10" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3"/>
-                     <circle cx="100" cy="140" r="40" fill="#C4B5FD" stroke="#1E1B2E" stroke-width="3.5"/>
-                     <polygon points="100,112 106,132 126,138 106,144 100,164 94,144 74,138 94,132" fill="#FFF" stroke="#1E1B2E" stroke-width="2"/>`,
-                    // Heart & Lightning Bolt
-                    `<path d="M100,178 C100,178 56,148 56,120 C56,102 76,94 100,116 C124,94 144,102 144,120 C144,148 100,178 100,178 Z" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
-                     <polygon points="104,102 88,136 104,136 94,168 118,128 100,128" fill="#FFD13B" stroke="#1E1B2E" stroke-width="2.5" stroke-linejoin="round"/>`,
-                    // Crescent Moon & Cloud
-                    `<path d="M112,102 A38,38 0 1,0 138,162 A28,28 0 1,1 112,102 Z" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
-                     <circle cx="75" cy="118" r="6" fill="#34D399" stroke="#1E1B2E" stroke-width="2"/>`
-                ];
-                centerArt = doodles[card.id % doodles.length];
-            } else if (card.suit === 'Wands') {
-                centerArt = `
-                    <circle cx="100" cy="142" r="42" fill="#FFEDD5" stroke="#1E1B2E" stroke-width="3"/>
-                    <path d="M100,90 C128,118 124,152 100,176 C76,152 72,118 100,90 Z" fill="#F97316" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
-                    <path d="M100,118 C114,134 112,154 100,168 C88,154 86,134 100,118 Z" fill="#FFD13B" stroke="#1E1B2E" stroke-width="2.5"/>
-                `;
-            } else if (card.suit === 'Cups') {
-                centerArt = `
-                    <circle cx="100" cy="142" r="42" fill="#E0F2FE" stroke="#1E1B2E" stroke-width="3"/>
-                    <path d="M68,112 L132,112 C132,152 114,164 100,164 C86,164 68,152 68,112 Z" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
-                    <rect x="94" y="164" width="12" height="22" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3"/>
-                    <rect x="76" y="184" width="48" height="8" rx="4" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3"/>
-                `;
-            } else if (card.suit === 'Swords') {
-                centerArt = `
-                    <circle cx="100" cy="142" r="42" fill="#F3E8FF" stroke="#1E1B2E" stroke-width="3"/>
-                    <polygon points="100,86 110,156 100,168 90,156" fill="#38BDF8" stroke="#1E1B2E" stroke-width="3.5" stroke-linejoin="round"/>
-                    <rect x="74" y="154" width="52" height="10" rx="5" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3"/>
-                    <rect x="95" y="164" width="10" height="22" rx="3" fill="#FF5E99" stroke="#1E1B2E" stroke-width="3"/>
-                `;
-            } else {
-                centerArt = `
-                    <circle cx="100" cy="142" r="44" fill="#FFD13B" stroke="#1E1B2E" stroke-width="3.5"/>
-                    <polygon points="100,104 110,130 138,130 115,146 124,174 100,157 76,174 85,146 62,130 90,130" fill="#34D399" stroke="#1E1B2E" stroke-width="3" stroke-linejoin="round"/>
-                `;
-            }
-
-            return `
-            <svg viewBox="0 0 200 320" class="w-full h-full select-none">
-                <rect width="200" height="320" fill="${pal.bg}"/>
-                <rect x="10" y="10" width="180" height="300" rx="12" fill="${pal.cardBg}" stroke="#1E1B2E" stroke-width="4"/>
-
-                <!-- Top Pill Numeral -->
-                <rect x="65" y="22" width="70" height="24" rx="12" fill="${pal.badge}" stroke="#1E1B2E" stroke-width="2.5"/>
-                <text x="100" y="38" text-anchor="middle" fill="#1E1B2E" font-family="Fredoka, sans-serif" font-size="12" font-weight="700">${card.numeral}</text>
-
-                <!-- Center Illustration -->
-                ${centerArt}
-
-                <!-- Bottom Pop Label Box -->
-                <rect x="18" y="236" width="164" height="58" rx="10" fill="${pal.badge}" stroke="#1E1B2E" stroke-width="3"/>
-                <text x="100" y="260" text-anchor="middle" fill="#1E1B2E" font-family="Fredoka, sans-serif" font-size="13" font-weight="700">${card.name}</text>
-                <text x="100" y="280" text-anchor="middle" fill="#1E1B2E" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" font-weight="700" opacity="0.75">${card.arcana.toUpperCase()} • ${card.element.toUpperCase()}</text>
-            </svg>`;
-        }
-
-        /**************************************************************
-         * 5. APPLICATION STATE & INTERACTIVE LOGIC
-         **************************************************************/
-        let appState = {
-            reader: 'aura',
-            category: 'love',
-            spreadCount: 3,
-            question: '',
-            deckOrder: [],
-            drawnCards: [],
-            activeTabIndex: 0
-        };
-
-        function getReaderAvatarSVG(readerId) {
-            const btn = document.getElementById(`reader-btn-${readerId}`);
-            if (!btn) return '';
-            const svg = btn.querySelector('svg');
-            return svg ? svg.outerHTML : '';
-        }
-
-        function selectReader(readerId) {
-            playSound('tap');
-            appState.reader = readerId;
-            const btnAura = document.getElementById('reader-btn-aura');
-            const btnColin = document.getElementById('reader-btn-colin');
-
-            if (readerId === 'aura') {
-                btnAura.className = "persona-aura-active rounded-2xl p-2.5 sm:p-3 text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden";
-                btnColin.className = "rounded-2xl p-2.5 sm:p-3 bg-white/80 border-2 border-ink/25 hover:border-ink text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden";
-            } else {
-                btnColin.className = "persona-colin-active rounded-2xl p-2.5 sm:p-3 text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden";
-                btnAura.className = "rounded-2xl p-2.5 sm:p-3 bg-white/80 border-2 border-ink/25 hover:border-ink text-left transition flex items-center gap-2.5 sm:gap-3 relative overflow-hidden";
-            }
-            document.getElementById('readerActiveTagline').textContent = READERS[readerId].tagline;
-        }
-
-        function selectCategory(cat) {
-            playSound('tap');
-            appState.category = cat;
-            const bgMap = {
-                love: 'bg-pink-200',
-                career: 'bg-amber-200',
-                growth: 'bg-emerald-200',
-                general: 'bg-purple-200'
-            };
-            document.querySelectorAll('.cat-pill').forEach(btn => {
-                if (btn.dataset.cat === cat) {
-                    btn.className = `cat-pill pop-card-sm rounded-xl p-2 sm:p-2.5 ${bgMap[cat]} text-left transition flex items-center gap-2`;
-                } else {
-                    btn.className = "cat-pill rounded-xl p-2 sm:p-2.5 bg-white/80 border-2 border-ink/20 hover:border-ink text-left transition flex items-center gap-2";
-                }
-            });
-            const qList = SNARKY_QUESTIONS[cat];
-            document.getElementById('userQuestionInput').placeholder = `e.g., ${qList[0]}`;
-        }
-
-        function rollSnarkyQuestion() {
-            playSound('tap');
-            const list = SNARKY_QUESTIONS[appState.category];
-            const input = document.getElementById('userQuestionInput');
-            const current = input.value;
-            let candidates = list.filter(q => q !== current);
-            if (!candidates.length) candidates = list;
-            input.value = candidates[Math.floor(Math.random() * candidates.length)];
-        }
-
-        function selectSpread(count) {
-            playSound('tap');
-            appState.spreadCount = count;
-            const b1 = document.getElementById('spread-toggle-1');
-            const b3 = document.getElementById('spread-toggle-3');
-            const activeCls = "flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-display text-xs font-bold transition bg-sunny text-ink border-2 border-ink shadow-[0_2px_0_#1E1B2E]";
-            const idleCls = "flex-1 sm:flex-initial px-3 py-1.5 rounded-lg font-display text-xs font-bold transition text-ink/70 hover:text-ink";
-            b1.className = count === 1 ? activeCls : idleCls;
-            b3.className = count === 3 ? activeCls : idleCls;
-        }
-
-        function cryptoShuffleDeck() {
-            const copy = [...FULL_DECK];
-            const rand = new Uint32Array(copy.length);
-            window.crypto.getRandomValues(rand);
-            for (let i = copy.length - 1; i > 0; i--) {
-                const j = rand[i] % (i + 1);
-                [copy[i], copy[j]] = [copy[j], copy[i]];
-            }
-            return copy;
-        }
-
-        function switchStage(stageId) {
-            ['stage-setup', 'stage-draw', 'stage-reading'].forEach(id => {
-                const el = document.getElementById(id);
-                if (id === stageId) {
-                    el.classList.remove('hidden');
-                } else {
-                    el.classList.add('hidden');
-                }
-            });
-        }
-
-        function startShuffleStage() {
-            playSound('shuffle');
-            const rawQ = document.getElementById('userQuestionInput').value.trim();
-            const fallbackList = SNARKY_QUESTIONS[appState.category];
-            appState.question = rawQ || fallbackList[0];
-            appState.drawnCards = [];
-            appState.deckOrder = cryptoShuffleDeck();
-
-            const reader = READERS[appState.reader];
-            document.getElementById('drawReaderAvatar').innerHTML = getReaderAvatarSVG(appState.reader);
-            document.getElementById('drawReaderName').textContent = `${reader.emoji} ${reader.name} (${reader.title})`;
-            document.getElementById('drawReaderQuip').textContent = reader.shuffleQuips[Math.floor(Math.random() * reader.shuffleQuips.length)];
-            document.getElementById('drawRemainingCount').textContent = appState.spreadCount;
-
-            renderFanDeck();
-            renderDrawnSlotsPreview();
-            switchStage('stage-draw');
-        }
-
-        function renderFanDeck() {
-            const container = document.getElementById('fannedDeckRow');
-            const fanCount = 11;
-            let html = '';
-            for (let i = 0; i < fanCount; i++) {
-                const angle = (i - (fanCount - 1) / 2) * 3.5;
-                const yOffset = Math.abs(i - (fanCount - 1) / 2) * 2.2;
-                html += `
-                <button
-                    type="button"
-                    onclick="pickCardFromFan(this, ${i})"
-                    style="transform: rotate(${angle}deg) translateY(${yOffset}px); margin-left: ${i === 0 ? '0px' : '-16px'};"
-                    class="fan-card w-16 h-26 sm:w-20 sm:h-32 rounded-xl shadow-md border-2 border-ink overflow-hidden shrink-0 focus:outline-none"
-                    title="Pull Tarot Card"
-                >
-                    ${renderCardBackSVG()}
-                </button>`;
-            }
-            container.innerHTML = html;
-        }
-
-        function getSpreadSlotMeta(index) {
-            if (appState.spreadCount === 1) {
-                return { title: "The Vibe Check", desc: "Your unfiltered answer right now" };
-            }
-            const slots = [
-                { title: "1. The Past", desc: "How this whole story started" },
-                { title: "2. The Present", desc: "What's actually going on right now" },
-                { title: "3. The Future", desc: "Where this is heading next" }
-            ];
-            return slots[index];
-        }
-
-        function renderDrawnSlotsPreview() {
-            const preview = document.getElementById('drawnSlotsPreview');
-            let html = '';
-            for (let i = 0; i < appState.spreadCount; i++) {
-                const slot = getSpreadSlotMeta(i);
-                const filled = appState.drawnCards[i];
-                html += `
-                <div class="px-2.5 py-1 rounded-xl border-2 border-ink ${filled ? 'bg-mint text-ink font-bold shadow-[0_2px_0_#1E1B2E]' : 'bg-gray-100 text-ink/45 font-semibold'} text-xs flex items-center gap-1">
-                    <i class="ph-fill ${filled ? 'ph-check-circle' : 'ph-circle-dashed'}"></i>
-                    <span>${slot.title}</span>
-                </div>`;
-            }
-            preview.innerHTML = html;
-            const rem = Math.max(0, appState.spreadCount - appState.drawnCards.length);
-            document.getElementById('drawRemainingCount').textContent = rem;
-        }
-
-        function pickCardFromFan(btnEl) {
-            if (appState.drawnCards.length >= appState.spreadCount) return;
-            playSound('flip');
-            btnEl.classList.add('picked');
-
-            const cardIndex = appState.drawnCards.length;
-            const selectedCard = appState.deckOrder[cardIndex];
-            const randByte = new Uint8Array(1);
-            window.crypto.getRandomValues(randByte);
-            const isReversed = (randByte[0] % 2) === 1;
-            const slotMeta = getSpreadSlotMeta(cardIndex);
-
-            appState.drawnCards.push({
-                card: selectedCard,
-                isReversed: isReversed,
-                flipped: false,
-                positionTitle: slotMeta.title,
-                positionDesc: slotMeta.desc
-            });
-
-            renderDrawnSlotsPreview();
-
-            if (appState.drawnCards.length === appState.spreadCount) {
-                setTimeout(() => launchReadingStage(), 280);
-            }
-        }
-
-        function reshuffleFan() {
-            playSound('shuffle');
-            appState.drawnCards = [];
-            appState.deckOrder = cryptoShuffleDeck();
-            const row = document.getElementById('fannedDeckRow');
-            row.classList.add('shuffling-anim');
-            setTimeout(() => {
-                row.classList.remove('shuffling-anim');
-                renderFanDeck();
-                renderDrawnSlotsPreview();
-            }, 340);
-        }
-
-        function instantAutoDraw() {
-            playSound('flip');
-            while (appState.drawnCards.length < appState.spreadCount) {
-                const idx = appState.drawnCards.length;
-                const selectedCard = appState.deckOrder[idx];
-                const randByte = new Uint8Array(1);
-                window.crypto.getRandomValues(randByte);
-                const isReversed = (randByte[0] % 2) === 1;
-                const slotMeta = getSpreadSlotMeta(idx);
-                appState.drawnCards.push({
-                    card: selectedCard,
-                    isReversed,
-                    flipped: true,
-                    positionTitle: slotMeta.title,
-                    positionDesc: slotMeta.desc
-                });
-            }
-            launchReadingStage();
-        }
-
-        function launchReadingStage() {
-            if (appState.drawnCards.length > 0) {
-                appState.drawnCards[0].flipped = true;
-            }
-            appState.activeTabIndex = 0;
-            saveReadingToBurnBook();
-            switchStage('stage-reading');
-            updateLiveReaderButtons();
-            renderReadingTabs();
-            renderActiveReadingTab();
-        }
-
-        function updateLiveReaderButtons() {
-            const bAura = document.getElementById('live-reader-aura');
-            const bColin = document.getElementById('live-reader-colin');
-            if (appState.reader === 'aura') {
-                bAura.className = "px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition bg-emerald-300 text-ink border border-ink shadow-[0_1px_0_#1E1B2E]";
-                bColin.className = "px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition text-ink/60 hover:text-ink";
-            } else {
-                bColin.className = "px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition bg-pink-300 text-ink border border-ink shadow-[0_1px_0_#1E1B2E]";
-                bAura.className = "px-2.5 py-1 rounded-lg font-display text-[11px] font-bold transition text-ink/60 hover:text-ink";
-            }
-        }
-
-        function switchReaderDuringReading(newReaderId) {
-            playSound('tap');
-            appState.reader = newReaderId;
-            updateLiveReaderButtons();
-            renderActiveReadingTab();
-        }
-
-        function renderReadingTabs() {
-            const tabContainer = document.getElementById('readingPositionTabs');
-            let html = '';
-            appState.drawnCards.forEach((item, idx) => {
-                const isActive = appState.activeTabIndex === idx;
-                html += `
-                <button
-                    onclick="selectReadingTab(${idx})"
-                    class="px-2.5 sm:px-3 py-1 rounded-lg font-display text-xs font-bold transition flex items-center gap-1 whitespace-nowrap ${isActive ? 'bg-sunny text-ink border border-ink shadow-[0_1px_0_#1E1B2E]' : 'text-ink/70 hover:text-ink'}"
-                >
-                    <span>${item.positionTitle}</span>
-                    ${item.flipped ? `<span class="text-[10px] opacity-75 hidden sm:inline">• ${item.card.name}</span>` : `<span>🔒</span>`}
-                </button>`;
-            });
-
-            // Final Summary Tea Tab
-            const isVerdict = appState.activeTabIndex === appState.drawnCards.length;
-            html += `
-            <button
-                onclick="selectReadingTab(${appState.drawnCards.length})"
-                class="px-2.5 sm:px-3 py-1 rounded-lg font-display text-xs font-bold transition flex items-center gap-1 whitespace-nowrap ${isVerdict ? 'bg-bubblegum text-white border border-ink shadow-[0_1px_0_#1E1B2E]' : 'text-bubblegum hover:bg-pink-100'}"
-            >
-                <span>☕ TL;DR Tea</span>
-            </button>`;
-
-            tabContainer.innerHTML = html;
-
-            const allFlipped = appState.drawnCards.every(c => c.flipped);
-            const flipBtn = document.getElementById('flipAllActionBtn');
-            if (flipBtn) {
-                flipBtn.style.display = allFlipped ? 'none' : 'flex';
-            }
-        }
-
-        function selectReadingTab(idx) {
-            playSound('flip');
-            appState.activeTabIndex = idx;
-            if (idx < appState.drawnCards.length && !appState.drawnCards[idx].flipped) {
-                appState.drawnCards[idx].flipped = true;
-            }
-            renderReadingTabs();
-            renderActiveReadingTab();
-        }
-
-        function flipSingleCard(idx) {
-            playSound('flip');
-            appState.drawnCards[idx].flipped = !appState.drawnCards[idx].flipped;
-            renderReadingTabs();
-            renderActiveReadingTab();
-        }
-
-        function flipAllCardsNow() {
-            playSound('flip');
-            appState.drawnCards.forEach(c => c.flipped = true);
-            renderReadingTabs();
-            renderActiveReadingTab();
-        }
-
-        function formatBoldMarkdown(str) {
-            return str
-                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-grape font-extrabold">$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em class="underline decoration-wavy decoration-pink-400">$1</em>');
-        }
-
-        function renderActiveReadingTab() {
-            const panel = document.getElementById('readingActivePanel');
-            const reader = READERS[appState.reader];
-
-            // Final TL;DR Tea Verdict View
-            if (appState.activeTabIndex === appState.drawnCards.length) {
-                appState.drawnCards.forEach(c => c.flipped = true);
-                renderReadingTabs();
-
-                const catLabel = CATEGORY_LABELS[appState.category];
-                const intro = reader.verdictIntro(appState.question, catLabel);
-
-                let bulletsHtml = '';
-                appState.drawnCards.forEach((item) => {
-                    const c = item.card;
-                    const core = item.isReversed ? c.rev[appState.category] : c.up[appState.category];
-                    bulletsHtml += `
-                    <div class="p-2.5 rounded-xl bg-cream border-2 border-ink flex items-start gap-2.5 shadow-[0_2px_0_#1E1B2E]">
-                        <div class="px-2 py-0.5 rounded-lg bg-sunny border border-ink font-display text-[11px] font-bold text-ink shrink-0 mt-0.5">
-                            ${item.positionTitle}
-                        </div>
-                        <div class="text-xs sm:text-sm text-ink leading-snug">
-                            <strong class="font-display text-grape">${c.name} ${item.isReversed ? '(Upside-Down)' : '(Upright)'}:</strong>
-                            <span class="font-medium ml-1">${core}</span>
-                        </div>
-                    </div>`;
-                });
-
-                const finalChallenge = appState.reader === 'aura'
-                    ? `"Drink a big glass of water, block anyone who makes you feel weird, and do one nice thing for yourself in the next hour!"`
-                    : `"Screenshot this reading, send it to your group chat with zero context, and go do whatever chaotic thing you were trying to talk yourself out of!"`;
-
-                panel.innerHTML = `
-                <div class="w-full h-full flex flex-col justify-between overflow-y-auto thin-scroll pr-1 space-y-2.5">
-                    <div class="flex items-center gap-3 border-b-2 border-ink/15 pb-2 shrink-0">
-                        <div class="w-11 h-11 rounded-2xl border-2 border-ink overflow-hidden shrink-0 shadow-[0_2px_0_#1E1B2E]">
-                            ${getReaderAvatarSVG(appState.reader)}
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-display text-sm sm:text-base font-bold text-ink">${reader.emoji} ${reader.name}'s Final Tea</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${reader.pillClass}">${catLabel}</span>
-                            </div>
-                            <p class="text-xs text-ink/80 font-semibold mt-0.5">${formatBoldMarkdown(intro)}</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2 flex-1">
-                        ${bulletsHtml}
-                    </div>
-
-                    <div class="p-3 rounded-xl ${reader.boxBg} border-2 border-ink shadow-[0_2px_0_#1E1B2E] shrink-0">
-                        <span class="font-display font-bold text-xs text-ink uppercase block">✨ Dare From ${reader.name}:</span>
-                        <p class="text-xs sm:text-sm font-bold text-grape mt-0.5">${finalChallenge}</p>
-                    </div>
-                </div>`;
-                return;
-            }
-
-            // Individual Card View
-            const item = appState.drawnCards[appState.activeTabIndex];
-            const card = item.card;
-            const isRev = item.isReversed;
-            const kws = isRev ? card.kwRev : card.kwUp;
-            const rawMeaning = isRev ? card.rev[appState.category] : card.up[appState.category];
-            const fullRoast = reader.voiceWrap(card.name, isRev, rawMeaning, appState.category, item.positionTitle);
-
-            const nextIdx = appState.activeTabIndex + 1;
-            const nextLabel = nextIdx < appState.drawnCards.length
-                ? `Next Card: ${appState.drawnCards[nextIdx].positionTitle} →`
-                : `See Final Tea ☕`;
-
-            const otherReaderName = appState.reader === 'aura' ? 'Chaos Colin 😈' : 'Auntie Aura 😇';
-            const otherReaderId = appState.reader === 'aura' ? 'colin' : 'aura';
-
-            panel.innerHTML = `
-                <!-- Left Column: Interactive 3D Pop Tarot Card -->
-                <div class="flex flex-col items-center justify-center shrink-0">
-                    <div
-                        onclick="flipSingleCard(${appState.activeTabIndex})"
-                        class="w-32 h-52 sm:w-44 sm:h-72 perspective-1000 cursor-pointer group relative"
-                        title="Tap to flip card"
-                    >
-                        <div class="card-3d-inner ${item.flipped ? 'is-flipped' : ''}">
-                            <!-- Card Back -->
-                            <div class="card-face shadow-lg border-2 border-ink">
-                                ${renderCardBackSVG()}
-                                <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                    <span class="px-2.5 py-1 rounded-full bg-sunny border-2 border-ink font-display text-xs font-bold text-ink shadow">Tap to Flip!</span>
-                                </div>
-                            </div>
-                            <!-- Card Front -->
-                            <div class="card-face card-face-front shadow-lg border-2 border-ink">
-                                <div class="w-full h-full ${isRev ? 'reversed-artwork' : ''}">
-                                    ${renderCardFrontSVG(card)}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <span class="text-[11px] font-bold text-ink/70 mt-1.5">
-                        ${item.flipped ? (isRev ? '🙃 Upside-Down (Chaotic)' : '✨ Upright (Direct Hit)') : '👆 Tap Card To Flip'}
-                    </span>
-                </div>
-
-                <!-- Right Column: Reader's Roast & Card Details -->
-                <div class="flex-1 min-w-0 h-full flex flex-col justify-between overflow-y-auto thin-scroll pr-1">
-                    <div class="space-y-2">
-                        <!-- Top Position & Orientation Header -->
-                        <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink/10 pb-2">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-grape block">${item.positionTitle} — ${item.positionDesc}</span>
-                                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink leading-tight">
-                                    ${card.name}
-                                </h2>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-xs font-display font-bold border-2 border-ink shadow-[0_2px_0_#1E1B2E] ${isRev ? 'bg-pink-200 text-ink' : 'bg-mint text-ink'}">
-                                ${isRev ? '🙃 Reversed' : '✨ Upright'}
-                            </span>
-                        </div>
-
-                        <!-- Snarky Keywords -->
-                        <div class="flex flex-wrap gap-1.5">
-                            ${kws.map(k => `<span class="px-2.5 py-0.5 rounded-full bg-lilac border border-ink text-ink text-[11px] font-bold">#${k}</span>`).join('')}
-                        </div>
-
-                        <!-- Reader Speech Box -->
-                        <div class="p-3 sm:p-3.5 rounded-2xl ${reader.boxBg} border-2 border-ink shadow-[0_3px_0_#1E1B2E] relative mt-1">
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <div class="w-7 h-7 rounded-xl border border-ink overflow-hidden shrink-0">
-                                    ${getReaderAvatarSVG(appState.reader)}
-                                </div>
-                                <span class="font-display text-xs sm:text-sm font-bold text-ink">${reader.emoji} ${reader.name} says:</span>
-                                <span class="text-[11px] text-ink/60 font-semibold truncate">re: "${appState.question}"</span>
-                            </div>
-                            <p class="text-xs sm:text-sm font-semibold text-ink leading-relaxed">
-                                ${formatBoldMarkdown(fullRoast)}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Card Navigation Footer inside Panel -->
-                    <div class="pt-2 mt-2 border-t-2 border-ink/10 flex flex-wrap items-center justify-between gap-2 shrink-0">
-                        <button
-                            onclick="switchReaderDuringReading('${otherReaderId}')"
-                            class="text-xs font-bold text-grape hover:underline flex items-center gap-1"
-                        >
-                            🔄 Hear what ${otherReaderName} says
-                        </button>
-                        <button
-                            onclick="selectReadingTab(${nextIdx})"
-                            class="pop-card-sm px-3.5 py-1.5 rounded-xl bg-sunny hover:bg-amber-300 text-ink font-display font-bold text-xs transition"
-                        >
-                            ${nextLabel}
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function resetToSetup() {
-            playSound('tap');
-            switchStage('stage-setup');
-        }
-
-        /**************************************************************
-         * 6. BURN BOOK (JOURNAL) & 78-CARD DECK MODAL
-         **************************************************************/
-        const BURN_BOOK_KEY = 'mysticdraw_pop_burnbook_v3';
-
-        function getBurnBook() {
-            try {
-                const raw = localStorage.getItem(BURN_BOOK_KEY);
-                return raw ? JSON.parse(raw) : [];
-            } catch (e) {
-                return [];
-            }
-        }
-
-        function saveReadingToBurnBook() {
-            try {
-                const list = getBurnBook();
-                const entry = {
-                    id: Date.now(),
-                    date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' • ' + new Date().toLocaleDateString(),
-                    reader: `${READERS[appState.reader].emoji} ${READERS[appState.reader].name}`,
-                    category: CATEGORY_LABELS[appState.category],
-                    question: appState.question,
-                    cards: appState.drawnCards.map(d => ({
-                        name: d.card.name,
-                        isReversed: d.isReversed,
-                        pos: d.positionTitle,
-                        roast: d.isReversed ? d.card.rev[appState.category] : d.card.up[appState.category]
-                    }))
-                };
-                list.unshift(entry);
-                localStorage.setItem(BURN_BOOK_KEY, JSON.stringify(list.slice(0, 25)));
-                updateBurnBookBadge();
-            } catch (e) {}
-        }
-
-        function updateBurnBookBadge() {
-            const badge = document.getElementById('burnBookBadge');
-            if (badge) badge.textContent = getBurnBook().length;
-        }
-
-        function openBurnBookModal() {
-            playSound('tap');
-            const modal = document.getElementById('burnBookModal');
-            const listEl = document.getElementById('burnBookList');
-            const items = getBurnBook();
-
-            if (!items.length) {
-                listEl.innerHTML = `
-                <div class="text-center py-12 text-ink/60 font-bold">
-                    <span class="text-4xl block mb-2">📓</span>
-                    Your Burn Book is empty! Draw some cards first so we can save the tea.
-                </div>`;
-            } else {
-                listEl.innerHTML = items.map(item => `
-                <div class="pop-card-sm p-3.5 rounded-2xl bg-white space-y-2">
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-ink/15 pb-1.5">
-                        <span class="font-display text-xs font-bold text-grape">${item.reader} • ${item.category}</span>
-                        <span class="text-[10px] font-bold text-ink/50">${item.date}</span>
-                    </div>
-                    <p class="text-xs font-bold text-ink">"${item.question}"</p>
-                    <div class="space-y-1 pt-1">
-                        ${item.cards.map(c => `
-                            <div class="text-xs text-ink/85">
-                                <span class="font-bold text-ink">${c.pos} — ${c.name} ${c.isReversed ? '(Rev)' : ''}:</span>
-                                <span class="font-medium ml-1">${c.roast}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>`).join('');
-            }
-            modal.classList.remove('hidden');
-        }
-
-        function closeBurnBookModal() {
-            document.getElementById('burnBookModal').classList.add('hidden');
-        }
-
-        function clearBurnBook() {
-            localStorage.removeItem(BURN_BOOK_KEY);
-            updateBurnBookBadge();
-            openBurnBookModal();
-        }
-
-        function copyCurrentRoast() {
-            const reader = READERS[appState.reader];
-            const summaryLines = appState.drawnCards.map(d => {
-                const text = d.isReversed ? d.card.rev[appState.category] : d.card.up[appState.category];
-                return `${d.positionTitle}: ${d.card.name} (${d.isReversed ? 'Reversed' : 'Upright'}) — ${text}`;
-            }).join('\n');
-
-            const shareText = `✨ Tarot & Tea Reading with ${reader.emoji} ${reader.name}\nQuestion: "${appState.question}"\n${summaryLines}`;
-
-            const ta = document.createElement('textarea');
-            ta.value = shareText;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-
-            const btn = document.getElementById('copyRoastBtn');
-            const orig = btn.innerHTML;
-            btn.innerHTML = `<i class="ph-bold ph-check"></i> Copied!`;
-            setTimeout(() => { btn.innerHTML = orig; }, 1800);
-        }
-
-        /* 78-Card Deck Browser Modal */
-        function openGrimoireModal() {
-            playSound('tap');
-            document.getElementById('grimoireModal').classList.remove('hidden');
-            renderGrimoireGrid();
-        }
-
-        function closeGrimoireModal() {
-            document.getElementById('grimoireModal').classList.add('hidden');
-        }
-
-        function renderGrimoireGrid() {
-            const query = (document.getElementById('grimoireSearch').value || '').toLowerCase();
-            const suitFilter = document.getElementById('grimoireSuit').value;
-            const body = document.getElementById('grimoireBody');
-
-            const filtered = FULL_DECK.filter(c => {
-                const matchSuit = suitFilter === 'ALL'
-                    || (suitFilter === 'Major Arcana' && c.arcana === 'Major Arcana')
-                    || c.suit === suitFilter;
-                const matchText = c.name.toLowerCase().includes(query)
-                    || c.kwUp.some(k => k.toLowerCase().includes(query))
-                    || c.kwRev.some(k => k.toLowerCase().includes(query));
-                return matchSuit && matchText;
-            });
-
-            body.innerHTML = `
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                ${filtered.map(c => `
-                    <button
-                        onclick="inspectGrimoireCard(${c.id})"
-                        class="pop-card-sm p-2.5 rounded-2xl bg-white hover:bg-lilac text-left transition flex flex-col items-center group"
-                    >
-                        <div class="w-24 h-38 rounded-xl overflow-hidden border-2 border-ink group-hover:scale-105 transition">
-                            ${renderCardFrontSVG(c)}
-                        </div>
-                        <div class="mt-2 text-center w-full">
-                            <div class="font-display text-xs font-bold text-ink truncate">${c.name}</div>
-                            <div class="text-[10px] font-bold text-grape truncate">#${c.kwUp[0]}</div>
-                        </div>
-                    </button>
-                `).join('')}
-            </div>`;
-        }
-
-        function inspectGrimoireCard(cardId) {
-            playSound('flip');
-            const c = FULL_DECK.find(x => x.id === cardId);
-            if (!c) return;
-            const body = document.getElementById('grimoireBody');
-            body.innerHTML = `
-            <div class="space-y-4">
-                <button onclick="renderGrimoireGrid()" class="pop-card-sm px-3 py-1.5 rounded-xl bg-white text-ink font-display text-xs font-bold flex items-center gap-1.5">
-                    <i class="ph-bold ph-arrow-left"></i> Back to All 78 Cards
-                </button>
-                <div class="flex flex-col md:flex-row gap-5 items-center md:items-start">
-                    <div class="w-40 h-64 rounded-2xl overflow-hidden border-2 border-ink shadow-[0_4px_0_#1E1B2E] shrink-0">
-                        ${renderCardFrontSVG(c)}
-                    </div>
-                    <div class="flex-1 space-y-3">
-                        <div>
-                            <span class="text-xs font-bold uppercase text-grape">${c.arcana} • ${c.element}</span>
-                            <h4 class="font-display text-2xl font-bold text-ink">${c.name}</h4>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="pop-card-sm p-3 rounded-2xl bg-emerald-50 space-y-1.5">
-                                <div class="font-display text-xs font-bold text-emerald-800 uppercase">✨ Upright Vibes</div>
-                                <p class="text-xs text-ink"><strong>💘 Love:</strong> ${c.up.love}</p>
-                                <p class="text-xs text-ink"><strong>💸 Career:</strong> ${c.up.career}</p>
-                                <p class="text-xs text-ink"><strong>🧠 Self:</strong> ${c.up.growth}</p>
-                                <p class="text-xs text-ink"><strong>🔮 General:</strong> ${c.up.general}</p>
-                            </div>
-                            <div class="pop-card-sm p-3 rounded-2xl bg-pink-50 space-y-1.5">
-                                <div class="font-display text-xs font-bold text-pink-800 uppercase">🙃 Reversed Vibes</div>
-                                <p class="text-xs text-ink"><strong>💘 Love:</strong> ${c.rev.love}</p>
-                                <p class="text-xs text-ink"><strong>💸 Career:</strong> ${c.rev.career}</p>
-                                <p class="text-xs text-ink"><strong>🧠 Self:</strong> ${c.rev.growth}</p>
-                                <p class="text-xs text-ink"><strong>🔮 General:</strong> ${c.rev.general}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            updateBurnBookBadge();
-        });
-    </script>
+        
+</script>
+
+<script>
+// --- AUDIO SYSTEM (Web Audio API Synthesizer) ---
+let audioEnabled = true;
+let audioCtx = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function playSound(type) {
+  if (!audioEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+
+    if (type === 'tap') {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(480, now);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.05);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } else if (type === 'flip') {
+      const bufSize = audioCtx.sampleRate * 0.1;
+      const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.3));
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(800, now);
+      filter.Q.setValueAtTime(3, now);
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start(now);
+    } else if (type === 'bell') {
+      [880, 1320, 1760].forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+        gain.gain.setValueAtTime(0.07, now + idx * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + idx * 0.04);
+        osc.stop(now + 1.2);
+      });
+    }
+  } catch (e) {
+    // Audio context may require explicit user interaction
+  }
+}
+
+function toggleAudio() {
+  audioEnabled = !audioEnabled;
+  const icon = document.getElementById('audioIcon');
+  if (icon) {
+    icon.className = audioEnabled ? 'ph-fill ph-speaker-high' : 'ph-fill ph-speaker-slash';
+  }
+  if (audioEnabled) playSound('tap');
+}
+
+// --- TEA PAIRINGS DATABASE ---
+const TEA_PAIRINGS = {
+  Major: {
+    name: "Imperial Starlight Jasmine",
+    brew: "80°C (175°F) • Steep 3 mins",
+    profile: "Silky green tea scented with midnight-harvested jasmine pearls.",
+    why: "Calms main-character syndrome and clarifies high-stakes cosmic revelations."
+  },
+  Wands: {
+    name: "Fiery Ceylon Cinnamon & Blood Orange",
+    brew: "95°C (205°F) • Steep 4 mins",
+    profile: "Robust dark tea with crushed cinnamon bark, cardamom pods, and dried citrus.",
+    why: "Fuels ambition, ignites courage, and prevents you from sending unhinged 2 AM texts."
+  },
+  Cups: {
+    name: "Velvet Rose & Lavender White Tea",
+    brew: "80°C (175°F) • Steep 3 mins",
+    profile: "Delicate silver needle white tea with French lavender and Persian rose petals.",
+    why: "Soothes dramatic heartbreak, cures emotional spirals, and reminds you that you're the prize."
+  },
+  Swords: {
+    name: "Gunpowder Green with Moroccan Mint",
+    brew: "85°C (185°F) • Steep 2.5 mins",
+    profile: "Smoky green pearls with crisp, cooling spearmint leaves.",
+    why: "Sharpens laser focus, slices through delusions, and stops you from overthinking every punctuation mark."
+  },
+  Pentacles: {
+    name: "Golden Toasted Honeycomb Oolong",
+    brew: "90°C (195°F) • Steep 4 mins",
+    profile: "Warm roasted high-mountain oolong with notes of toasted malt, honey, and vanilla bean.",
+    why: "Grounds erratic energy, smells like financial security, and helps enforce rock-solid boundaries."
+  }
+};
+
+// --- THE SINGLE ORACLE PERSONA (Sarcastic, Sharp, Perceptive) ---
+const ORACLE = {
+  name: "The Oracle",
+  shuffleQuips: [
+    "“Hold your questions. The cards are already judging your life choices.”",
+    "“Shuffling out the delusions and questionable decisions...”",
+    "“Pick one. The universe has other appointments today.”",
+    "“Deep breath. The cosmos can sense your browser history.”",
+    "“Ah, asking questions you secretly already know the answers to. Classic.”",
+    "“Let’s see what chaotic plot twist the cosmos has concocted for you.”",
+    "“Take your time. It’s not like Mercury is in retrograde or anything... oh wait.”"
+  ],
+  openers: [
+    (card, rev, pos) => `Well, well. Look who decided to show up for your **${pos}**: **${card}${rev ? ' (Reversed)' : ''}**.`,
+    (card, rev, pos) => `*Sips dark tea.* I need a moment of silence for **${card}${rev ? ' (Inverted)' : ''}** landing in **${pos}**:`,
+    (card, rev, pos) => `The universe didn't stutter with **${card}${rev ? ' (Reversed)' : ''}** in **${pos}**:`,
+    (card, rev, pos) => `Oh, fantastic. **${card}${rev ? ' (Upside Down)' : ''}** has entered the chat for **${pos}**:`
+  ],
+  closers: {
+    love: "Stop reading into every dot and comma. If they wanted to, they would. Close the tab.",
+    career: "Work hard, secure the bag, and stop giving 110% to people who can't even remember your email.",
+    growth: "Drink water, touch grass, and remember that overthinking is not a cardio workout.",
+    general: "Accept the plot twist with some dignity. You'll laugh about this in six months."
+  },
+  dares: {
+    love: "Do not check their social media for the next 24 hours. Put your phone in another room and drink some tea.",
+    career: "Set a boundary at work today. An email response of 'I will look into this tomorrow' will not kill anyone.",
+    growth: "Write down that one thing you're avoiding, do the very first step, and stop calling procrastination 'research'.",
+    general: "Brew a hot cup of tea, look in the mirror, and laugh at the absurdity of whatever is stressing you out."
+  }
+};
+
+// --- LIVE AI ORACLE GENERATION (Powered by Vercel Serverless Function & GEMINI_API_KEY) ---
+async function fetchLiveOracleReading(question, category, drawnCards) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const response = await fetch("/api/tarot", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        question: question || "What does fate have in store for me right now?",
+        category: category || "general",
+        drawnCards: drawnCards.map(d => ({
+          positionTitle: d.positionTitle,
+          isReversed: d.isReversed,
+          card: {
+            name: d.card.name,
+            suit: d.card.suit,
+            arcana: d.card.arcana
+          }
+        }))
+      })
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data && data.interpretations && data.cosmicVerdict) {
+      return data;
+    }
+    return null;
+  } catch (err) {
+    console.warn("Oracle Live AI reading deferred to cosmic archives:", err);
+    return null;
+  }
+}
+
+// --- ELEGANT MYSTIC SVG GENERATORS ---
+function renderCardBackSVG() {
+  return `
+  <svg viewBox="0 0 200 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="cardBackGrad" cx="50%" cy="50%" r="75%">
+        <stop offset="0%" stop-color="#241a45"/>
+        <stop offset="70%" stop-color="#140f28"/>
+        <stop offset="100%" stop-color="#0b0817"/>
+      </radialGradient>
+      <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f3d882"/>
+        <stop offset="50%" stop-color="#c9a84c"/>
+        <stop offset="100%" stop-color="#7e5c1a"/>
+      </linearGradient>
+    </defs>
+    <!-- Dark Celestial Background -->
+    <rect width="200" height="320" rx="14" fill="url(#cardBackGrad)"/>
+    <!-- Outer Gold Filigree Border -->
+    <rect x="7" y="7" width="186" height="306" rx="10" fill="none" stroke="url(#goldBorderGrad)" stroke-width="1.6" stroke-opacity="0.85"/>
+    <!-- Inner Dotted Frame -->
+    <rect x="13" y="13" width="174" height="294" rx="8" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.8" stroke-dasharray="3,3" stroke-opacity="0.6"/>
+    <!-- Corner Celestial Ornaments -->
+    <g fill="url(#goldBorderGrad)" opacity="0.8">
+      <path d="M18 18 L24 24 M24 18 L18 24" stroke="url(#goldBorderGrad)" stroke-width="1"/>
+      <circle cx="21" cy="21" r="1.5"/>
+      <circle cx="179" cy="21" r="1.5"/>
+      <circle cx="21" cy="299" r="1.5"/>
+      <circle cx="179" cy="299" r="1.5"/>
+    </g>
+    <!-- Center Sacred Geometry Mandala -->
+    <circle cx="100" cy="160" r="56" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" stroke-dasharray="2,2" stroke-opacity="0.4"/>
+    <circle cx="100" cy="160" r="44" fill="#181132" stroke="url(#goldBorderGrad)" stroke-width="1.4" stroke-opacity="0.75"/>
+    <circle cx="100" cy="160" r="34" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" stroke-opacity="0.5"/>
+    <!-- Radiant 8-Point Cosmic Star -->
+    <path d="M100 122 L103 154 L138 160 L103 166 L100 198 L97 166 L62 160 L97 154 Z" fill="url(#goldBorderGrad)" opacity="0.95"/>
+    <path d="M100 135 L118 142 L125 160 L118 178 L100 185 L82 178 L75 160 L82 142 Z" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" opacity="0.7"/>
+    <!-- Center Glowing Seed -->
+    <circle cx="100" cy="160" r="4.5" fill="#fff" opacity="0.95"/>
+    <circle cx="100" cy="160" r="8" fill="none" stroke="url(#goldBorderGrad)" stroke-width="1" opacity="0.8"/>
+    <!-- Top & Bottom Crescent Accents -->
+    <path d="M92 48 Q100 58 108 48 Q100 52 92 48 Z" fill="url(#goldBorderGrad)" opacity="0.7"/>
+    <path d="M92 272 Q100 262 108 272 Q100 268 92 272 Z" fill="url(#goldBorderGrad)" opacity="0.7"/>
+  </svg>`;
+}
+
+function renderCardFrontSVG(card, isReversed) {
+  const isMajor = card.arcana === "Major Arcana";
+  const suit = card.suit;
+  const numStr = card.numeral || card.number || "•";
+  
+  // Element and palette
+  let elemIcon = "✦";
+  let elemName = isMajor ? "MAJOR ARCANA" : `${suit.toUpperCase()} • ${card.element.toUpperCase()}`;
+  if (suit === "Wands") elemIcon = "🔥";
+  else if (suit === "Cups") elemIcon = "💧";
+  else if (suit === "Swords") elemIcon = "⚔️";
+  else if (suit === "Pentacles") elemIcon = "🪙";
+
+  // Centerpiece Icon SVG depending on suit
+  let centerArt = "";
+  if (isMajor) {
+    centerArt = `
+      <g transform="translate(100, 150)">
+        <circle cx="0" cy="0" r="46" fill="#1b1434" stroke="url(#goldBorderGrad)" stroke-width="1.2" stroke-opacity="0.7"/>
+        <circle cx="0" cy="0" r="38" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" stroke-dasharray="2,2" stroke-opacity="0.5"/>
+        <path d="M-36 0 Q0 -30 36 0 Q0 30 -36 0 Z" fill="#291c4d" stroke="url(#goldBorderGrad)" stroke-width="1.4"/>
+        <circle cx="0" cy="0" r="15" fill="url(#goldBorderGrad)"/>
+        <circle cx="0" cy="0" r="7" fill="#0d0b14"/>
+        <circle cx="2" cy="-2" r="2.5" fill="#fff"/>
+        <path d="M0 -42 L0 -48 M0 42 L0 48 M-42 0 L-48 0 M42 0 L48 0" stroke="url(#goldBorderGrad)" stroke-width="1.2"/>
+      </g>`;
+  } else if (suit === "Wands") {
+    centerArt = `
+      <g transform="translate(100, 150)">
+        <circle cx="0" cy="0" r="42" fill="#221226" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>
+        <!-- Crossed Staves -->
+        <line x1="-22" y1="32" x2="22" y2="-32" stroke="url(#goldBorderGrad)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="22" y1="32" x2="-22" y2="-32" stroke="url(#goldBorderGrad)" stroke-width="3" stroke-linecap="round"/>
+        <!-- Central Torch Fire -->
+        <path d="M0 -28 C-12 -10 -8 8 0 20 C8 8 12 -10 0 -28 Z" fill="#e8c96a" opacity="0.9"/>
+        <path d="M0 -20 C-6 -8 -4 4 0 12 C4 4 6 -8 0 -20 Z" fill="#ff7a59"/>
+        <circle cx="0" cy="0" r="3" fill="#fff"/>
+      </g>`;
+  } else if (suit === "Cups") {
+    centerArt = `
+      <g transform="translate(100, 150)">
+        <circle cx="0" cy="0" r="42" fill="#10192e" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>
+        <!-- Ornate Chalice -->
+        <path d="M-22 -14 Q-20 18 0 20 Q20 18 22 -14 Z" fill="#202b4c" stroke="url(#goldBorderGrad)" stroke-width="1.8"/>
+        <path d="M-22 -14 Q0 -9 22 -14 Q0 -19 -22 -14 Z" fill="url(#goldBorderGrad)" opacity="0.8"/>
+        <!-- Stem & Base -->
+        <path d="M-4 20 L-4 32 L-16 35 L16 35 L4 32 L4 20 Z" fill="url(#goldBorderGrad)"/>
+        <!-- Rising Water / Celestial Light -->
+        <circle cx="0" cy="-24" r="3" fill="#67e8f9"/>
+        <circle cx="-8" cy="-18" r="2" fill="#67e8f9" opacity="0.8"/>
+        <circle cx="8" cy="-19" r="2" fill="#67e8f9" opacity="0.8"/>
+      </g>`;
+  } else if (suit === "Swords") {
+    centerArt = `
+      <g transform="translate(100, 150)">
+        <circle cx="0" cy="0" r="42" fill="#131c2c" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>
+        <!-- Celestial Sword Blade -->
+        <path d="M0 -38 L5 -25 L4 22 L0 30 L-4 22 L-5 -25 Z" fill="#e2e8f0" stroke="url(#goldBorderGrad)" stroke-width="1.2"/>
+        <line x1="0" y1="-34" x2="0" y2="22" stroke="#94a3b8" stroke-width="0.75"/>
+        <!-- Crossguard & Pommel -->
+        <rect x="-18" y="21" width="36" height="4" rx="2" fill="url(#goldBorderGrad)"/>
+        <rect x="-3" y="25" width="6" height="12" rx="1" fill="#475569"/>
+        <circle cx="0" cy="38" r="4" fill="url(#goldBorderGrad)"/>
+        <!-- Star sparkles around blade -->
+        <circle cx="-14" cy="-12" r="1.5" fill="#f3d882"/>
+        <circle cx="14" cy="-10" r="1.5" fill="#f3d882"/>
+      </g>`;
+  } else {
+    // Pentacles
+    centerArt = `
+      <g transform="translate(100, 150)">
+        <circle cx="0" cy="0" r="42" fill="#201a14" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>
+        <!-- Golden Talisman Coin -->
+        <circle cx="0" cy="0" r="32" fill="#2a2216" stroke="url(#goldBorderGrad)" stroke-width="2.2"/>
+        <circle cx="0" cy="0" r="27" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <!-- Pentagram Star -->
+        <polygon points="0,-22 6,-6 22,-5 10,7 14,22 0,13 -14,22 -10,7 -22,-5 -6,-6" fill="url(#goldBorderGrad)" opacity="0.95"/>
+        <circle cx="0" cy="0" r="3" fill="#fff"/>
+      </g>`;
+  }
+
+  const rotClass = isReversed ? "rev-art" : "";
+
+  return `
+  <svg viewBox="0 0 200 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="cardFrontGrad" cx="50%" cy="45%" r="70%">
+        <stop offset="0%" stop-color="#1e1836"/>
+        <stop offset="70%" stop-color="#130e22"/>
+        <stop offset="100%" stop-color="#0a0714"/>
+      </radialGradient>
+      <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f3d882"/>
+        <stop offset="50%" stop-color="#c9a84c"/>
+        <stop offset="100%" stop-color="#7e5c1a"/>
+      </linearGradient>
+    </defs>
+    <!-- Background Frame -->
+    <rect width="200" height="320" rx="14" fill="url(#cardFrontGrad)"/>
+    <rect x="7" y="7" width="186" height="306" rx="10" fill="none" stroke="url(#goldBorderGrad)" stroke-width="1.6" stroke-opacity="0.85"/>
+    <rect x="13" y="13" width="174" height="294" rx="8" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" stroke-dasharray="3,3" stroke-opacity="0.4"/>
+    
+    <!-- Top Numeral and Suit Tag -->
+    <text x="22" y="32" font-family="'Cinzel', serif" font-size="12" font-weight="700" fill="#e8c96a">${numStr}</text>
+    <text x="178" y="32" font-family="'Cinzel', serif" font-size="12" font-weight="700" fill="#e8c96a" text-anchor="end">${numStr}</text>
+    
+    <text x="100" y="30" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" fill="#9b7dd4" letter-spacing="1.5" text-anchor="middle">
+      ${elemName}
+    </text>
+
+    <!-- Centerpiece Artwork -->
+    <g class="${rotClass}">
+      ${centerArt}
+    </g>
+
+    <!-- Reversed Watermark if applicable -->
+    ${isReversed ? `
+      <rect x="45" y="215" width="110" height="17" rx="8" fill="rgba(194,85,110,0.22)" stroke="rgba(194,85,110,0.5)" stroke-width="0.8"/>
+      <text x="100" y="227" font-family="'Inter', sans-serif" font-size="8.5" font-weight="700" fill="#ff8aa2" letter-spacing="1" text-anchor="middle">✦ REVERSED ✦</text>
+    ` : ''}
+
+    <!-- Bottom Card Name -->
+    <text x="100" y="254" font-family="'Cinzel', serif" font-size="12" font-weight="700" fill="#f3d882" text-anchor="middle" letter-spacing="0.5">
+      ${card.name.toUpperCase()}
+    </text>
+
+    <!-- Keywords Pill Preview -->
+    <text x="100" y="274" font-family="'Inter', sans-serif" font-size="7.5" font-weight="500" fill="#9a90b8" text-anchor="middle">
+      ${(isReversed ? card.kwRev : card.kwUp).slice(0, 2).join(' • ')}
+    </text>
+  </svg>`;
+}
+
+// --- APPLICATION STATE ---
+const appState = {
+  category: 'love',
+  question: '',
+  spread: 3, // 1 or 3
+  fanCards: [],
+  drawnCards: [], // [{ card, isReversed, positionTitle, flipped }]
+  activeTabIndex: 0,
+  aiReading: null,
+  journal: []
+};
+
+// --- JOURNAL (Burn Book) STORAGE ---
+const JOURNAL_STORAGE_KEY = 'timeflo_tarot_journal';
+
+function loadJournal() {
+  try {
+    const raw = localStorage.getItem(JOURNAL_STORAGE_KEY);
+    appState.journal = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    appState.journal = [];
+  }
+  updateJournalBadge();
+}
+
+function saveReadingToJournal() {
+  if (!appState.drawnCards.length) return;
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    category: appState.category,
+    question: appState.question || "Cosmic inquiry",
+    spread: appState.spread,
+    cards: appState.drawnCards.map(c => ({
+      name: c.card.name,
+      isReversed: c.isReversed,
+      pos: c.positionTitle
+    })),
+    verdict: appState.aiReading?.cosmicVerdict || "Truth delivered without sugarcoating."
+  };
+  appState.journal.unshift(entry);
+  if (appState.journal.length > 30) appState.journal.pop();
+  try {
+    localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(appState.journal));
+  } catch (e) {}
+  updateJournalBadge();
+}
+
+function updateJournalBadge() {
+  const badge = document.getElementById('burnBadge');
+  if (badge) badge.innerText = appState.journal.length;
+}
+
+function clearJournal() {
+  if (confirm("Clear all archived readings from your journal?")) {
+    appState.journal = [];
+    try { localStorage.removeItem(JOURNAL_STORAGE_KEY); } catch (e) {}
+    updateJournalBadge();
+    renderJournalList();
+  }
+}
+
+function openBurnBookModal() {
+  playSound('tap');
+  renderJournalList();
+  document.getElementById('journalModal')?.classList.remove('hidden');
+}
+
+function closeJournalModal() {
+  playSound('tap');
+  document.getElementById('journalModal')?.classList.add('hidden');
+}
+
+function renderJournalList() {
+  const list = document.getElementById('journalList');
+  if (!list) return;
+  if (!appState.journal.length) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:36px 12px;color:var(--text-muted);">
+        <i class="ph-duotone ph-book-open" style="font-size:36px;color:var(--purple);display:block;margin-bottom:8px;"></i>
+        <p style="font-size:13px;font-weight:600;">No cosmic receipts yet.</p>
+        <p style="font-size:11px;margin-top:4px;">Draw a reading to start logging your cosmic encounters.</p>
+      </div>`;
+    return;
+  }
+  list.innerHTML = appState.journal.map(item => `
+    <div style="background:rgba(28,22,48,.6);border:1px solid var(--border);border-radius:12px;padding:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span class="badge">${item.category.toUpperCase()} • ${item.spread} CARD${item.spread > 1 ? 'S' : ''}</span>
+        <span style="font-size:10px;color:var(--text-muted);">${item.date}</span>
+      </div>
+      <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">"${escapeHTML(item.question)}"</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+        ${item.cards.map(c => `
+          <span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:var(--gold-light);">
+            ${c.pos}: <strong>${c.name}</strong> ${c.isReversed ? '(Rev)' : ''}
+          </span>
+        `).join('')}
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);font-style:italic;line-height:1.4;">${escapeHTML(item.verdict)}</p>
+    </div>
+  `).join('');
+}
+
+// --- GRIMOIRE / 78-CARD DECK MODAL ---
+function openGrimoireModal() {
+  playSound('tap');
+  renderDeckGrid();
+  document.getElementById('deckModal')?.classList.remove('hidden');
+}
+
+function closeGrimoireModal() {
+  playSound('tap');
+  document.getElementById('deckModal')?.classList.add('hidden');
+}
+
+function renderDeckGrid() {
+  const container = document.getElementById('deckBody');
+  const query = (document.getElementById('deckSearch')?.value || '').toLowerCase().trim();
+  const suitFilter = document.getElementById('deckSuit')?.value || 'ALL';
+  if (!container) return;
+
+  const filtered = FULL_DECK.filter(card => {
+    if (suitFilter === 'Major Arcana' && card.arcana !== 'Major Arcana') return false;
+    if (suitFilter !== 'ALL' && suitFilter !== 'Major Arcana' && card.suit !== suitFilter) return false;
+    if (!query) return true;
+    return card.name.toLowerCase().includes(query) ||
+           card.kwUp.some(k => k.toLowerCase().includes(query)) ||
+           card.kwRev.some(k => k.toLowerCase().includes(query));
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = `<p style="text-align:center;padding:30px;color:var(--text-muted);font-size:12px;">No cards match your inquiry.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+      ${filtered.map(card => `
+        <div onclick="showCardDetail(${card.id})" style="background:rgba(28,22,48,.6);border:1px solid var(--border);border-radius:12px;padding:10px;cursor:pointer;transition:transform .2s,border-color .2s;text-align:center;" class="fan-c">
+          <div style="aspect-ratio:5/8;width:100%;border-radius:8px;overflow:hidden;margin-bottom:8px;box-shadow:0 4px 12px rgba(0,0,0,.4);">
+            ${renderCardFrontSVG(card, false)}
+          </div>
+          <p class="fd" style="font-size:11px;font-weight:700;color:var(--gold);">${card.name}</p>
+          <p style="font-size:10px;color:var(--text-muted);margin-top:2px;">${card.arcana === 'Major Arcana' ? 'Major Arcana' : card.suit}</p>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function showCardDetail(cardId) {
+  const card = FULL_DECK.find(c => c.id === cardId);
+  if (!card) return;
+  playSound('tap');
+  const suitKey = card.arcana === 'Major Arcana' ? 'Major' : card.suit;
+  const tea = TEA_PAIRINGS[suitKey];
+
+  alert(`${card.name.toUpperCase()} (${card.arcana})\n\n✦ Upright: ${card.up.general}\n✦ Reversed: ${card.rev.general}\n\n☕ Tea Pairing: ${tea.name}\n${tea.why}`);
+}
+
+// --- SETUP STAGE LOGIC ---
+function selectCategory(cat) {
+  playSound('tap');
+  appState.category = cat;
+  document.querySelectorAll('.cat-p').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+  });
+}
+
+function rollQ() {
+  playSound('tap');
+  const list = SNARKY_QUESTIONS[appState.category] || SNARKY_QUESTIONS.general;
+  const pick = list[Math.floor(Math.random() * list.length)];
+  const input = document.getElementById('qInput');
+  if (input) {
+    input.value = pick;
+    input.focus();
+  }
+}
+
+function selectSpread(spreadNum) {
+  playSound('tap');
+  appState.spread = spreadNum;
+  document.getElementById('sp1')?.classList.toggle('active', spreadNum === 1);
+  document.getElementById('sp3')?.classList.toggle('active', spreadNum === 3);
+}
+
+// --- DRAW STAGE LOGIC ---
+function startShuffle() {
+  playSound('bell');
+  const qVal = document.getElementById('qInput')?.value.trim();
+  appState.question = qVal || "";
+  appState.drawnCards = [];
+  appState.aiReading = null;
+
+  // Switch to stage-draw
+  document.getElementById('stage-setup')?.classList.remove('active');
+  document.getElementById('stage-reading')?.classList.remove('active');
+  document.getElementById('stage-draw')?.classList.add('active');
+
+  // Random snarky quip
+  const quipEl = document.getElementById('quip');
+  if (quipEl) {
+    quipEl.innerText = ORACLE.shuffleQuips[Math.floor(Math.random() * ORACLE.shuffleQuips.length)];
+  }
+
+  reshuffleFan();
+}
+
+function reshuffleFan() {
+  playSound('flip');
+  // Pick 12 random cards from FULL_DECK for the fan
+  const shuffled = [...FULL_DECK].sort(() => Math.random() - 0.5);
+  appState.fanCards = shuffled.slice(0, 12).map(c => ({
+    card: c,
+    isReversed: Math.random() < 0.35,
+    picked: false
+  }));
+  renderFanDeck();
+  updateDrawSlotsPreview();
+}
+
+function renderFanDeck() {
+  const container = document.getElementById('fanRow');
+  if (!container) return;
+  const total = appState.fanCards.length;
+  
+  container.innerHTML = appState.fanCards.map((item, idx) => {
+    if (item.picked) return '';
+    const angle = (idx - (total - 1) / 2) * 3.5;
+    const yOffset = Math.abs(idx - (total - 1) / 2) * 2;
+    return `
+      <div 
+        onclick="pickCard(${idx})"
+        class="fan-c"
+        style="width:58px;height:92px;margin:-8px;transform:rotate(${angle}deg) translateY(${yOffset}px);display:inline-block;border-radius:7px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.6);"
+      >
+        ${renderCardBackSVG()}
+      </div>
+    `;
+  }).join('');
+}
+
+function pickCard(fanIdx) {
+  if (appState.drawnCards.length >= appState.spread) return;
+  const item = appState.fanCards[fanIdx];
+  if (!item || item.picked) return;
+
+  playSound('flip');
+  item.picked = true;
+
+  const slotIndex = appState.drawnCards.length;
+  let posTitle = "Your Reality";
+  if (appState.spread === 3) {
+    const titles = ["Past Vibe", "Present Reality", "Upcoming Twist"];
+    posTitle = titles[slotIndex] || `Card ${slotIndex + 1}`;
+  }
+
+  appState.drawnCards.push({
+    card: item.card,
+    isReversed: item.isReversed,
+    positionTitle: posTitle,
+    flipped: false
+  });
+
+  renderFanDeck();
+  updateDrawSlotsPreview();
+
+  // If complete, proceed to reading stage
+  if (appState.drawnCards.length >= appState.spread) {
+    setTimeout(() => {
+      launchReadingStage();
+    }, 450);
+  }
+}
+
+function autoDraw() {
+  const remaining = appState.spread - appState.drawnCards.length;
+  if (remaining <= 0) return;
+  
+  let delay = 0;
+  for (let i = 0; i < appState.fanCards.length; i++) {
+    if (!appState.fanCards[i].picked && appState.drawnCards.length < appState.spread) {
+      setTimeout(() => pickCard(i), delay);
+      delay += 220;
+    }
+  }
+}
+
+function updateDrawSlotsPreview() {
+  const prev = document.getElementById('slotsPrev');
+  const remCount = document.getElementById('remCount');
+  const needed = appState.spread - appState.drawnCards.length;
+  if (remCount) remCount.innerText = needed;
+
+  if (!prev) return;
+  let html = '';
+  for (let i = 0; i < appState.spread; i++) {
+    const drawn = appState.drawnCards[i];
+    if (drawn) {
+      html += `<div class="slot-p filled"><i class="ph-bold ph-check" style="font-size:10px;margin-right:3px;"></i> ${drawn.positionTitle}</div>`;
+    } else {
+      let t = appState.spread === 3 ? ["Past", "Present", "Future"][i] : "Reality";
+      html += `<div class="slot-p">${t}</div>`;
+    }
+  }
+  prev.innerHTML = html;
+}
+
+// --- READING STAGE LOGIC ---
+function launchReadingStage() {
+  playSound('bell');
+  if (appState.drawnCards.length > 0) {
+    appState.drawnCards[0].flipped = true;
+  }
+  appState.activeTabIndex = 0;
+
+  // Switch to stage-reading
+  document.getElementById('stage-setup')?.classList.remove('active');
+  document.getElementById('stage-draw')?.classList.remove('active');
+  document.getElementById('stage-reading')?.classList.add('active');
+
+  renderReadingTabs();
+  renderActiveReadingTab();
+
+  // Asynchronously query Gemini Live AI for custom witty interpretations
+  fetchLiveOracleReading(appState.question, appState.category, appState.drawnCards).then(aiResult => {
+    if (aiResult) {
+      appState.aiReading = aiResult;
+      // Re-render currently viewed tab with rich AI insight
+      renderActiveReadingTab();
+      renderReadingTabs();
+    }
+    // Save record to journal
+    saveReadingToJournal();
+  });
+}
+
+function renderReadingTabs() {
+  const tabs = document.getElementById('readTabs');
+  if (!tabs) return;
+
+  let html = appState.drawnCards.map((item, idx) => {
+    const isActive = appState.activeTabIndex === idx;
+    return `
+      <button onclick="selectReadingTab(${idx})" class="tab-p ${isActive ? 'active' : ''}">
+        <span>${item.positionTitle}</span>
+        ${item.flipped ? `<span style="font-size:10px;opacity:.8;">• ${item.card.name}</span>` : `<span>🔒</span>`}
+      </button>
+    `;
+  }).join('');
+
+  // Final Tea & Verdict tab
+  const isVerdict = appState.activeTabIndex === appState.drawnCards.length;
+  html += `
+    <button onclick="selectReadingTab(${appState.drawnCards.length})" class="tab-p ${isVerdict ? 'active' : ''}" style="${isVerdict ? 'color:var(--rose);background:rgba(194,85,110,.15);border-color:rgba(194,85,110,.35);' : 'color:var(--rose);'}">
+      ☕ The Tea &amp; Verdict
+    </button>
+  `;
+  tabs.innerHTML = html;
+}
+
+function selectReadingTab(idx) {
+  playSound('flip');
+  appState.activeTabIndex = idx;
+  if (idx < appState.drawnCards.length) {
+    appState.drawnCards[idx].flipped = true;
+  }
+  renderReadingTabs();
+  renderActiveReadingTab();
+}
+
+function flipSingleCard(idx) {
+  playSound('flip');
+  if (idx < appState.drawnCards.length) {
+    appState.drawnCards[idx].flipped = !appState.drawnCards[idx].flipped;
+    renderReadingTabs();
+    renderActiveReadingTab();
+  }
+}
+
+function flipAll() {
+  playSound('flip');
+  appState.drawnCards.forEach(c => c.flipped = true);
+  renderReadingTabs();
+  renderActiveReadingTab();
+}
+
+function renderActiveReadingTab() {
+  const panel = document.getElementById('readPanel');
+  if (!panel) return;
+
+  // VERDICT TAB
+  if (appState.activeTabIndex === appState.drawnCards.length) {
+    appState.drawnCards.forEach(c => c.flipped = true);
+    renderReadingTabs();
+
+    const cat = appState.category;
+    const ai = appState.aiReading;
+
+    const verdictText = ai?.cosmicVerdict || 
+      `You asked about **${appState.question || 'your life'}**, and the cards didn't hold back. You already know what to do; you're just looking for an excuse to delay the inevitable. Take a deep breath, accept the plot twist, and move forward.`;
+
+    const dareText = ai?.cosmicDare || ORACLE.dares[cat];
+
+    // Determine primary tea
+    const primarySuit = appState.drawnCards[0]?.card?.suit;
+    const suitKey = primarySuit === 'Major' ? 'Major' : (primarySuit || 'Major');
+    const tea = TEA_PAIRINGS[suitKey] || TEA_PAIRINGS.Major;
+
+    panel.innerHTML = `
+      <div style="flex:1;overflow-y:auto;padding-right:4px;display:flex;flex-direction:column;gap:12px;" class="sc">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+          <div class="aglow" style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8c96a,#9b7dd4,#c2556e);border:1px solid var(--gold);flex-shrink:0;"></div>
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="fd" style="font-size:14px;font-weight:700;color:var(--gold);">The Oracle's Verdict</span>
+              ${ai ? `<span class="badge" style="background:rgba(58,158,140,.15);border-color:rgba(58,158,140,.4);color:var(--teal);">✦ Live AI</span>` : ''}
+            </div>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:2px;">"${escapeHTML(appState.question || 'Cosmic Inquiry')}"</p>
+          </div>
+        </div>
+
+        <!-- Overarching Reality Check -->
+        <div class="obox" style="padding:12px 14px;">
+          <p style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Cosmic Reality Check</p>
+          <p style="font-size:13px;line-height:1.5;color:var(--text);">${formatMarkdown(verdictText)}</p>
+        </div>
+
+        <!-- Cards Breakdown Pills -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${appState.drawnCards.map(item => `
+            <div style="background:rgba(20,16,31,.6);border:1px solid var(--border);border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <div>
+                <span class="fd" style="font-size:11px;color:var(--gold-light);font-weight:700;">${item.positionTitle}:</span>
+                <strong style="font-size:12px;color:var(--text);margin-left:4px;">${item.card.name}</strong>
+                <span style="font-size:10px;color:var(--text-muted);margin-left:4px;">${item.isReversed ? '(Reversed)' : '(Upright)'}</span>
+              </div>
+              <span style="font-size:10px;color:var(--purple-light);">${(item.isReversed ? item.card.kwRev : item.card.kwUp)[0]}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Tea Pairing Box -->
+        <div style="background:rgba(124,92,191,.1);border:1px solid rgba(124,92,191,.3);border-radius:12px;padding:12px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:16px;">☕</span>
+            <span class="fd" style="font-size:12px;font-weight:700;color:var(--purple-light);">Prescribed Tea Ritual: ${tea.name}</span>
+          </div>
+          <p style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">${tea.brew} • ${tea.profile}</p>
+          <p style="font-size:11px;color:var(--text);font-style:italic;">"${tea.why}"</p>
+        </div>
+
+        <!-- The Cosmic Dare -->
+        <div style="background:rgba(194,85,110,.1);border:1px solid rgba(194,85,110,.35);border-radius:12px;padding:12px;">
+          <span style="font-size:10px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">⚡ The Cosmic Dare</span>
+          <p style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4;">${dareText}</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // INDIVIDUAL CARD TAB
+  const item = appState.drawnCards[appState.activeTabIndex];
+  if (!item) return;
+
+  const card = item.card;
+  const isRev = item.isReversed;
+  const cat = appState.category;
+  const suitKey = card.arcana === 'Major Arcana' ? 'Major' : card.suit;
+  const tea = TEA_PAIRINGS[suitKey] || TEA_PAIRINGS.Major;
+
+  // Built-in interpretation or Live Gemini AI quip
+  let oracleText = "";
+  if (appState.aiReading?.interpretations?.[appState.activeTabIndex]?.oracleTake) {
+    oracleText = appState.aiReading.interpretations[appState.activeTabIndex].oracleTake;
+  } else {
+    const opener = ORACLE.openers[card.id % ORACLE.openers.length](card.name, isRev, item.positionTitle);
+    const core = isRev ? card.rev[cat] : card.up[cat];
+    const closer = ORACLE.closers[cat];
+    oracleText = `${opener} ${core} ${closer}`;
+  }
+
+  const kws = isRev ? card.kwRev : card.kwUp;
+
+  panel.innerHTML = `
+    <div style="flex:1;overflow-y:auto;padding-right:4px;display:flex;flex-direction:column;gap:12px;" class="sc">
+      <!-- Card Banner -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div>
+          <span class="badge" style="margin-bottom:4px;">${item.positionTitle}</span>
+          <h2 class="fd" style="font-size:16px;color:var(--gold);font-weight:700;line-height:1.2;">
+            ${card.name} ${isRev ? '<span style="font-size:11px;color:var(--rose);">(Reversed)</span>' : ''}
+          </h2>
+          <p style="font-size:10px;color:var(--text-muted);">${card.arcana} • ${card.element || 'Mystic'}</p>
+        </div>
+        <button onclick="flipSingleCard(${appState.activeTabIndex})" class="btn-gh" style="padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;">
+          <i class="ph-bold ph-arrows-clockwise"></i> Flip
+        </button>
+      </div>
+
+      <!-- Interactive 3D Card Display -->
+      <div style="display:flex;justify-content:center;padding:6px 0;flex-shrink:0;">
+        <div class="perspective" style="width:130px;height:208px;cursor:pointer;" onclick="flipSingleCard(${appState.activeTabIndex})">
+          <div class="c3d ${item.flipped ? 'flipped' : ''}">
+            <div class="cface">${renderCardBackSVG()}</div>
+            <div class="cface cface-f">${renderCardFrontSVG(card, isRev)}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Keywords Tags -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;flex-shrink:0;">
+        ${kws.map(k => `<span class="kw">✦ ${k}</span>`).join('')}
+      </div>
+
+      <!-- The Oracle's Roasting Decree -->
+      <div class="obox" style="padding:12px 14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span class="fd" style="font-size:11px;font-weight:700;color:var(--gold);">The Oracle Speaks</span>
+          ${appState.aiReading ? `<span class="badge" style="background:rgba(58,158,140,.15);border-color:rgba(58,158,140,.4);color:var(--teal);font-size:9px;">Live AI</span>` : ''}
+        </div>
+        <p style="font-size:12px;line-height:1.55;color:var(--text);font-style:italic;">${formatMarkdown(oracleText)}</p>
+      </div>
+
+      <!-- Tea Note -->
+      <div style="background:rgba(28,22,48,.5);border:1px solid var(--border);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">☕</span>
+        <div style="font-size:11px;">
+          <strong style="color:var(--gold-light);">${tea.name}:</strong>
+          <span style="color:var(--text-muted);margin-left:4px;">${tea.why}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// --- UTILITIES & NAVIGATION ---
+function resetToSetup() {
+  playSound('tap');
+  document.getElementById('stage-draw')?.classList.remove('active');
+  document.getElementById('stage-reading')?.classList.remove('active');
+  document.getElementById('stage-setup')?.classList.add('active');
+}
+
+function shareReading() {
+  playSound('tap');
+  const cardsText = appState.drawnCards.map(c => `${c.positionTitle}: ${c.card.name}${c.isReversed ? ' (Reversed)' : ''}`).join('\n');
+  const shareText = `🔮 Tarot & Tea — Cosmic Reading with The Oracle\n\nQuestion: "${appState.question || 'Cosmic Inquiry'}"\n\n${cardsText}\n\nTakeaway: ${appState.aiReading?.cosmicVerdict || 'Truth served with dark tea.'}\n\nExperience it on Timeflo: ${window.location.href}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: "My Tarot & Tea Reading",
+      text: shareText
+    }).catch(() => copyToClipboard(shareText));
+  } else {
+    copyToClipboard(shareText);
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Cosmic reading copied to clipboard!");
+  }).catch(() => {
+    alert("Could not copy reading.");
+  });
+}
+
+function formatMarkdown(str) {
+  if (!str) return '';
+  return str
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>');
+}
+
+function escapeHTML(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"']/g, m => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[m]);
+}
+
+// --- INITIALIZATION ---
+window.addEventListener('DOMContentLoaded', () => {
+  loadJournal();
+  // Enable audio context on first user click anywhere
+  document.addEventListener('click', () => initAudio(), { once: true });
+});
+</script>
+
 </body>
 </html>
