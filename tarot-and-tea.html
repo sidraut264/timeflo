@@ -96,9 +96,50 @@ select option{background:var(--surface2);color:var(--text);}
 @keyframes oracle-spin{to{transform:rotate(360deg)}}
 button:disabled{opacity:.5;cursor:wait;}
 @media(prefers-reduced-motion:reduce){.oracle-spinner{animation:none;}}
+
+/* Tarot & Tea — a pocket-sized salon for cosmic gossip. */
+:root{--ink:#100f18;--surface:#171522;--surface2:#211c30;--surface3:#2d2540;--gold:#ddbc80;--gold-light:#f7ddb0;--purple:#ad88d5;--purple-light:#c4a6e7;--rose:#e997ad;--teal:#83c8b4;--text:#f3eced;--text-muted:#b1a4ba;--border:rgba(221,188,128,.17);--border-s:rgba(221,188,128,.32);}
+body::before{background:radial-gradient(ellipse at 5% 5%,#44304d66,transparent 55%),radial-gradient(ellipse at 100% 75%,#753b4b30,transparent 55%),#100f18;}
+button,input,textarea{font:inherit;}button{touch-action:manipulation;}button:focus-visible,a:focus-visible{outline:2px solid var(--gold-light);outline-offset:3px;}button:active:not(:disabled){filter:brightness(1.15);}
+#app{height:var(--app-height,100dvh);padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+header{height:62px;background:#100f18b3;}main{max-width:760px;padding:14px 18px;}
+.timeflo-back{display:flex;justify-content:space-between;align-items:center;padding:8px 18px;background:transparent;border-bottom:0;font-size:10px;letter-spacing:.08em;}
+.timeflo-back span{color:var(--text-muted);font-size:9px;}
+.setup-stage{gap:23px;padding-bottom:8px;}.setup-intro{text-align:center;padding-top:10px;flex-shrink:0;position:relative;}
+.hero-deck{height:118px;width:170px;margin:0 auto 20px;position:relative;}.hero-deck>div{position:absolute;top:0;left:49px;width:72px;height:120px;border-radius:6px;box-shadow:0 8px 25px #0007;transform-origin:50% 110%;overflow:hidden;}.hero-deck>div:nth-child(1){transform:rotate(-21deg);}.hero-deck>div:nth-child(2){transform:rotate(21deg);}.hero-deck>div:nth-child(3){transform:translateY(-5px);}
+.eyebrow{font-size:9px;letter-spacing:.18em;color:var(--gold);font-weight:600;}.setup-intro h1{font:400 clamp(32px,7vw,44px)/1.12 'Cinzel',serif;margin:12px 0;letter-spacing:-.04em;}.setup-intro h1 em{font-style:normal;color:var(--rose);}.setup-intro>p{font-size:12px;color:var(--text-muted);}
+.setup-block,.setup-launch{flex-shrink:0;}.field-heading{display:flex;align-items:center;gap:8px;margin-bottom:10px;}.field-heading h2,.field-heading label{font-size:13px;font-weight:600;}.field-heading>span:last-child:not(.step-number){margin-left:auto;font-size:10px;color:var(--text-muted);}.step-number{font-size:9px;border:1px solid var(--border-s);border-radius:50%;width:22px;height:22px;display:grid;place-items:center;color:var(--gold);}.text-button{margin-left:auto;background:none;border:0;color:var(--rose);font-size:11px;min-height:44px;padding:0 4px;cursor:pointer;}
+.category-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}.cat-p{min-height:70px;padding:11px;border-radius:14px;background:#211c3066;gap:9px;}.cat-p.active{background:linear-gradient(135deg,#6d435744,#ddbc8010);border-color:var(--rose);}.category-icon{color:var(--rose);font-size:25px;}.cat-p{color:var(--text);}.cat-p strong{font-size:12px;font-weight:600;display:block;}.cat-p small{font-size:9px;color:var(--text-muted);display:block;line-height:1.4;margin-top:4px;}
+#qInput{resize:vertical;min-height:84px;max-height:160px;width:100%;background:#211c3088;border:1px solid var(--border-s);border-radius:14px;padding:14px;color:var(--text);font-size:16px;line-height:1.45;outline:none;user-select:text;}#qInput:focus{border-color:var(--rose);}#qInput::placeholder{color:#b1a4baa0;font-size:13px;}
+.question-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-top:8px;}.question-chips button,.chat-chips button{flex-shrink:0;border:1px solid var(--border);background:#211c3088;color:var(--text-muted);border-radius:99px;padding:8px 12px;min-height:44px;font-size:11px;cursor:pointer;}
+.spice-options{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;border:1px solid var(--border);border-radius:14px;background:#0d0b1488;}.spice-options button{min-height:46px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;}.spice-options button span{font-size:17px;margin-right:4px;}.spice-options button.active{background:#e997ad1f;border-color:#e997ad66;color:#ffcad7;}.field-note{font-size:11px;line-height:1.5;color:var(--text-muted);margin-top:8px;}
+.spread-picker{display:flex;border:1px solid var(--border);border-radius:14px;padding:4px;gap:4px;margin-bottom:10px;}.sp-opt{min-height:58px;padding:10px 6px;font-family:Inter,sans-serif;}.sp-opt strong{display:block;font-size:12px;}.sp-opt small{display:block;font-size:10px;font-weight:400;margin-top:5px;}.draw-cta{width:100%;min-height:54px;border-radius:14px;font:600 14px Inter,sans-serif;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:linear-gradient(110deg,#e5ba91,#f3d8b5);}.draw-cta span{font-size:23px;}.ritual-note{text-align:center;color:var(--text-muted);font-size:9px;margin:10px 0 4px;}
+.draw-stage{gap:12px;}.draw-heading{text-align:center;flex-shrink:0;padding-top:10px;}.draw-heading h1{font:400 25px Cinzel,serif;margin:12px 0;letter-spacing:-.04em;}.draw-heading p{font-size:12px;line-height:1.55;color:var(--text-muted);min-height:38px;}.draw-progress{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-muted);letter-spacing:.05em;flex-shrink:0;}.draw-progress strong{color:var(--gold);}.draw-slots{display:flex;gap:7px;flex-shrink:0;}.draw-slots .slot-p{flex:1;text-align:center;min-height:45px;padding:10px 4px;display:grid;place-items:center;font-size:10px;border-style:dashed;}.draw-slots .slot-p.filled{border-style:solid;background:#ddbc8015;}
+.deck-area{flex:1;min-height:140px;overflow-x:hidden;overflow-y:auto;padding:10px 4px;}#fanRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:440px;margin:auto;}.fan-c{position:relative;width:100%;aspect-ratio:3/5;display:block;padding:0;border:1px solid var(--border);background:var(--surface);border-radius:10px;overflow:hidden;box-shadow:0 6px 15px #0005;transition:transform .2s,opacity .2s;animation:deal-in .45s both;animation-delay:calc(var(--card-index)*18ms);}.fan-c svg{display:block;}.fan-c.picked{opacity:.25!important;transform:scale(.92)!important;}.fan-c:disabled{cursor:default;}#fanRow.mixing{animation:wiggle .32s ease-in-out;}.draw-hint{text-align:center;margin:0;flex-shrink:0;}.draw-actions{display:flex;gap:7px;flex-shrink:0;}.draw-actions button{min-height:48px;border-radius:12px;font-size:11px;padding:9px 10px;}.draw-actions button:last-child{flex:1;font-family:Inter,sans-serif;}
+@keyframes deal-in{from{opacity:0;transform:translateY(14px) rotate(-4deg)}to{opacity:1;transform:translateY(0) rotate(0)}}
+#stage-reading{overflow:hidden;}#readTabs{scrollbar-width:none;border-radius:13px!important;}#readTabs .tab-p{min-height:44px;font-size:11px;}#readTabs .tab-p span+span{display:none;}.reading-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;}.reading-nav button{min-width:44px;min-height:44px;border-radius:50%;font-size:19px;}.reading-nav span{font-size:10px;text-align:center;color:var(--text-muted);letter-spacing:.04em;}.reading-nav button:disabled{opacity:.25;cursor:default;}
+#readPanel{touch-action:pan-y;background:linear-gradient(155deg,#2d2540dd,#1b1728ee);box-shadow:0 12px 32px #0003;}#readPanel>.sc{touch-action:pan-y;min-height:0;overscroll-behavior:contain;}#oracleStatus{font-size:10px!important;}#stage-reading>div:last-child>button,#stage-reading>div:last-child>div>button{min-height:46px;padding:9px 10px!important;font-size:11px!important;border-radius:12px!important;}
+.reveal-card{width:150px;height:250px;display:block;background:none;border:0;border-radius:10px;cursor:pointer;padding:0;box-shadow:0 12px 26px #0007;}.reveal-card:focus-visible{outline-offset:7px;}.reveal-hint{text-align:center;font-size:10px;color:var(--gold);margin-top:10px;}.just-revealed{animation:card-reveal .6s cubic-bezier(.22,1,.36,1);}@keyframes card-reveal{from{transform:rotateY(0deg) scale(.93)}to{transform:rotateY(180deg) scale(1)}}
+.reading-copy{font-size:14px!important;line-height:1.7!important;user-select:text;}.reaction-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}.reaction-row button{min-height:44px;background:#e997ad12;border:1px solid #e997ad44;color:#f4bccb;border-radius:99px;padding:8px 12px;font-size:11px;cursor:pointer;}.dare-button{margin-top:12px;border-radius:9px;padding:9px 12px;min-height:44px;font-size:12px;}.dare-button[aria-pressed=true]{background:#83c8b41a;border-color:var(--teal);color:var(--teal);}
+.chat-open .reading-nav,.chat-open #oracleStatus{display:none!important;}.chat-shell{display:flex;flex-direction:column;min-height:0;height:100%;gap:10px;}.chat-heading{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--border);}.chat-heading h2{font:600 16px Cinzel,serif;color:var(--gold);}.chat-heading small{display:block;font-size:10px;color:var(--text-muted);margin-top:4px;}.chat-feed{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:13px;padding:4px 2px;scrollbar-width:thin;}.chat-feed>*{flex-shrink:0;}.chat-bubble{padding:12px 14px;border-radius:16px 16px 16px 3px;background:#ffffff06;border:1px solid var(--border);max-width:92%;font-size:13px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;animation:deal-in .2s ease-out;}.chat-bubble.user{align-self:flex-end;border-radius:16px 16px 3px 16px;background:#ad88d51c;border-color:#ad88d544;}.chat-bubble .speaker{display:block;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--gold);margin-bottom:5px;}.chat-bubble.user .speaker{color:var(--purple-light);}.chat-chips{display:flex;gap:6px;overflow:auto;flex-shrink:0;scrollbar-width:none;}.chat-chips button{font-size:10px;}.chat-form{display:flex;align-items:end;gap:8px;flex-shrink:0;}.chat-form textarea{flex:1;min-width:0;resize:none;min-height:48px;max-height:110px;border:1px solid var(--border-s);border-radius:12px;background:#100f1888;color:var(--text);padding:12px;font-size:16px;line-height:1.4;user-select:text;}.chat-form button{min-width:48px;min-height:48px;border-radius:12px;font-size:20px;}.chat-error{font-size:12px;color:var(--rose);line-height:1.5;}.chat-error button{min-height:44px;margin-top:6px;padding:8px 12px;border-radius:8px;}.chat-note{font-size:9px;color:var(--text-muted);margin:0;}
+#toast{position:fixed;bottom:calc(82px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,12px);background:#f1d4b1;color:#211724;padding:12px 18px;border-radius:99px;box-shadow:0 8px 32px #0006;z-index:80;max-width:90%;width:max-content;font-size:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;}#toast.show{opacity:1;transform:translate(-50%,0);}
+@media(hover:hover){.fan-c:hover:not(:disabled){transform:translateY(-5px) scale(1.03)!important;filter:drop-shadow(0 6px 14px #ddbc8033);}}
+@media(hover:none){.fan-c:hover{transform:none!important;filter:none;}.fan-c:active:not(:disabled){transform:scale(.95)!important;}}
+@media(min-width:650px){.setup-stage{display:none;}.setup-stage.active{display:grid;grid-template-columns:1fr 1fr;gap:22px 28px;align-content:start;}.setup-intro{grid-column:1/-1;padding-top:8px;}.hero-deck{height:98px;margin-bottom:16px;}.hero-deck>div{width:60px;height:100px;left:55px;}.setup-intro h1{font-size:38px;}.setup-intro h1 br{display:none;}.setup-intro h1 em{margin-left:8px;}.setup-launch{align-self:end;}.setup-block:nth-of-type(4){align-self:start;}.draw-heading h1{font-size:32px;}.reveal-card{width:174px;height:290px;}}
+@media(max-width:480px){header{height:56px;}header>div>button{min-height:44px;}main{padding:10px 14px;}header>div>button:last-child{width:44px!important;}header>button .fd{font-size:11px!important;}.mbox{max-height:92dvh;}.modal{padding:8px;}.setup-stage{gap:20px;}.reading-copy{font-size:13px!important;}}
+@media(max-width:350px){header>button>div:first-child{display:none;}main{padding:8px 10px;}.cat-p{padding:9px 7px;gap:6px;}.cat-p small{font-size:8px;}.spice-options button{font-size:11px;}.reveal-card{width:126px;height:210px;}.draw-heading h1{font-size:22px;}#stage-reading>div:last-child>button,#stage-reading>div:last-child>div>button{padding:8px!important;font-size:10px!important;}}
+@media(max-width:600px){
+  .compact-viewport.chat-open header,.compact-viewport.chat-open .timeflo-back,.compact-viewport.chat-open .reading-nav,.compact-viewport.chat-open #oracleStatus,.compact-viewport.chat-open .chat-chips{display:none!important;}
+  .compact-viewport.chat-open .chat-form textarea{height:48px;min-height:48px;}
+  .compact-viewport.chat-open .chat-heading{padding-bottom:6px;}
+  .compact-viewport.chat-open #readPanel{padding:10px!important;}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}
+
 </style>
 </head>
 <body>
+<div id="toast" role="status" aria-live="polite"></div>
 <div id="app">
   <header>
     <button onclick="resetToSetup()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:4px 0;">
@@ -116,82 +157,61 @@ button:disabled{opacity:.5;cursor:wait;}
         <i class="ph-fill ph-notebook" style="color:var(--rose);font-size:14px;"></i><span>Journal</span>
         <span id="burnBadge" class="badge">0</span>
       </button>
-      <button onclick="toggleAudio()" class="btn-gh" style="padding:6px;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">
+      <button aria-label="Toggle sound" onclick="toggleAudio()" class="btn-gh" style="padding:6px;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">
         <i id="audioIcon" class="ph-fill ph-speaker-high" style="font-size:15px;"></i>
       </button>
     </div>
   </header>
-  <nav class="timeflo-back"><a href="experiences.html">&#8592; Timeflo Experiences</a></nav>
+  <nav class="timeflo-back"><a href="experiences.html">← Timeflo</a><span id="experienceStep">01 / SET THE SCENE</span></nav>
   <main>
     <!-- STAGE 1: SETUP -->
-    <section id="stage-setup" class="active" style="gap:12px;">
-      <div style="text-align:center;flex-shrink:0;padding:2px 0 6px;">
-        <div class="aglow forb" style="width:50px;height:50px;border-radius:50%;margin:0 auto 8px;background:radial-gradient(circle at 35% 35%,#e8c96a,#9b7dd4,#c2556e);border:2px solid rgba(201,168,76,.45);"></div>
-        <h1 class="fd" style="font-size:clamp(14px,4vw,18px);color:var(--gold);letter-spacing:.06em;font-weight:700;">The Oracle Awaits</h1>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:3px;font-style:italic;">"Ask something interesting. I've seen it all."</p>
+    <section id="stage-setup" class="active setup-stage">
+      <div class="setup-intro">
+        <div class="hero-deck" id="heroDeck" aria-hidden="true"></div>
+        <div class="eyebrow">A PRIVATE AUDIENCE WITH THE ORACLE</div>
+        <h1>A little fate.<br><em>A lot of tea.</em></h1>
+        <p>Your cards have opinions. Let's hear them.</p>
       </div>
-      <div style="flex-shrink:0;">
-        <p style="font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">What's the matter?</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button type="button" onclick="selectCategory('love')" data-cat="love" class="cat-p active">
-            <span style="font-size:18px;flex-shrink:0;">&#128152;</span>
-            <div><div class="fd" style="font-size:11px;font-weight:600;color:var(--text);">Love &amp; Exes</div><div style="font-size:10px;color:var(--text-muted);">Crushes &amp; red flags</div></div>
-          </button>
-          <button type="button" onclick="selectCategory('career')" data-cat="career" class="cat-p">
-            <span style="font-size:18px;flex-shrink:0;">&#128184;</span>
-            <div><div class="fd" style="font-size:11px;font-weight:600;color:var(--text);">Career &amp; Cash</div><div style="font-size:10px;color:var(--text-muted);">Jobs &amp; the bag</div></div>
-          </button>
-          <button type="button" onclick="selectCategory('growth')" data-cat="growth" class="cat-p">
-            <span style="font-size:18px;flex-shrink:0;">&#129504;</span>
-            <div><div class="fd" style="font-size:11px;font-weight:600;color:var(--text);">Mind &amp; Soul</div><div style="font-size:10px;color:var(--text-muted);">Growth &amp; habits</div></div>
-          </button>
-          <button type="button" onclick="selectCategory('general')" data-cat="general" class="cat-p">
-            <span style="font-size:18px;flex-shrink:0;">&#128302;</span>
-            <div><div class="fd" style="font-size:11px;font-weight:600;color:var(--text);">General Vibes</div><div style="font-size:10px;color:var(--text-muted);">Surprise twists</div></div>
-          </button>
+      <div class="setup-block">
+        <div class="field-heading"><span class="step-number">01</span><h2>What's the plot?</h2><span>Choose your chaos</span></div>
+        <div class="category-grid">
+          <button type="button" onclick="selectCategory('love')" data-cat="love" class="cat-p active" aria-pressed="true"><span class="category-icon">♡</span><span><strong>Love &amp; exes</strong><small>Mixed signals, loud feelings</small></span></button>
+          <button type="button" onclick="selectCategory('career')" data-cat="career" class="cat-p" aria-pressed="false"><span class="category-icon">✧</span><span><strong>Career &amp; cash</strong><small>Big dreams, tiny patience</small></span></button>
+          <button type="button" onclick="selectCategory('growth')" data-cat="growth" class="cat-p" aria-pressed="false"><span class="category-icon">☾</span><span><strong>Mind &amp; soul</strong><small>Meet your character arc</small></span></button>
+          <button type="button" onclick="selectCategory('general')" data-cat="general" class="cat-p" aria-pressed="false"><span class="category-icon">✴</span><span><strong>Plot twist</strong><small>Let the universe cook</small></span></button>
         </div>
       </div>
-      <div style="flex-shrink:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <label for="qInput" style="font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;">Your Question</label>
-          <button type="button" onclick="rollQ()" class="btn-gh" style="padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;">&#127922; Random</button>
-        </div>
-        <input id="qInput" type="text" maxlength="140" placeholder="e.g., Are they actually busy, or just avoiding me?" style="width:100%;padding:11px 14px;font-size:14px;font-weight:500;">
+      <div class="setup-block">
+        <div class="field-heading"><span class="step-number">02</span><label for="qInput">Spill it.</label><button type="button" onclick="rollQ()" class="text-button">Surprise me ↗</button></div>
+        <textarea id="qInput" rows="2" maxlength="140" placeholder="Are they mysterious, or just emotionally unavailable?"></textarea>
+        <div id="questionChips" class="question-chips" aria-label="Question ideas"></div>
       </div>
-      <div class="glass" style="border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;">
-        <div style="display:flex;background:rgba(13,11,20,.6);border-radius:10px;padding:3px;border:1px solid var(--border);flex:1;gap:3px;">
-          <button type="button" onclick="selectSpread(1)" id="sp1" class="sp-opt">&#9889; 1 Card</button>
-          <button type="button" onclick="selectSpread(3)" id="sp3" class="sp-opt active">&#10022; 3 Cards</button>
+      <div class="setup-block">
+        <div class="field-heading"><span class="step-number">03</span><h2>How hot is your tea?</h2></div>
+        <div class="spice-options" role="group" aria-label="Oracle tone">
+          <button data-spice="gentle" onclick="selectSpice('gentle')" aria-pressed="false"><span>☁</span> Gentle</button>
+          <button data-spice="spicy" onclick="selectSpice('spicy')" class="active" aria-pressed="true"><span>♨</span> Spicy</button>
+          <button data-spice="hot" onclick="selectSpice('hot')" aria-pressed="false"><span>✹</span> Extra hot</button>
         </div>
-        <button type="button" onclick="startShuffle()" class="btn-g" style="padding:11px 20px;border-radius:10px;font-size:13px;white-space:nowrap;display:flex;align-items:center;gap:6px;">
-          Draw Fate <i class="ph-fill ph-sparkle" style="font-size:15px;"></i>
-        </button>
+        <p id="spiceNote" class="field-note" aria-live="polite">Affectionate roasting. Very specific receipts.</p>
+      </div>
+      <div class="setup-launch">
+        <div class="spread-picker" role="group" aria-label="Reading size">
+          <button type="button" onclick="selectSpread(1)" id="sp1" class="sp-opt" aria-pressed="false"><strong>One card</strong><small>A quick reality check</small></button>
+          <button type="button" onclick="selectSpread(3)" id="sp3" class="sp-opt active" aria-pressed="true"><strong>Three cards</strong><small>The whole storyline</small></button>
+        </div>
+        <button type="button" onclick="startShuffle()" class="btn-g draw-cta">Shuffle my fate <span>↗</span></button>
+        <p class="ritual-note">A little reflection. A little mischief. Your choices are yours.</p>
       </div>
     </section>
     <!-- STAGE 2: DRAW -->
-    <section id="stage-draw" style="gap:12px;">
-      <div class="glass" style="border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
-        <div class="aglow" style="width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8c96a,#9b7dd4);border:1px solid rgba(201,168,76,.45);flex-shrink:0;"></div>
-        <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
-            <span class="fd" style="font-size:13px;color:var(--gold);font-weight:600;">The Oracle</span>
-            <span class="badge">Pick <strong id="remCount">3</strong></span>
-          </div>
-          <p id="quip" style="font-size:12px;color:var(--text);font-weight:500;line-height:1.4;font-style:italic;"></p>
-        </div>
-      </div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;">
-        <p style="font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Tap a card to draw</p>
-        <div id="fanRow" style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;max-width:100%;padding:8px;"></div>
-      </div>
-      <div class="glass" style="border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;">
-        <div id="slotsPrev" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button onclick="reshuffleFan()" class="btn-gh" style="padding:7px 12px;border-radius:8px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;"><i class="ph-bold ph-shuffle"></i> Shuffle</button>
-          <button onclick="autoDraw()" class="btn-g" style="padding:7px 12px;border-radius:8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;"><i class="ph-fill ph-lightning"></i> Auto</button>
-          <button onclick="resetToSetup()" style="padding:7px;border-radius:8px;font-size:11px;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;">Back</button>
-        </div>
-      </div>
+    <section id="stage-draw" class="draw-stage">
+      <div class="draw-heading"><div class="eyebrow">THE RITUAL</div><h1>Trust your first pull.</h1><p id="quip" aria-live="polite"></p></div>
+      <div class="draw-progress"><span>YOUR SPREAD</span><span><strong id="remCount">3</strong> left to choose</span></div>
+      <div id="slotsPrev" class="draw-slots" aria-live="polite"></div>
+      <div class="deck-area sc"><div id="fanRow" aria-label="Choose your cards"></div></div>
+      <p class="field-note draw-hint">Tap the card that keeps catching your eye.</p>
+      <div class="draw-actions"><button onclick="resetToSetup()" class="btn-gh">← Back</button><button id="shuffleBtn" onclick="reshuffleFan()" class="btn-gh">↻ Mix it up</button><button id="autoDrawBtn" onclick="autoDraw()" class="btn-g">Choose for me ✧</button></div>
     </section>
     <!-- STAGE 3: READING -->
     <section id="stage-reading" style="gap:10px;">
@@ -199,11 +219,12 @@ button:disabled{opacity:.5;cursor:wait;}
         <div id="readTabs" style="display:flex;align-items:center;gap:2px;background:rgba(13,11,20,.6);padding:3px;border-radius:10px;border:1px solid var(--border);overflow-x:auto;max-width:100%;flex:1;" class="sc"></div>
       </div>
       <div id="oracleStatus" role="status" aria-live="polite" style="font-size:11px;line-height:1.5;color:var(--text-muted);flex-shrink:0;"></div>
+      <div class="reading-nav"><button class="btn-gh" id="prevReading" onclick="stepReading(-1)" aria-label="Previous reading panel">←</button><span id="readingPosition"></span><button class="btn-gh" id="nextReading" onclick="stepReading(1)" aria-label="Next reading panel">→</button></div>
       <div id="readPanel" class="glass-s" style="flex:1;min-height:0;border-radius:16px;padding:14px;display:flex;flex-direction:column;overflow:hidden;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
         <button onclick="resetToSetup()" class="btn-gh" style="padding:9px 14px;border-radius:10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;"><i class="ph-bold ph-arrows-counter-clockwise"></i> New Reading</button>
         <div style="display:flex;align-items:center;gap:8px;">
-          <button id="flipAllBtn" onclick="flipAll()" class="btn-gh" style="padding:9px 14px;border-radius:10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;"><i class="ph-bold ph-eye"></i> Reveal All</button>
+          <button id="flipAllBtn" onclick="openOracleChat()" class="btn-gh" style="padding:9px 14px;border-radius:10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;"><i class="ph-bold ph-chat-circle-dots"></i> Spill more</button>
           <button id="shareBtn" onclick="shareReading()" class="btn-g" style="padding:9px 14px;border-radius:10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;"><i class="ph-bold ph-share-network"></i> Share</button>
         </div>
       </div>
@@ -1064,6 +1085,8 @@ function cancelOracleReading() {
   readingVersion++;
   oracleRequest?.abort();
   oracleRequest = null;
+  chatRequest?.abort();
+  chatRequest = null;
 }
 
 async function fetchLiveOracleReading(question, category, drawnCards, signal) {
@@ -1071,7 +1094,7 @@ async function fetchLiveOracleReading(question, category, drawnCards, signal) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     signal,
-    body: JSON.stringify({ question, category, drawnCards: drawnCards.map(d => ({
+    body: JSON.stringify({ question, category, spice: appState.spice, drawnCards: drawnCards.map(d => ({
       positionTitle: d.positionTitle, isReversed: d.isReversed,
       card: { name: d.card.name, suit: d.card.suit, arcana: d.card.arcana }
     })) })
@@ -1094,6 +1117,7 @@ async function requestOracleReading() {
   const controller = new AbortController();
   oracleRequest = controller;
   appState.aiReading = null;
+  resetOracleChat();
   appState.readingStatus = 'loading';
   updateOracleStatus();
   renderActiveReadingTab();
@@ -1124,9 +1148,9 @@ function updateOracleStatus() {
   const status = document.getElementById('oracleStatus');
   const loading = appState.readingStatus === 'loading';
   if (status) status.innerHTML = loading
-    ? '<span class="oracle-spinner" aria-hidden="true"></span> The Oracle is reading your cards… This can take up to 30 seconds.'
+    ? '<span class="oracle-spinner" aria-hidden="true"></span> Reading your cards. Gathering the receipts… up to 30 seconds.'
     : appState.aiReading
-      ? '✦ Your personal reading is ready · Gemini'
+      ? '✦ Freshly brewed for you · Live Oracle'
       : 'Live reading unavailable. Showing an archive reading. <button class="btn-gh" onclick="requestOracleReading()" style="padding:4px 9px;border-radius:6px;">Try again</button>';
   document.getElementById('shareBtn').disabled = loading;
 }
@@ -1459,6 +1483,13 @@ function oracleWaitingMarkup() {
 
 // --- APPLICATION STATE ---
 const appState = {
+  stage: 'setup',
+  spice: 'spicy',
+  chatMessages: [],
+  chatDraft: '',
+  chatLoading: false,
+  chatError: '',
+  dareAccepted: false,
   category: 'love',
   question: '',
   spread: 3, // 1 or 3
@@ -1628,8 +1659,12 @@ function selectCategory(cat) {
   playSound('tap');
   appState.category = cat;
   document.querySelectorAll('.cat-p').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+    const selected = btn.getAttribute('data-cat') === cat;
+    btn.classList.toggle('active', selected);
+    btn.setAttribute('aria-pressed', String(selected));
   });
+  renderQuestionChips();
+  haptic();
 }
 
 function rollQ() {
@@ -1639,13 +1674,16 @@ function rollQ() {
   const input = document.getElementById('qInput');
   if (input) {
     input.value = pick;
-    input.focus();
+    haptic();
   }
 }
 
 function selectSpread(spreadNum) {
   playSound('tap');
   appState.spread = spreadNum;
+  haptic();
+  document.getElementById('sp1')?.setAttribute('aria-pressed', String(spreadNum === 1));
+  document.getElementById('sp3')?.setAttribute('aria-pressed', String(spreadNum === 3));
   document.getElementById('sp1')?.classList.toggle('active', spreadNum === 1);
   document.getElementById('sp3')?.classList.toggle('active', spreadNum === 3);
 }
@@ -1653,6 +1691,11 @@ function selectSpread(spreadNum) {
 // --- DRAW STAGE LOGIC ---
 function startShuffle() {
   cancelOracleReading();
+  resetOracleChat();
+  setExperienceStage('draw');
+  appState.dareAccepted = false;
+  document.activeElement?.blur();
+  haptic([12, 30, 12]);
   appState.readingStatus = 'idle';
   appState.journalEntryId = null;
   playSound('bell');
@@ -1676,83 +1719,65 @@ function startShuffle() {
 }
 
 function reshuffleFan() {
+  if (appState.stage !== 'draw' || appState.drawnCards.length >= appState.spread) return;
+  drawGeneration++;
   playSound('flip');
-  // Pick 12 random cards from FULL_DECK for the fan
-  const shuffled = [...FULL_DECK].sort(() => Math.random() - 0.5);
-  appState.fanCards = shuffled.slice(0, 12).map(c => ({
-    card: c,
-    isReversed: Math.random() < 0.35,
-    picked: false
-  }));
+  haptic([10, 35, 10]);
+  const selected = new Set(appState.drawnCards.map(item => item.card.id));
+  const shuffled = FULL_DECK.filter(card => !selected.has(card.id));
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  appState.fanCards = shuffled.slice(0, 12).map(card => ({ card, isReversed: Math.random() < .35, picked: false }));
   renderFanDeck();
   updateDrawSlotsPreview();
+  const row = document.getElementById('fanRow');
+  row.classList.remove('mixing');
+  void row.offsetWidth;
+  row.classList.add('mixing');
 }
 
 function renderFanDeck() {
   const container = document.getElementById('fanRow');
   if (!container) return;
-  const total = appState.fanCards.length;
-  
-  container.innerHTML = appState.fanCards.map((item, idx) => {
-    if (item.picked) return '';
-    const angle = (idx - (total - 1) / 2) * 3.5;
-    const yOffset = Math.abs(idx - (total - 1) / 2) * 2;
-    return `
-      <div 
-        onclick="pickCard(${idx})"
-        class="fan-c"
-        style="width:58px;aspect-ratio:3/5;margin:-8px;transform:rotate(${angle}deg) translateY(${yOffset}px);display:inline-block;border-radius:7px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.6);"
-      >
-        ${renderCardBackSVG()}
-      </div>
-    `;
-  }).join('');
+  container.innerHTML = appState.fanCards.map((item, idx) => `
+    <button type="button" onclick="pickCard(${idx})" class="fan-c ${item.picked ? 'picked' : ''}"
+      style="--card-index:${idx}" aria-label="${item.picked ? 'Selected' : 'Draw'} card ${idx + 1}"
+      ${item.picked || appState.drawnCards.length >= appState.spread ? 'disabled' : ''}>
+      ${renderCardBackSVG()}
+    </button>`).join('');
 }
 
 function pickCard(fanIdx) {
-  if (appState.drawnCards.length >= appState.spread) return;
+  if (appState.stage !== 'draw' || appState.drawnCards.length >= appState.spread) return;
   const item = appState.fanCards[fanIdx];
   if (!item || item.picked) return;
-
   playSound('flip');
+  haptic([16, 35, 10]);
   item.picked = true;
-
   const slotIndex = appState.drawnCards.length;
-  let posTitle = "Your Reality";
-  if (appState.spread === 3) {
-    const titles = ["Past Vibe", "Present Reality", "Upcoming Twist"];
-    posTitle = titles[slotIndex] || `Card ${slotIndex + 1}`;
-  }
-
-  appState.drawnCards.push({
-    card: item.card,
-    isReversed: item.isReversed,
-    positionTitle: posTitle,
-    flipped: false
-  });
-
-  renderFanDeck();
+  const positionTitle = appState.spread === 3 ? ['Past Vibe', 'Present Reality', 'Upcoming Twist'][slotIndex] : 'Your Reality';
+  appState.drawnCards.push({ card: item.card, isReversed: item.isReversed, positionTitle, flipped: false });
+  const button = document.querySelectorAll('#fanRow .fan-c')[fanIdx];
+  if (button) { button.classList.add('picked'); button.disabled = true; button.setAttribute('aria-label', `Selected card ${fanIdx + 1}`); }
   updateDrawSlotsPreview();
-
-  // If complete, proceed to reading stage
   if (appState.drawnCards.length >= appState.spread) {
+    const generation = drawGeneration;
     setTimeout(() => {
-      launchReadingStage();
-    }, 450);
+      if (generation === drawGeneration && appState.stage === 'draw') launchReadingStage();
+    }, 650);
   }
 }
 
 function autoDraw() {
+  if (appState.stage !== 'draw') return;
+  const generation = ++drawGeneration;
   const remaining = appState.spread - appState.drawnCards.length;
-  if (remaining <= 0) return;
-  
-  let delay = 0;
-  for (let i = 0; i < appState.fanCards.length; i++) {
-    if (!appState.fanCards[i].picked && appState.drawnCards.length < appState.spread) {
-      setTimeout(() => pickCard(i), delay);
-      delay += 220;
-    }
-  }
+  const available = appState.fanCards.map((item, index) => item.picked ? -1 : index).filter(index => index >= 0).slice(0, remaining);
+  available.forEach((index, i) => setTimeout(() => {
+    if (generation === drawGeneration && appState.stage === 'draw') pickCard(index);
+  }, i * 250));
 }
 
 function updateDrawSlotsPreview() {
@@ -1760,6 +1785,8 @@ function updateDrawSlotsPreview() {
   const remCount = document.getElementById('remCount');
   const needed = appState.spread - appState.drawnCards.length;
   if (remCount) remCount.innerText = needed;
+  document.getElementById('shuffleBtn').disabled = needed === 0;
+  document.getElementById('autoDrawBtn').disabled = needed === 0;
 
   if (!prev) return;
   let html = '';
@@ -1778,9 +1805,7 @@ function updateDrawSlotsPreview() {
 // --- READING STAGE LOGIC ---
 function launchReadingStage() {
   playSound('bell');
-  if (appState.drawnCards.length > 0) {
-    appState.drawnCards[0].flipped = true;
-  }
+  setExperienceStage('reading');
   appState.activeTabIndex = 0;
 
   // Switch to stage-reading
@@ -1813,25 +1838,29 @@ function renderReadingTabs() {
       ☕ The Tea &amp; Verdict
     </button>
   `;
+  const isChat = appState.activeTabIndex === appState.drawnCards.length + 1;
+  html += `<button onclick="openOracleChat()" class="tab-p ${isChat ? 'active' : ''}">♨ Spill more</button>`;
   tabs.innerHTML = html;
+  tabs.querySelector?.('.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
 }
 
 function selectReadingTab(idx) {
   playSound('flip');
+  if (idx < 0 || idx > appState.drawnCards.length + 1) return;
   appState.activeTabIndex = idx;
-  if (idx < appState.drawnCards.length) {
-    appState.drawnCards[idx].flipped = true;
-  }
+  haptic();
   renderReadingTabs();
   renderActiveReadingTab();
 }
 
 function flipSingleCard(idx) {
+  haptic([10, 30, 20]);
   playSound('flip');
   if (idx < appState.drawnCards.length) {
     appState.drawnCards[idx].flipped = !appState.drawnCards[idx].flipped;
     renderReadingTabs();
     renderActiveReadingTab();
+    if (appState.drawnCards[idx].flipped) document.querySelector('#readPanel .c3d')?.classList.add('just-revealed');
   }
 }
 
@@ -1845,6 +1874,9 @@ function flipAll() {
 function renderActiveReadingTab() {
   const panel = document.getElementById('readPanel');
   if (!panel) return;
+  document.body?.classList.toggle('chat-open', appState.activeTabIndex === appState.drawnCards.length + 1);
+  updateReadingNavigation();
+  if (appState.activeTabIndex === appState.drawnCards.length + 1) { renderChatPanel(); return; }
 
   // VERDICT TAB
   if (appState.activeTabIndex === appState.drawnCards.length) {
@@ -1882,7 +1914,7 @@ function renderActiveReadingTab() {
         <!-- Overarching Reality Check -->
         <div class="obox" style="padding:12px 14px;">
           <p style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Cosmic Reality Check</p>
-          <p style="font-size:13px;line-height:1.5;color:var(--text);">${waiting ? oracleWaitingMarkup() : formatMarkdown(verdictText)}</p>
+          <p class="reading-copy" style="font-size:13px;line-height:1.5;color:var(--text);">${waiting ? oracleWaitingMarkup() : formatMarkdown(verdictText)}</p>
         </div>
 
         <!-- Cards Breakdown Pills -->
@@ -1912,7 +1944,8 @@ function renderActiveReadingTab() {
         <!-- The Cosmic Dare -->
         <div style="background:rgba(194,85,110,.1);border:1px solid rgba(194,85,110,.35);border-radius:12px;padding:12px;">
           <span style="font-size:10px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">⚡ The Cosmic Dare</span>
-          <p style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4;">${waiting ? oracleWaitingMarkup() : formatMarkdown(dareText)}</p>
+          <p class="reading-copy" style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4;">${waiting ? oracleWaitingMarkup() : formatMarkdown(dareText)}</p>
+          ${!waiting ? `<button class="btn-gh dare-button" onclick="toggleDare()" aria-pressed="${appState.dareAccepted}">${appState.dareAccepted ? '✓ Challenge accepted' : 'I’m doing this ↗'}</button>` : ''}
         </div>
       </div>
     `;
@@ -1951,9 +1984,9 @@ function renderActiveReadingTab() {
         <div>
           <span class="badge" style="margin-bottom:4px;">${item.positionTitle}</span>
           <h2 class="fd" style="font-size:16px;color:var(--gold);font-weight:700;line-height:1.2;">
-            ${card.name} ${isRev ? '<span style="font-size:11px;color:var(--rose);">(Reversed)</span>' : ''}
+            ${item.flipped ? card.name : 'A little mystery…'} ${item.flipped && isRev ? '<span style="font-size:11px;color:var(--rose);">(Reversed)</span>' : ''}
           </h2>
-          <p style="font-size:10px;color:var(--text-muted);">${card.arcana} • ${card.element || 'Mystic'}</p>
+          <p style="font-size:10px;color:var(--text-muted);">${item.flipped ? card.arcana + ' • ' + (card.element || 'Mystic') : 'Your card is ready. Tap to turn it.'}</p>
         </div>
         <button onclick="flipSingleCard(${appState.activeTabIndex})" class="btn-gh" style="padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;">
           <i class="ph-bold ph-arrows-clockwise"></i> Flip
@@ -1962,17 +1995,18 @@ function renderActiveReadingTab() {
 
       <!-- Interactive 3D Card Display -->
       <div style="display:flex;justify-content:center;padding:6px 0;flex-shrink:0;">
-        <div class="perspective" style="width:130px;aspect-ratio:3/5;cursor:pointer;" onclick="flipSingleCard(${appState.activeTabIndex})">
+        <button class="perspective reveal-card" aria-label="${item.flipped ? 'Turn card face down' : 'Reveal your card'}" onclick="flipSingleCard(${appState.activeTabIndex})">
           <div class="c3d ${item.flipped ? 'flipped' : ''}">
             <div class="cface">${renderCardBackSVG()}</div>
             <div class="cface cface-f">${renderCardFrontSVG(card, isRev)}</div>
           </div>
-        </div>
+        </button>
       </div>
+      <p class="reveal-hint">${item.flipped ? 'The card has entered the chat.' : '✧ Tap to reveal. No peeking at fate.'}</p>
 
       <!-- Keywords Tags -->
       <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;flex-shrink:0;">
-        ${kws.map(k => `<span class="kw">✦ ${k}</span>`).join('')}
+        ${(item.flipped ? kws : []).map(k => `<span class="kw">✦ ${k}</span>`).join('')}
       </div>
 
       <!-- The Oracle's Roasting Decree -->
@@ -1981,7 +2015,8 @@ function renderActiveReadingTab() {
           <span class="fd" style="font-size:11px;font-weight:700;color:var(--gold);">The Oracle Speaks</span>
           ${appState.aiReading ? `<span class="badge" style="background:rgba(58,158,140,.15);border-color:rgba(58,158,140,.4);color:var(--teal);font-size:9px;">Gemini</span>` : ''}
         </div>
-        <p style="font-size:12px;line-height:1.55;color:var(--text);font-style:italic;">${appState.readingStatus === 'loading' ? oracleWaitingMarkup() : formatMarkdown(oracleText)}</p>
+        <p class="reading-copy" style="font-size:12px;line-height:1.55;color:var(--text);">${!item.flipped ? 'Turn the card. I brought receipts.' : appState.readingStatus === 'loading' ? oracleWaitingMarkup() : formatMarkdown(oracleText)}</p>
+        ${item.flipped && appState.readingStatus === 'ready' ? `<div class="reaction-row"><button onclick="askAboutCard('resonates')">Ouch. Accurate. ♡</button><button onclick="askAboutCard('challenge')">Not convinced ↗</button></div>` : ''}
       </div>
 
       <!-- Tea Note -->
@@ -1996,9 +2031,241 @@ function renderActiveReadingTab() {
   `;
 }
 
+// --- MOBILE RITUAL & ORACLE CONVERSATION ---
+const SPICE_NOTES = {
+  gentle: 'A soft landing. A little nudge. Still honest.',
+  spicy: 'Affectionate roasting. Very specific receipts.',
+  hot: 'Extra heat. Your excuses have left the chat.'
+};
+const QUESTION_IDEAS = {
+  love: [['Text them?', 'Should I text them or protect my peace?'], ['Red flag?', 'Am I seeing potential or ignoring a red flag?'], ['My next chapter', 'What do I need from my next relationship?']],
+  career: [['Quit or commit?', 'Am I ready for a career change or just a holiday?'], ['Know my worth', 'Where am I selling myself short at work?'], ['Money moves', 'What money habit deserves a reality check?']],
+  growth: [['Call me out', 'What pattern am I pretending not to notice?'], ['Protect my peace', 'Where do I need a stronger boundary?'], ['Main character', 'What would choosing myself look like today?']],
+  general: [['The plot twist', 'What part of my life is asking for a plot twist?'], ['What am I missing?', 'What deserves my attention right now?'], ['My next move', 'What is one small step I can take today?']]
+};
+let chatRequest = null;
+let drawGeneration = 0;
+let toastTimer;
+
+function haptic(pattern = 12) {
+  try { navigator.vibrate?.(pattern); } catch {}
+}
+function showToast(message) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+function selectSpice(spice) {
+  if (!Object.hasOwn(SPICE_NOTES, spice)) return;
+  appState.spice = spice;
+  document.querySelectorAll('[data-spice]').forEach(button => {
+    const selected = button.dataset.spice === spice;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+  const note = document.getElementById('spiceNote');
+  if (note) note.textContent = SPICE_NOTES[spice];
+  haptic();
+}
+function renderQuestionChips() {
+  const container = document.getElementById('questionChips');
+  if (container) container.innerHTML = QUESTION_IDEAS[appState.category].map(([label], index) =>
+    `<button type="button" onclick="useQuestionIdea(${index})">${label} ↗</button>`).join('');
+}
+function useQuestionIdea(index) {
+  document.getElementById('qInput').value = QUESTION_IDEAS[appState.category][index][1];
+  haptic();
+}
+function setExperienceStage(stage) {
+  appState.stage = stage;
+  if (stage !== 'reading') document.body?.classList.remove('chat-open');
+  const label = document.getElementById('experienceStep');
+  if (label) label.textContent = { setup: '01 / SET THE SCENE', draw: '02 / TRUST YOUR PULL', reading: '03 / THE TEA IS SERVED' }[stage];
+}
+function stepReading(direction) {
+  const next = Math.max(0, Math.min(appState.drawnCards.length + 1, appState.activeTabIndex + direction));
+  if (next !== appState.activeTabIndex) selectReadingTab(next);
+}
+function updateReadingNavigation() {
+  const index = appState.activeTabIndex;
+  const count = appState.drawnCards.length;
+  document.getElementById('prevReading').disabled = index === 0;
+  document.getElementById('nextReading').disabled = index === count + 1;
+  document.getElementById('readingPosition').textContent = index < count
+    ? `CARD ${index + 1} OF ${count} · SWIPE TO EXPLORE`
+    : index === count ? 'THE VERDICT · YOUR NEXT MOVE' : 'SPILL MORE · ASK THE ORACLE';
+}
+function openOracleChat(message) {
+  clearTimeout(toastTimer);
+  document.getElementById('toast')?.classList.remove('show');
+  selectReadingTab(appState.drawnCards.length + 1);
+  if (message) sendOracleMessage(message);
+}
+function askAboutCard(reaction) {
+  const item = appState.drawnCards[appState.activeTabIndex];
+  if (!item) return;
+  const context = `${item.card.name} in my ${item.positionTitle} position`;
+  openOracleChat(reaction === 'resonates'
+    ? `That hit a nerve. Help me unpack the ${context}.`
+    : `What could the ${context} mean if it does not resonate with me?`);
+}
+function toggleDare() {
+  if (appState.readingStatus === 'loading') return;
+  appState.dareAccepted = !appState.dareAccepted;
+  haptic([15, 40, 20]);
+  renderActiveReadingTab();
+  if (appState.dareAccepted) showToast('Character development looks good on you. ✨');
+}
+function resetOracleChat() {
+  chatRequest?.abort();
+  chatRequest = null;
+  appState.chatMessages = [];
+  appState.chatDraft = '';
+  appState.chatLoading = false;
+  appState.chatError = '';
+}
+function renderChatPanel() {
+  const ready = appState.readingStatus === 'ready';
+  const blocked = !ready || appState.chatLoading || !!appState.chatError;
+  const turnsLeft = Math.max(0, 12 - appState.chatMessages.filter(m => m.role === 'user').length);
+  const chips = ['Okay, call me out.', 'What should I actually do?', 'I disagree. Convince me.'];
+  document.getElementById('readPanel').innerHTML = `
+    <div class="chat-shell">
+      <div class="chat-heading"><div><h2>The after-tea.</h2><small>Your cards. Your context. More receipts.</small></div>
+        <select aria-label="Chat spice level" onchange="selectSpice(this.value)" style="font-size:12px;min-height:44px;padding:6px;max-width:110px;" ${appState.chatLoading ? 'disabled' : ''}>
+          ${['gentle', 'spicy', 'hot'].map(level => `<option value="${level}" ${level === appState.spice ? 'selected' : ''}>${{ gentle: '☁ Gentle', spicy: '♨ Spicy', hot: '✹ Extra hot' }[level]}</option>`).join('')}
+        </select>
+      </div>
+      <div id="chatFeed" class="chat-feed" role="log" aria-label="Oracle conversation" aria-live="polite" aria-relevant="additions text">
+        <div class="chat-bubble"><span class="speaker">THE ORACLE</span>${ready
+          ? 'The cards have spoken. Your turn. Ask for the receipts, push back, or tell me what I’m missing.'
+          : appState.readingStatus === 'loading' ? 'Let me finish reading your cards. Then we can get into the details.' : 'My live connection has gone quiet. Retry your reading to keep the conversation going.'}</div>
+        ${appState.chatMessages.map(message => `<div class="chat-bubble ${message.role === 'user' ? 'user' : ''}"><span class="speaker">${message.role === 'user' ? 'YOU' : 'THE ORACLE'}</span>${escapeHTML(message.text)}</div>`).join('')}
+        ${appState.chatLoading ? '<div class="chat-bubble" role="status"><span class="oracle-spinner" aria-hidden="true"></span> Brewing a response. The tea takes a moment…</div>' : ''}
+        ${appState.chatError ? `<div class="chat-error" role="status">${escapeHTML(appState.chatError)}<br><button class="btn-gh" onclick="retryOracleMessage()">Try that again ↻</button></div>` : ''}
+        ${!ready && appState.readingStatus === 'fallback' ? '<button class="btn-gh dare-button" onclick="requestOracleReading()">Reconnect the Oracle ↻</button>' : ''}
+      </div>
+      <div class="chat-chips" aria-label="Follow-up ideas">${chips.map((text, index) => `<button onclick="sendChatIdea(${index})" ${blocked || !turnsLeft ? 'disabled' : ''}>${text}</button>`).join('')}</div>
+      <form class="chat-form" onsubmit="event.preventDefault();sendOracleMessage()">
+        <textarea id="chatInput" rows="2" maxlength="500" aria-label="Your message to the Oracle" placeholder="Spill more…" oninput="appState.chatDraft=this.value" ${blocked || !turnsLeft ? 'disabled' : ''}>${escapeHTML(appState.chatDraft)}</textarea>
+        <button class="btn-g" type="submit" aria-label="Send message" ${blocked || !turnsLeft ? 'disabled' : ''}>↑</button>
+      </form>
+      <p class="chat-note">${turnsLeft ? 'Private to this session · Change the heat whenever you like.' : 'That’s a full pot of tea. Start a new reading for a fresh conversation.'}</p>
+    </div>`;
+  const feed = document.getElementById('chatFeed');
+  if (feed) feed.scrollTop = feed.scrollHeight;
+}
+function sendChatIdea(index) {
+  const ideas = ['Okay, call me out. What am I avoiding?', 'What should I actually do next? Give me one specific step.', 'I disagree with this reading. What other interpretation could fit?'];
+  return sendOracleMessage(ideas[index]);
+}
+function retryOracleMessage() { return sendOracleMessage(null, true); }
+async function sendOracleMessage(message, retry = false) {
+  if (appState.readingStatus !== 'ready' || appState.chatLoading) return;
+  if (!retry) {
+    if (appState.chatError || appState.chatMessages.filter(m => m.role === 'user').length >= 12) return;
+    const text = (typeof message === 'string' ? message : appState.chatDraft).trim().slice(0, 500);
+    if (!text) return;
+    appState.chatMessages.push({ role: 'user', text });
+    appState.chatDraft = '';
+  } else if (!appState.chatError || appState.chatMessages.at(-1)?.role !== 'user') return;
+  const controller = new AbortController();
+  chatRequest = controller;
+  const version = readingVersion;
+  appState.chatLoading = true;
+  appState.chatError = '';
+  haptic();
+  renderChatPanel();
+  const timeout = setTimeout(() => controller.abort(), ORACLE_TIMEOUT_MS);
+  try {
+    const response = await fetch('/api/tarot', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
+      body: JSON.stringify({ mode: 'chat', spice: appState.spice, question: appState.question,
+        category: appState.category, drawnCards: appState.drawnCards.map(d => ({ positionTitle: d.positionTitle, isReversed: d.isReversed, card: { name: d.card.name } })),
+        readingContext: JSON.stringify(appState.aiReading).slice(0, 8000), messages: appState.chatMessages.slice(-9)
+      })
+    });
+    if (!response.ok) throw new Error('Reply unavailable');
+    const data = await response.json();
+    if (typeof data.reply !== 'string' || !data.reply.trim() || data.reply.length > 3000) throw new Error('Empty reply');
+    if (version !== readingVersion || chatRequest !== controller) return;
+    appState.chatMessages.push({ role: 'model', text: data.reply.trim() });
+    haptic(18);
+  } catch {
+    if (version !== readingVersion || chatRequest !== controller) return;
+    appState.chatError = 'The connection went quiet. Your message is saved here—give it another try.';
+  } finally {
+    clearTimeout(timeout);
+    if (version === readingVersion && chatRequest === controller) {
+      appState.chatLoading = false;
+      chatRequest = null;
+      if (appState.activeTabIndex === appState.drawnCards.length + 1) renderChatPanel();
+    }
+  }
+}
+function setupMobileGestures() {
+  const panel = document.getElementById('readPanel');
+  let start = null;
+  let suppressClick = false;
+  panel.addEventListener('pointerdown', event => {
+    if (event.target.closest('.chat-shell,textarea,input,select') || event.button > 0) return;
+    start = { x: event.clientX, y: event.clientY };
+  });
+  panel.addEventListener('pointercancel', () => { start = null; });
+  const finishSwipe = (x, y) => {
+    if (!start) return false;
+    const dx = x - start.x, dy = y - start.y;
+    start = null;
+    if (Math.abs(dx) <= 65 || Math.abs(dx) <= Math.abs(dy) * 1.6) return false;
+    suppressClick = true;
+    const version = readingVersion;
+    setTimeout(() => {
+      if (version === readingVersion && appState.stage === 'reading') stepReading(dx < 0 ? 1 : -1);
+    }, 0);
+    setTimeout(() => { suppressClick = false; }, 100);
+    return true;
+  };
+  // Touch devices emit touchend after pointerup. Keep the touched node alive
+  // until touchend, otherwise the browser can swallow the next button tap.
+  panel.addEventListener('pointerup', event => {
+    if (event.pointerType !== 'touch') finishSwipe(event.clientX, event.clientY);
+  });
+  panel.addEventListener('touchend', event => {
+    const touch = event.changedTouches[0];
+    if (touch && finishSwipe(touch.clientX, touch.clientY) && event.cancelable) event.preventDefault();
+  }, { passive: false });
+  panel.addEventListener('click', event => {
+    if (suppressClick) { event.preventDefault(); event.stopPropagation(); suppressClick = false; }
+  }, true);
+  // Keep the composer visible above mobile software keyboards.
+  const fitViewport = () => {
+    const height = window.visualViewport?.height || window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', `${height}px`);
+    document.body.classList.toggle('compact-viewport', height < 620);
+    if (appState.stage === 'reading') {
+      const tabs = document.getElementById('readTabs');
+      const active = tabs.querySelector('.active');
+      if (active) {
+        const a = active.getBoundingClientRect(), t = tabs.getBoundingClientRect();
+        if (a.right > t.right) tabs.scrollLeft += a.right - t.right + 4;
+        else if (a.left < t.left) tabs.scrollLeft -= t.left - a.left + 4;
+      }
+    }
+  };
+  window.visualViewport?.addEventListener('resize', fitViewport);
+  window.addEventListener('resize', fitViewport);
+  fitViewport();
+}
+
 // --- UTILITIES & NAVIGATION ---
 function resetToSetup() {
   cancelOracleReading();
+  drawGeneration++;
+  resetOracleChat();
+  setExperienceStage('setup');
   playSound('tap');
   document.getElementById('stage-draw')?.classList.remove('active');
   document.getElementById('stage-reading')?.classList.remove('active');
@@ -2049,6 +2316,9 @@ function escapeHTML(str) {
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
   loadJournal();
+  renderQuestionChips();
+  setupMobileGestures();
+  document.getElementById('heroDeck').innerHTML = `<div>${renderCardBackSVG()}</div><div>${renderCardBackSVG()}</div><div>${renderCardFrontSVG(FULL_DECK[17], false)}</div>`;
   // Enable audio context on first user click anywhere
   document.addEventListener('click', () => initAudio(), { once: true });
 });
