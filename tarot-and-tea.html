@@ -83,7 +83,19 @@ select option{background:var(--surface2);color:var(--text);}
 .mbox{background:var(--surface2);border:1px solid var(--border-s);border-radius:18px;box-shadow:0 24px 64px rgba(0,0,0,.7);max-width:720px;width:100%;max-height:86dvh;display:flex;flex-direction:column;overflow:hidden;}
 .slot-p{padding:5px 12px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text-muted);}
 .slot-p.filled{border-color:rgba(201,168,76,.4);color:var(--gold);background:rgba(201,168,76,.08);}
-@media(max-width:480px){main{padding:10px 12px;}header{padding:0 12px;}}
+@media(max-width:480px){
+  main{padding:10px 12px;}header{padding:0 12px;}
+  header>button{gap:7px!important;flex-shrink:0;}
+  header>button>div:first-child{width:26px!important;height:26px!important;}
+  header>button .fd{font-size:12px!important;white-space:nowrap;}
+  header>button>div:last-child>span:last-child{display:none!important;}
+  header>div{gap:5px!important;}
+  header>div>button{padding:6px 8px!important;}
+}
+.oracle-spinner{display:inline-block;width:12px;height:12px;border:1.5px solid var(--border-s);border-top-color:var(--gold);border-radius:50%;animation:oracle-spin 1s linear infinite;vertical-align:middle;margin-right:5px;}
+@keyframes oracle-spin{to{transform:rotate(360deg)}}
+button:disabled{opacity:.5;cursor:wait;}
+@media(prefers-reduced-motion:reduce){.oracle-spinner{animation:none;}}
 </style>
 </head>
 <body>
@@ -186,6 +198,7 @@ select option{background:var(--surface2);color:var(--text);}
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
         <div id="readTabs" style="display:flex;align-items:center;gap:2px;background:rgba(13,11,20,.6);padding:3px;border-radius:10px;border:1px solid var(--border);overflow-x:auto;max-width:100%;flex:1;" class="sc"></div>
       </div>
+      <div id="oracleStatus" role="status" aria-live="polite" style="font-size:11px;line-height:1.5;color:var(--text-muted);flex-shrink:0;"></div>
       <div id="readPanel" class="glass-s" style="flex:1;min-height:0;border-radius:16px;padding:14px;display:flex;flex-direction:column;overflow:hidden;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
         <button onclick="resetToSetup()" class="btn-gh" style="padding:9px 14px;border-radius:10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;"><i class="ph-bold ph-arrows-counter-clockwise"></i> New Reading</button>
@@ -1043,223 +1056,406 @@ const ORACLE = {
 };
 
 // --- LIVE AI ORACLE GENERATION (Powered by Vercel Serverless Function & GEMINI_API_KEY) ---
-async function fetchLiveOracleReading(question, category, drawnCards) {
+const ORACLE_TIMEOUT_MS = 30000;
+let oracleRequest = null;
+let readingVersion = 0;
+
+function cancelOracleReading() {
+  readingVersion++;
+  oracleRequest?.abort();
+  oracleRequest = null;
+}
+
+async function fetchLiveOracleReading(question, category, drawnCards, signal) {
+  const response = await fetch('/api/tarot', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal,
+    body: JSON.stringify({ question, category, drawnCards: drawnCards.map(d => ({
+      positionTitle: d.positionTitle, isReversed: d.isReversed,
+      card: { name: d.card.name, suit: d.card.suit, arcana: d.card.arcana }
+    })) })
+  });
+  if (!response.ok) throw new Error('Live reading unavailable');
+  const data = await response.json();
+  if (!Array.isArray(data?.interpretations) || data.interpretations.length !== drawnCards.length ||
+      !data.cosmicVerdict?.trim() || !data.cosmicDare?.trim()) throw new Error('Incomplete reading');
+  const ordered = drawnCards.map((_, index) => {
+    const matches = data.interpretations.filter(item => item?.cardIndex === index);
+    if (matches.length !== 1 || typeof matches[0].oracleTake !== 'string' || !matches[0].oracleTake.trim()) throw new Error('Missing interpretation');
+    return matches[0];
+  });
+  return { ...data, interpretations: ordered };
+}
+
+async function requestOracleReading() {
+  cancelOracleReading();
+  const version = readingVersion;
+  const controller = new AbortController();
+  oracleRequest = controller;
+  appState.aiReading = null;
+  appState.readingStatus = 'loading';
+  updateOracleStatus();
+  renderActiveReadingTab();
+  const started = Date.now();
+  const timeout = setTimeout(() => controller.abort(), ORACLE_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-    const response = await fetch("/api/tarot", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        question: question || "What does fate have in store for me right now?",
-        category: category || "general",
-        drawnCards: drawnCards.map(d => ({
-          positionTitle: d.positionTitle,
-          isReversed: d.isReversed,
-          card: {
-            name: d.card.name,
-            suit: d.card.suit,
-            arcana: d.card.arcana
-          }
-        }))
-      })
-    });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    if (data && data.interpretations && data.cosmicVerdict) {
-      return data;
-    }
-    return null;
-  } catch (err) {
-    console.warn("Oracle Live AI reading deferred to cosmic archives:", err);
-    return null;
+    const result = await fetchLiveOracleReading(appState.question, appState.category, appState.drawnCards, controller.signal);
+    if (version !== readingVersion) return;
+    appState.aiReading = result;
+    appState.readingStatus = 'ready';
+  } catch {
+    // Allow the waiting state to settle before showing the archive on a fast failure.
+    await new Promise(resolve => setTimeout(resolve, Math.max(0, 6000 - (Date.now() - started))));
+    if (version !== readingVersion) return;
+    appState.readingStatus = 'fallback';
+  } finally {
+    clearTimeout(timeout);
+    if (version === readingVersion) oracleRequest = null;
   }
+  if (version !== readingVersion) return;
+  updateOracleStatus();
+  renderActiveReadingTab();
+  renderReadingTabs();
+  saveReadingToJournal();
+}
+
+function updateOracleStatus() {
+  const status = document.getElementById('oracleStatus');
+  const loading = appState.readingStatus === 'loading';
+  if (status) status.innerHTML = loading
+    ? '<span class="oracle-spinner" aria-hidden="true"></span> The Oracle is reading your cards… This can take up to 30 seconds.'
+    : appState.aiReading
+      ? '✦ Your personal reading is ready · Gemini'
+      : 'Live reading unavailable. Showing an archive reading. <button class="btn-gh" onclick="requestOracleReading()" style="padding:4px 9px;border-radius:6px;">Try again</button>';
+  document.getElementById('shareBtn').disabled = loading;
+}
+
+function oracleWaitingMarkup() {
+  return '<span role="status"><span class="oracle-spinner" aria-hidden="true"></span> The Oracle is connecting the dots in your spread…</span>';
 }
 
 // --- ELEGANT MYSTIC SVG GENERATORS ---
-function renderCardBackSVG() {
-  return `
-  <svg viewBox="0 0 200 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="cardBackGrad" cx="50%" cy="50%" r="75%">
-        <stop offset="0%" stop-color="#241a45"/>
-        <stop offset="70%" stop-color="#140f28"/>
-        <stop offset="100%" stop-color="#0b0817"/>
-      </radialGradient>
-      <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#f3d882"/>
-        <stop offset="50%" stop-color="#c9a84c"/>
-        <stop offset="100%" stop-color="#7e5c1a"/>
-      </linearGradient>
-    </defs>
-    <!-- Dark Celestial Background -->
-    <rect width="200" height="320" rx="14" fill="url(#cardBackGrad)"/>
-    <!-- Outer Gold Filigree Border -->
-    <rect x="7" y="7" width="186" height="306" rx="10" fill="none" stroke="url(#goldBorderGrad)" stroke-width="1.6" stroke-opacity="0.85"/>
-    <!-- Inner Dotted Frame -->
-    <rect x="13" y="13" width="174" height="294" rx="8" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.8" stroke-dasharray="3,3" stroke-opacity="0.6"/>
-    <!-- Corner Celestial Ornaments -->
-    <g fill="url(#goldBorderGrad)" opacity="0.8">
-      <path d="M18 18 L24 24 M24 18 L18 24" stroke="url(#goldBorderGrad)" stroke-width="1"/>
-      <circle cx="21" cy="21" r="1.5"/>
-      <circle cx="179" cy="21" r="1.5"/>
-      <circle cx="21" cy="299" r="1.5"/>
-      <circle cx="179" cy="299" r="1.5"/>
-    </g>
-    <!-- Center Sacred Geometry Mandala -->
-    <circle cx="100" cy="160" r="56" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" stroke-dasharray="2,2" stroke-opacity="0.4"/>
-    <circle cx="100" cy="160" r="44" fill="#181132" stroke="url(#goldBorderGrad)" stroke-width="1.4" stroke-opacity="0.75"/>
-    <circle cx="100" cy="160" r="34" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" stroke-opacity="0.5"/>
-    <!-- Radiant 8-Point Cosmic Star -->
-    <path d="M100 122 L103 154 L138 160 L103 166 L100 198 L97 166 L62 160 L97 154 Z" fill="url(#goldBorderGrad)" opacity="0.95"/>
-    <path d="M100 135 L118 142 L125 160 L118 178 L100 185 L82 178 L75 160 L82 142 Z" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" opacity="0.7"/>
-    <!-- Center Glowing Seed -->
-    <circle cx="100" cy="160" r="4.5" fill="#fff" opacity="0.95"/>
-    <circle cx="100" cy="160" r="8" fill="none" stroke="url(#goldBorderGrad)" stroke-width="1" opacity="0.8"/>
-    <!-- Top & Bottom Crescent Accents -->
-    <path d="M92 48 Q100 58 108 48 Q100 52 92 48 Z" fill="url(#goldBorderGrad)" opacity="0.7"/>
-    <path d="M92 272 Q100 262 108 272 Q100 268 92 272 Z" fill="url(#goldBorderGrad)" opacity="0.7"/>
-  </svg>`;
-}
+        function renderCardBackSVG() {
+            const uid = `back_${Math.random().toString(36).slice(2)}`;
+            return `
+            <svg viewBox="0 0 240 400" width="100%" height="100%" style="background:#080814" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="goldGradBack_${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#f9eab8"/>
+                        <stop offset="50%" stop-color="#d4af37"/>
+                        <stop offset="100%" stop-color="#8a6d1b"/>
+                    </linearGradient>
+                    <radialGradient id="centerGlow_${uid}" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#d4af37" stop-opacity="0.22"/>
+                        <stop offset="100%" stop-color="#080814" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+                <!-- Outer Borders -->
+                <rect x="8" y="8" width="224" height="384" rx="10" fill="none" stroke="url(#goldGradBack_${uid})" stroke-width="1.5"/>
+                <rect x="14" y="14" width="212" height="372" rx="6" fill="none" stroke="url(#goldGradBack_${uid})" stroke-width="0.7" stroke-dasharray="3 3"/>
+                <circle cx="120" cy="200" r="110" fill="url(#centerGlow_${uid})"/>
 
-function renderCardFrontSVG(card, isReversed) {
-  const isMajor = card.arcana === "Major Arcana";
-  const suit = card.suit;
-  const numStr = card.numeral || card.number || "•";
-  
-  // Element and palette
-  let elemIcon = "✦";
-  let elemName = isMajor ? "MAJOR ARCANA" : `${suit.toUpperCase()} • ${card.element.toUpperCase()}`;
-  if (suit === "Wands") elemIcon = "🔥";
-  else if (suit === "Cups") elemIcon = "💧";
-  else if (suit === "Swords") elemIcon = "⚔️";
-  else if (suit === "Pentacles") elemIcon = "🪙";
+                <!-- Corner Celestial Rosettes -->
+                <g stroke="url(#goldGradBack_${uid})" fill="none" stroke-width="1">
+                    <circle cx="28" cy="28" r="8"/><circle cx="212" cy="28" r="8"/>
+                    <circle cx="28" cy="372" r="8"/><circle cx="212" cy="372" r="8"/>
+                    <!-- Sacred Geometry Diamond Lattice -->
+                    <polygon points="120,32 200,200 120,368 40,200" stroke-width="1.2"/>
+                    <polygon points="120,60 182,200 120,340 58,200" stroke-width="0.7" stroke-dasharray="4 2"/>
+                    <!-- Central Sun & Moon Mandala -->
+                    <circle cx="120" cy="200" r="64" stroke-width="1.4"/>
+                    <circle cx="120" cy="200" r="52" stroke-width="0.7" stroke-dasharray="2 3"/>
+                    <!-- 8-Pointed Star -->
+                    <polygon points="120,136 135,185 184,200 135,215 120,264 105,215 56,200 105,185" fill="#0d0d22" stroke-width="1.3"/>
+                    <polygon points="120,150 130,190 170,200 130,210 120,250 110,210 70,200 110,190" fill="url(#goldGradBack_${uid})" fill-opacity="0.18"/>
+                    <circle cx="120" cy="200" r="14" fill="#d4af37" fill-opacity="0.25"/>
+                    <circle cx="120" cy="200" r="5" fill="#f9eab8"/>
+                    <!-- Top & Bottom Crescent Moons -->
+                    <path d="M105,95 A18,18 0 1,0 135,95 A14,14 0 1,1 105,95 Z" fill="url(#goldGradBack_${uid})"/>
+                    <path d="M105,305 A18,18 0 1,1 135,305 A14,14 0 1,0 105,305 Z" fill="url(#goldGradBack_${uid})"/>
+                </g>
+            </svg>`;
+        }
 
-  // Centerpiece Icon SVG depending on suit
-  let centerArt = "";
-  if (isMajor) {
-    centerArt = `
-      <g transform="translate(100, 150)">
-        <circle cx="0" cy="0" r="46" fill="#1b1434" stroke="url(#goldBorderGrad)" stroke-width="1.2" stroke-opacity="0.7"/>
-        <circle cx="0" cy="0" r="38" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" stroke-dasharray="2,2" stroke-opacity="0.5"/>
-        <path d="M-36 0 Q0 -30 36 0 Q0 30 -36 0 Z" fill="#291c4d" stroke="url(#goldBorderGrad)" stroke-width="1.4"/>
-        <circle cx="0" cy="0" r="15" fill="url(#goldBorderGrad)"/>
-        <circle cx="0" cy="0" r="7" fill="#0d0b14"/>
-        <circle cx="2" cy="-2" r="2.5" fill="#fff"/>
-        <path d="M0 -42 L0 -48 M0 42 L0 48 M-42 0 L-48 0 M42 0 L48 0" stroke="url(#goldBorderGrad)" stroke-width="1.2"/>
-      </g>`;
-  } else if (suit === "Wands") {
-    centerArt = `
-      <g transform="translate(100, 150)">
-        <circle cx="0" cy="0" r="42" fill="#221226" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>
-        <!-- Crossed Staves -->
-        <line x1="-22" y1="32" x2="22" y2="-32" stroke="url(#goldBorderGrad)" stroke-width="3" stroke-linecap="round"/>
-        <line x1="22" y1="32" x2="-22" y2="-32" stroke="url(#goldBorderGrad)" stroke-width="3" stroke-linecap="round"/>
-        <!-- Central Torch Fire -->
-        <path d="M0 -28 C-12 -10 -8 8 0 20 C8 8 12 -10 0 -28 Z" fill="#e8c96a" opacity="0.9"/>
-        <path d="M0 -20 C-6 -8 -4 4 0 12 C4 4 6 -8 0 -20 Z" fill="#ff7a59"/>
-        <circle cx="0" cy="0" r="3" fill="#fff"/>
-      </g>`;
-  } else if (suit === "Cups") {
-    centerArt = `
-      <g transform="translate(100, 150)">
-        <circle cx="0" cy="0" r="42" fill="#10192e" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>
-        <!-- Ornate Chalice -->
-        <path d="M-22 -14 Q-20 18 0 20 Q20 18 22 -14 Z" fill="#202b4c" stroke="url(#goldBorderGrad)" stroke-width="1.8"/>
-        <path d="M-22 -14 Q0 -9 22 -14 Q0 -19 -22 -14 Z" fill="url(#goldBorderGrad)" opacity="0.8"/>
-        <!-- Stem & Base -->
-        <path d="M-4 20 L-4 32 L-16 35 L16 35 L4 32 L4 20 Z" fill="url(#goldBorderGrad)"/>
-        <!-- Rising Water / Celestial Light -->
-        <circle cx="0" cy="-24" r="3" fill="#67e8f9"/>
-        <circle cx="-8" cy="-18" r="2" fill="#67e8f9" opacity="0.8"/>
-        <circle cx="8" cy="-19" r="2" fill="#67e8f9" opacity="0.8"/>
-      </g>`;
-  } else if (suit === "Swords") {
-    centerArt = `
-      <g transform="translate(100, 150)">
-        <circle cx="0" cy="0" r="42" fill="#131c2c" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>
-        <!-- Celestial Sword Blade -->
-        <path d="M0 -38 L5 -25 L4 22 L0 30 L-4 22 L-5 -25 Z" fill="#e2e8f0" stroke="url(#goldBorderGrad)" stroke-width="1.2"/>
-        <line x1="0" y1="-34" x2="0" y2="22" stroke="#94a3b8" stroke-width="0.75"/>
-        <!-- Crossguard & Pommel -->
-        <rect x="-18" y="21" width="36" height="4" rx="2" fill="url(#goldBorderGrad)"/>
-        <rect x="-3" y="25" width="6" height="12" rx="1" fill="#475569"/>
-        <circle cx="0" cy="38" r="4" fill="url(#goldBorderGrad)"/>
-        <!-- Star sparkles around blade -->
-        <circle cx="-14" cy="-12" r="1.5" fill="#f3d882"/>
-        <circle cx="14" cy="-10" r="1.5" fill="#f3d882"/>
-      </g>`;
-  } else {
-    // Pentacles
-    centerArt = `
-      <g transform="translate(100, 150)">
-        <circle cx="0" cy="0" r="42" fill="#201a14" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>
-        <!-- Golden Talisman Coin -->
-        <circle cx="0" cy="0" r="32" fill="#2a2216" stroke="url(#goldBorderGrad)" stroke-width="2.2"/>
-        <circle cx="0" cy="0" r="27" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.8" stroke-dasharray="2,2"/>
-        <!-- Pentagram Star -->
-        <polygon points="0,-22 6,-6 22,-5 10,7 14,22 0,13 -14,22 -10,7 -22,-5 -6,-6" fill="url(#goldBorderGrad)" opacity="0.95"/>
-        <circle cx="0" cy="0" r="3" fill="#fff"/>
-      </g>`;
-  }
+        function renderCardFrontSVG(card, isReversed = false) {
+            const uid = `card_${card.id}_${Math.random().toString(36).substring(2, 7)}`;
+            // Determine accent color based on element/suit
+            let accentColor = "#d4af37";
+            let bgTint = "#120f24";
+            if (card.element === "Fire") { accentColor = "#f59e0b"; bgTint = "#1a0f14"; }
+            else if (card.element === "Water") { accentColor = "#38bdf8"; bgTint = "#0b1524"; }
+            else if (card.element === "Air") { accentColor = "#cbd5e1"; bgTint = "#111322"; }
+            else if (card.element === "Earth") { accentColor = "#10b981"; bgTint = "#0c1917"; }
 
-  const rotClass = isReversed ? "rev-art" : "";
+            // Generate bespoke central illustration based on Major Arcana ID or Minor Suit/Rank
+            let centerIllustration = "";
 
-  return `
-  <svg viewBox="0 0 200 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="cardFrontGrad" cx="50%" cy="45%" r="70%">
-        <stop offset="0%" stop-color="#1e1836"/>
-        <stop offset="70%" stop-color="#130e22"/>
-        <stop offset="100%" stop-color="#0a0714"/>
-      </radialGradient>
-      <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#f3d882"/>
-        <stop offset="50%" stop-color="#c9a84c"/>
-        <stop offset="100%" stop-color="#7e5c1a"/>
-      </linearGradient>
-    </defs>
-    <!-- Background Frame -->
-    <rect width="200" height="320" rx="14" fill="url(#cardFrontGrad)"/>
-    <rect x="7" y="7" width="186" height="306" rx="10" fill="none" stroke="url(#goldBorderGrad)" stroke-width="1.6" stroke-opacity="0.85"/>
-    <rect x="13" y="13" width="174" height="294" rx="8" fill="none" stroke="url(#goldBorderGrad)" stroke-width="0.75" stroke-dasharray="3,3" stroke-opacity="0.4"/>
-    
-    <!-- Top Numeral and Suit Tag -->
-    <text x="22" y="32" font-family="'Cinzel', serif" font-size="12" font-weight="700" fill="#e8c96a">${numStr}</text>
-    <text x="178" y="32" font-family="'Cinzel', serif" font-size="12" font-weight="700" fill="#e8c96a" text-anchor="end">${numStr}</text>
-    
-    <text x="100" y="30" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" fill="#9b7dd4" letter-spacing="1.5" text-anchor="middle">
-      ${elemName}
-    </text>
+            if (card.arcana === "Major Arcana") {
+                centerIllustration = getMajorArcanaCenterpiece(card.number, accentColor);
+            } else {
+                centerIllustration = getMinorArcanaCenterpiece(card.suit, card.number, accentColor);
+            }
 
-    <!-- Centerpiece Artwork -->
-    <g class="${rotClass}">
-      ${centerArt}
-    </g>
+            return `
+            <svg viewBox="0 0 240 400" width="100%" height="100%" style="background: ${bgTint};" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="gold_${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#fff3c4"/>
+                        <stop offset="45%" stop-color="#d4af37"/>
+                        <stop offset="100%" stop-color="#8a6d1b"/>
+                    </linearGradient>
+                    <radialGradient id="halo_${uid}" cx="50%" cy="46%" r="48%">
+                        <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.28"/>
+                        <stop offset="65%" stop-color="#d4af37" stop-opacity="0.06"/>
+                        <stop offset="100%" stop-color="#05050a" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
 
-    <!-- Reversed Watermark if applicable -->
-    ${isReversed ? `
-      <rect x="45" y="215" width="110" height="17" rx="8" fill="rgba(194,85,110,0.22)" stroke="rgba(194,85,110,0.5)" stroke-width="0.8"/>
-      <text x="100" y="227" font-family="'Inter', sans-serif" font-size="8.5" font-weight="700" fill="#ff8aa2" letter-spacing="1" text-anchor="middle">✦ REVERSED ✦</text>
-    ` : ''}
+                <!-- Background Cosmic Halo -->
+                <rect x="0" y="0" width="240" height="400" fill="url(#halo_${uid})"/>
 
-    <!-- Bottom Card Name -->
-    <text x="100" y="254" font-family="'Cinzel', serif" font-size="12" font-weight="700" fill="#f3d882" text-anchor="middle" letter-spacing="0.5">
-      ${card.name.toUpperCase()}
-    </text>
+                <!-- Ornate Gold Frame -->
+                <rect x="7" y="7" width="226" height="386" rx="10" fill="none" stroke="url(#gold_${uid})" stroke-width="1.8"/>
+                <rect x="13" y="13" width="214" height="374" rx="6" fill="none" stroke="url(#gold_${uid})" stroke-width="0.8" opacity="0.7"/>
 
-    <!-- Keywords Pill Preview -->
-    <text x="100" y="274" font-family="'Inter', sans-serif" font-size="7.5" font-weight="500" fill="#9a90b8" text-anchor="middle">
-      ${(isReversed ? card.kwRev : card.kwUp).slice(0, 2).join(' • ')}
-    </text>
-  </svg>`;
-}
+                <!-- Archway Pillar Lines -->
+                <path d="M 22 330 L 22 85 A 98 85 0 0 1 218 85 L 218 330" fill="none" stroke="url(#gold_${uid})" stroke-width="1" opacity="0.55"/>
+
+                <!-- Top Numeral Cartouche -->
+                <rect x="88" y="18" width="64" height="22" rx="11" fill="#090914" stroke="url(#gold_${uid})" stroke-width="1.1"/>
+                <text x="120" y="33" text-anchor="middle" fill="#f9eab8" font-family="Cinzel, serif" font-size="11" font-weight="700" letter-spacing="1.5">${card.numeral}</text>
+
+                <!-- Starfield Micro Dots -->
+                <g fill="#f9eab8" opacity="0.55">
+                    <circle cx="42" cy="60" r="1.2"/><circle cx="198" cy="65" r="1.5"/>
+                    <circle cx="35" cy="145" r="1"/><circle cx="204" cy="130" r="1.2"/>
+                    <circle cx="48" cy="285" r="1.3"/><circle cx="192" cy="275" r="1"/>
+                </g>
+
+                <!-- Bespoke Esoteric Centerpiece Illustration -->
+                <g transform="translate(120, 185)${isReversed ? ' rotate(180)' : ''}">
+                    ${centerIllustration}
+                </g>
+
+                <!-- Bottom Name Banner -->
+                <rect x="18" y="332" width="204" height="44" rx="5" fill="#070710" stroke="url(#gold_${uid})" stroke-width="1.2"/>
+                <line x1="28" y1="337" x2="212" y2="337" stroke="url(#gold_${uid})" stroke-width="0.4" opacity="0.5"/>
+                <text x="120" y="354" text-anchor="middle" fill="#fff3c4" font-family="Cinzel, serif" font-size="11.5" font-weight="700" letter-spacing="1.2">${card.name.toUpperCase()}</text>
+                <text x="120" y="369" text-anchor="middle" fill="#d4af37" font-family="Cormorant Garamond, serif" font-style="italic" font-size="10" opacity="0.9">${card.element} • ${isReversed ? 'Reversed' : 'Upright'}</text>
+            </svg>`;
+        }
+
+        function getMajorArcanaCenterpiece(num, accent) {
+            // Unique sacred geometry + symbolic vector motif for each of the 22 Major Arcana
+            const baseSacredRing = `
+                <circle cx="0" cy="0" r="78" fill="none" stroke="#d4af37" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.6"/>
+                <circle cx="0" cy="0" r="68" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.85"/>
+            `;
+
+            switch (num) {
+                case 0: // The Fool: Sunburst + Cliff + White Rose
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="-35" r="22" fill="${accent}" fill-opacity="0.2" stroke="#f9eab8" stroke-width="1.5"/>
+                        <g stroke="#f9eab8" stroke-width="1.2">
+                            <line x1="0" y1="-65" x2="0" y2="-5"/><line x1="-30" y1="-35" x2="30" y2="-35"/>
+                            <line x1="-21" y1="-56" x2="21" y2="-14"/><line x1="21" y1="-56" x2="-21" y2="-14"/>
+                        </g>
+                        <path d="M -55 55 L -10 15 L 5 35 L 55 55 Z" fill="#0d0d1a" stroke="#d4af37" stroke-width="1.5"/>
+                        <circle cx="0" cy="-35" r="7" fill="#fff3c4"/>`;
+                case 1: // The Magician: Lemniscate Infinity + 4 Elemental Symbols
+                    return `${baseSacredRing}
+                        <path d="M -32 -35 C -52 -55, -52 -15, -32 -35 C -12 -55, 12 -15, 32 -35 C 52 -55, 52 -15, 32 -35 C 12 -15, -12 -55, -32 -35 Z" fill="none" stroke="#fff3c4" stroke-width="2"/>
+                        <line x1="0" y1="-15" x2="0" y2="55" stroke="#d4af37" stroke-width="3"/>
+                        <polygon points="0,-24 -8,-10 8,-10" fill="#f9eab8"/>
+                        <circle cx="-38" cy="20" r="10" fill="none" stroke="#10b981" stroke-width="1.5"/>
+                        <path d="M 28 12 L 48 12 L 38 30 Z" fill="none" stroke="#38bdf8" stroke-width="1.5"/>`;
+                case 2: // The High Priestess: Triple Moon + Pillars B & J
+                    return `${baseSacredRing}
+                        <rect x="-52" y="-50" width="16" height="105" fill="#090914" stroke="#d4af37" stroke-width="1.3"/>
+                        <rect x="36" y="-50" width="16" height="105" fill="#d4af37" fill-opacity="0.25" stroke="#d4af37" stroke-width="1.3"/>
+                        <text x="-44" y="5" text-anchor="middle" fill="#d4af37" font-size="11" font-family="Cinzel">B</text>
+                        <text x="44" y="5" text-anchor="middle" fill="#fff3c4" font-size="11" font-family="Cinzel">J</text>
+                        <circle cx="0" cy="-8" r="20" fill="${accent}" fill-opacity="0.25" stroke="#fff3c4" stroke-width="1.6"/>
+                        <path d="M -22 36 A 26 26 0 0 0 22 36 A 22 20 0 0 1 -22 36 Z" fill="#f9eab8"/>`;
+                case 3: // The Empress: Venus Symbol + 12-Star Crown
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="-12" r="26" fill="${accent}" fill-opacity="0.2" stroke="#f9eab8" stroke-width="2"/>
+                        <line x1="0" y1="14" x2="0" y2="54" stroke="#f9eab8" stroke-width="2"/>
+                        <line x1="-18" y1="34" x2="18" y2="34" stroke="#f9eab8" stroke-width="2"/>
+                        <polygon points="0,-58 5,-45 18,-45 8,-37 12,-24 0,-32 -12,-24 -8,-37 -18,-45 -5,-45" fill="#d4af37"/>`;
+                case 4: // The Emperor: Solar Cross + Sovereign Throne Cube
+                    return `${baseSacredRing}
+                        <rect x="-38" y="-38" width="76" height="76" fill="#0c0c1c" stroke="#d4af37" stroke-width="1.8"/>
+                        <rect x="-26" y="-26" width="52" height="52" transform="rotate(45)" fill="${accent}" fill-opacity="0.2" stroke="#f9eab8" stroke-width="1.4"/>
+                        <circle cx="0" cy="0" r="14" fill="none" stroke="#fff3c4" stroke-width="2"/>
+                        <circle cx="0" cy="0" r="4" fill="#f59e0b"/>`;
+                case 5: // The Hierophant: Crossed Sacred Keys
+                    return `${baseSacredRing}
+                        <g stroke="#f9eab8" stroke-width="2.2" fill="none">
+                            <line x1="-35" y1="45" x2="35" y2="-35"/>
+                            <line x1="35" y1="45" x2="-35" y2="-35"/>
+                            <circle cx="-35" cy="45" r="12" fill="#0a0a16"/>
+                            <circle cx="35" cy="45" r="12" fill="#0a0a16"/>
+                        </g>
+                        <polygon points="0,-58 14,-25 -14,-25" fill="#d4af37" stroke="#fff3c4" stroke-width="1.2"/>`;
+                case 6: // The Lovers: Interlocking Vesica Piscis + Twin Stars
+                    return `${baseSacredRing}
+                        <circle cx="-20" cy="5" r="34" fill="${accent}" fill-opacity="0.18" stroke="#f9eab8" stroke-width="1.6"/>
+                        <circle cx="20" cy="5" r="34" fill="#f43f5e" fill-opacity="0.18" stroke="#d4af37" stroke-width="1.6"/>
+                        <path d="M 0 -48 L 8 -30 L 26 -30 L 12 -18 L 17 0 L 0 -11 L -17 0 L -12 -18 L -26 -30 L -8 -30 Z" fill="#fff3c4"/>`;
+                case 7: // The Chariot: Winged Merkaba Star
+                    return `${baseSacredRing}
+                        <polygon points="0,-54 46,26 -46,26" fill="none" stroke="#fff3c4" stroke-width="1.8"/>
+                        <polygon points="0,54 46,-26 -46,-26" fill="${accent}" fill-opacity="0.2" stroke="#d4af37" stroke-width="1.8"/>
+                        <circle cx="0" cy="0" r="16" fill="#090914" stroke="#f9eab8" stroke-width="1.5"/>
+                        <circle cx="0" cy="0" r="6" fill="#f9eab8"/>`;
+                case 8: // Strength: Solar Lion Mandala + Infinity Crown
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="8" r="36" fill="${accent}" fill-opacity="0.22" stroke="#f9eab8" stroke-width="2"/>
+                        <polygon points="0,-42 12,-15 40,-15 18,2 26,30 0,14 -26,30 -18,2 -40,-15 -12,-15" fill="none" stroke="#d4af37" stroke-width="1.4"/>
+                        <path d="M -22 -42 C -36 -56, -36 -28, -22 -42 C -8 -56, 8 -28, 22 -42 C 36 -56, 36 -28, 22 -42 C 8 -28, -8 -56, -22 -42 Z" fill="none" stroke="#fff3c4" stroke-width="1.8"/>`;
+                case 9: // The Hermit: Six-Pointed Seal inside Hanging Lantern
+                    return `${baseSacredRing}
+                        <polygon points="0,-48 32,0 0,48 -32,0" fill="#090914" stroke="#d4af37" stroke-width="1.8"/>
+                        <polygon points="0,-24 20,12 -20,12" fill="none" stroke="#fff3c4" stroke-width="1.3"/>
+                        <polygon points="0,24 20,-12 -20,-12" fill="none" stroke="#fff3c4" stroke-width="1.3"/>
+                        <circle cx="0" cy="0" r="6" fill="#fff3c4"/>`;
+                case 10: // Wheel of Fortune: 8-Spoke Cosmic Wheel
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="0" r="52" fill="${accent}" fill-opacity="0.15" stroke="#fff3c4" stroke-width="2.2"/>
+                        <circle cx="0" cy="0" r="36" fill="none" stroke="#d4af37" stroke-width="1.2"/>
+                        <g stroke="#f9eab8" stroke-width="1.4">
+                            <line x1="0" y1="-52" x2="0" y2="52"/><line x1="-52" y1="0" x2="52" y2="0"/>
+                            <line x1="-37" y1="-37" x2="37" y2="37"/><line x1="37" y1="-37" x2="-37" y2="37"/>
+                        </g>
+                        <circle cx="0" cy="0" r="12" fill="#090914" stroke="#fff3c4" stroke-width="2"/>`;
+                case 11: // Justice: Upright Sword & Balanced Scales
+                    return `${baseSacredRing}
+                        <line x1="0" y1="-58" x2="0" y2="58" stroke="#fff3c4" stroke-width="2.5"/>
+                        <line x1="-44" y1="-15" x2="44" y2="-15" stroke="#d4af37" stroke-width="2"/>
+                        <path d="M -44 -15 L -54 15 L -34 15 Z" fill="${accent}" fill-opacity="0.3" stroke="#f9eab8" stroke-width="1.3"/>
+                        <path d="M 44 -15 L 34 15 L 54 15 Z" fill="${accent}" fill-opacity="0.3" stroke="#f9eab8" stroke-width="1.3"/>
+                        <circle cx="0" cy="-15" r="7" fill="#d4af37"/>`;
+                case 12: // The Hanged Man: Inverted Triangle + Radiant Halo
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="28" r="24" fill="${accent}" fill-opacity="0.3" stroke="#fff3c4" stroke-width="1.5" stroke-dasharray="3 2"/>
+                        <polygon points="-38,-42 38,-42 0,32" fill="#0b0b1a" stroke="#d4af37" stroke-width="1.8"/>
+                        <line x1="0" y1="-68" x2="0" y2="-42" stroke="#f9eab8" stroke-width="2"/>
+                        <circle cx="0" cy="28" r="6" fill="#fff3c4"/>`;
+                case 13: // Death: Mystic 5-Petal Eclipse Rose & Crescent Scythe
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="0" r="34" fill="#05050a" stroke="#fff3c4" stroke-width="2"/>
+                        <circle cx="0" cy="0" r="22" fill="none" stroke="#d4af37" stroke-width="1" stroke-dasharray="2 2"/>
+                        <polygon points="0,-32 9,-9 32,-9 14,6 20,28 0,15 -20,28 -14,6 -32,-9 -9,-9" fill="${accent}" fill-opacity="0.25" stroke="#f9eab8" stroke-width="1.2"/>
+                        <circle cx="0" cy="0" r="5" fill="#fff3c4"/>`;
+                case 14: // Temperance: Alchemical Triangle inside Square + Flowing Wave
+                    return `${baseSacredRing}
+                        <rect x="-38" y="-38" width="76" height="76" fill="none" stroke="#d4af37" stroke-width="1.4"/>
+                        <polygon points="0,-46 42,30 -42,30" fill="${accent}" fill-opacity="0.2" stroke="#fff3c4" stroke-width="1.8"/>
+                        <path d="M -25 5 Q 0 -20, 25 5 T 0 25" fill="none" stroke="#38bdf8" stroke-width="2"/>`;
+                case 15: // The Devil: Inverted Pentagram inside Obsidian Ring
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="0" r="48" fill="#09050c" stroke="#f59e0b" stroke-width="1.8"/>
+                        <polygon points="0,46 -28,-38 44,14 -44,14 28,-38" fill="${accent}" fill-opacity="0.2" stroke="#f9eab8" stroke-width="1.5"/>
+                        <circle cx="0" cy="0" r="8" fill="none" stroke="#f59e0b" stroke-width="1.5"/>`;
+                case 16: // The Tower: Crown Struck by Celestial Lightning
+                    return `${baseSacredRing}
+                        <path d="M -22 55 L -16 -15 L 16 -15 L 22 55 Z" fill="#0b0b18" stroke="#d4af37" stroke-width="1.8"/>
+                        <polygon points="-22,-20 -12,-35 0,-22 12,-35 22,-20" fill="#d4af37"/>
+                        <polyline points="28,-62 2,-18 18,-18 -18,32" fill="none" stroke="#fff3c4" stroke-width="3"/>`;
+                case 17: // The Star: Great 8-Pointed Sirius Star + 7 Smaller Stars
+                    return `${baseSacredRing}
+                        <polygon points="0,-56 12,-12 56,0 12,12 0,56 -12,12 -56,0 -12,-12" fill="${accent}" fill-opacity="0.3" stroke="#fff3c4" stroke-width="1.8"/>
+                        <polygon points="0,-36 25,-25 36,0 25,25 0,36 -25,25 -36,0 -25,-25" fill="none" stroke="#d4af37" stroke-width="1"/>
+                        <circle cx="0" cy="0" r="7" fill="#fff3c4"/>`;
+                case 18: // The Moon: Full Lunar Orb + Twin Pillars + Tidal Waves
+                    return `${baseSacredRing}
+                        <circle cx="0" cy="-14" r="30" fill="${accent}" fill-opacity="0.25" stroke="#fff3c4" stroke-width="1.8"/>
+                        <path d="M -8 -40 A 24 24 0 1 0 18 8 A 20 20 0 1 1 -8 -40 Z" fill="#f9eab8"/>
+                        <rect x="-46" y="5" width="12" height="42" fill="#080814" stroke="#d4af37" stroke-width="1.2"/>
+                        <rect x="34" y="5" width="12" height="42" fill="#080814" stroke="#d4af37" stroke-width="1.2"/>`;
+                case 19: // The Sun: 16-Ray Solar Mandala
+                    return `${baseSacredRing}
+                        <g stroke="#f59e0b" stroke-width="1.6">
+                            <line x1="0" y1="-60" x2="0" y2="60"/><line x1="-60" y1="0" x2="60" y2="0"/>
+                            <line x1="-42" y1="-42" x2="42" y2="42"/><line x1="42" y1="-42" x2="-42" y2="42"/>
+                        </g>
+                        <circle cx="0" cy="0" r="32" fill="#f59e0b" fill-opacity="0.3" stroke="#fff3c4" stroke-width="2.2"/>
+                        <circle cx="0" cy="0" r="14" fill="#fff3c4"/>`;
+                case 20: // Judgement: Rising Phoenix Wings + Solar Cross
+                    return `${baseSacredRing}
+                        <path d="M 0 25 C -30 5, -55 -25, -45 -45 C -25 -30, -10 -10, 0 5 C 10 -10, 25 -30, 45 -45 C 55 -25, 30 5, 0 25 Z" fill="${accent}" fill-opacity="0.28" stroke="#fff3c4" stroke-width="1.6"/>
+                        <line x1="0" y1="-48" x2="0" y2="48" stroke="#f9eab8" stroke-width="2"/>
+                        <line x1="-22" y1="-22" x2="22" y2="-22" stroke="#f9eab8" stroke-width="2"/>`;
+                default: // 21 The World: Cosmic Wreath & 4 Fixed Sign Jewels
+                    return `${baseSacredRing}
+                        <ellipse cx="0" cy="0" rx="36" ry="54" fill="${accent}" fill-opacity="0.2" stroke="#fff3c4" stroke-width="2.2"/>
+                        <ellipse cx="0" cy="0" rx="26" ry="44" fill="none" stroke="#d4af37" stroke-width="1" stroke-dasharray="3 2"/>
+                        <circle cx="0" cy="0" r="10" fill="#fff3c4"/>
+                        <circle cx="-48" cy="-48" r="5" fill="#d4af37"/><circle cx="48" cy="-48" r="5" fill="#d4af37"/>
+                        <circle cx="-48" cy="48" r="5" fill="#d4af37"/><circle cx="48" cy="48" r="5" fill="#d4af37"/>`;
+            }
+        }
+
+        function getMinorArcanaCenterpiece(suit, rank, accent) {
+            // Renders sacred suit emblem + geometric rank constellation
+            let suitEmblem = "";
+            if (suit === "Wands") {
+                suitEmblem = `
+                    <line x1="0" y1="-52" x2="0" y2="52" stroke="#f9eab8" stroke-width="3.5" stroke-linecap="round"/>
+                    <polygon points="0,-60 -10,-42 0,-48 10,-42" fill="#f59e0b" stroke="#fff3c4" stroke-width="1"/>
+                    <path d="M 0 -15 Q 18 -25 14 -35 Q 4 -25 0 -15" fill="#10b981"/>
+                    <path d="M 0 10 Q -18 0 -14 -10 Q -4 0 0 10" fill="#10b981"/>
+                `;
+            } else if (suit === "Cups") {
+                suitEmblem = `
+                    <path d="M -28 -32 L 28 -32 C 28 5, 12 18, 0 20 C -12 18, -28 5, -28 -32 Z" fill="${accent}" fill-opacity="0.28" stroke="#fff3c4" stroke-width="2"/>
+                    <line x1="0" y1="20" x2="0" y2="46" stroke="#fff3c4" stroke-width="3"/>
+                    <path d="M -22 46 L 22 46" stroke="#fff3c4" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="0" cy="-44" r="7" fill="#38bdf8" stroke="#fff3c4" stroke-width="1.2"/>
+                `;
+            } else if (suit === "Swords") {
+                suitEmblem = `
+                    <polygon points="0,-60 7,20 0,28 -7,20" fill="#e2e8f0" stroke="#fff3c4" stroke-width="1.3"/>
+                    <path d="M -28 20 Q 0 10 28 20" fill="none" stroke="#d4af37" stroke-width="3.5" stroke-linecap="round"/>
+                    <line x1="0" y1="20" x2="0" y2="48" stroke="#d4af37" stroke-width="3.5"/>
+                    <circle cx="0" cy="51" r="6" fill="#f9eab8"/>
+                `;
+            } else {
+                // Pentacles
+                suitEmblem = `
+                    <circle cx="0" cy="0" r="38" fill="#091914" stroke="#d4af37" stroke-width="2.2"/>
+                    <polygon points="0,-32 9,-9 32,-9 14,6 20,28 0,15 -20,28 -14,6 -32,-9 -9,-9" fill="${accent}" fill-opacity="0.3" stroke="#fff3c4" stroke-width="1.5"/>
+                `;
+            }
+
+            // Rank geometric crown or constellation ring around the suit emblem
+            let rankOrnament = "";
+            if (rank >= 11) {
+                // Court Card Crown
+                rankOrnament = `
+                    <polygon points="-32,-68 -18,-52 0,-70 18,-52 32,-68 26,-46 -26,-46" fill="#d4af37" fill-opacity="0.35" stroke="#fff3c4" stroke-width="1.2"/>
+                `;
+            } else {
+                // Pip Constellation Nodes around perimeter
+                let dots = "";
+                for (let i = 0; i < rank; i++) {
+                    const angle = (i / rank) * Math.PI * 2 - Math.PI / 2;
+                    const rx = Math.cos(angle) * 62;
+                    const ry = Math.sin(angle) * 62;
+                    dots += `<circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="4" fill="#fff3c4" stroke="#d4af37" stroke-width="1"/>`;
+                }
+                rankOrnament = `<circle cx="0" cy="0" r="62" fill="none" stroke="#d4af37" stroke-width="0.9" stroke-dasharray="3 3"/>${dots}`;
+            }
+
+            return `
+                <circle cx="0" cy="0" r="76" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.65"/>
+                ${rankOrnament}
+                ${suitEmblem}
+            `;
+        }
+
 
 // --- APPLICATION STATE ---
 const appState = {
@@ -1270,6 +1466,8 @@ const appState = {
   drawnCards: [], // [{ card, isReversed, positionTitle, flipped }]
   activeTabIndex: 0,
   aiReading: null,
+  readingStatus: 'idle',
+  journalEntryId: null,
   journal: []
 };
 
@@ -1287,9 +1485,9 @@ function loadJournal() {
 }
 
 function saveReadingToJournal() {
-  if (!appState.drawnCards.length) return;
+  if (!appState.drawnCards.length || appState.readingStatus === 'loading') return;
   const entry = {
-    id: Date.now(),
+    id: appState.journalEntryId || Date.now(),
     date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
     category: appState.category,
     question: appState.question || "Cosmic inquiry",
@@ -1299,8 +1497,11 @@ function saveReadingToJournal() {
       isReversed: c.isReversed,
       pos: c.positionTitle
     })),
+    source: appState.aiReading ? 'gemini' : 'archive',
     verdict: appState.aiReading?.cosmicVerdict || "Truth delivered without sugarcoating."
   };
+  appState.journalEntryId = entry.id;
+  appState.journal = appState.journal.filter(item => item.id !== entry.id);
   appState.journal.unshift(entry);
   if (appState.journal.length > 30) appState.journal.pop();
   try {
@@ -1451,6 +1652,9 @@ function selectSpread(spreadNum) {
 
 // --- DRAW STAGE LOGIC ---
 function startShuffle() {
+  cancelOracleReading();
+  appState.readingStatus = 'idle';
+  appState.journalEntryId = null;
   playSound('bell');
   const qVal = document.getElementById('qInput')?.value.trim();
   appState.question = qVal || "";
@@ -1497,7 +1701,7 @@ function renderFanDeck() {
       <div 
         onclick="pickCard(${idx})"
         class="fan-c"
-        style="width:58px;height:92px;margin:-8px;transform:rotate(${angle}deg) translateY(${yOffset}px);display:inline-block;border-radius:7px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.6);"
+        style="width:58px;aspect-ratio:3/5;margin:-8px;transform:rotate(${angle}deg) translateY(${yOffset}px);display:inline-block;border-radius:7px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.6);"
       >
         ${renderCardBackSVG()}
       </div>
@@ -1585,19 +1789,7 @@ function launchReadingStage() {
   document.getElementById('stage-reading')?.classList.add('active');
 
   renderReadingTabs();
-  renderActiveReadingTab();
-
-  // Asynchronously query Gemini Live AI for custom witty interpretations
-  fetchLiveOracleReading(appState.question, appState.category, appState.drawnCards).then(aiResult => {
-    if (aiResult) {
-      appState.aiReading = aiResult;
-      // Re-render currently viewed tab with rich AI insight
-      renderActiveReadingTab();
-      renderReadingTabs();
-    }
-    // Save record to journal
-    saveReadingToJournal();
-  });
+  requestOracleReading();
 }
 
 function renderReadingTabs() {
@@ -1662,6 +1854,7 @@ function renderActiveReadingTab() {
     const cat = appState.category;
     const ai = appState.aiReading;
 
+    const waiting = appState.readingStatus === 'loading';
     const verdictText = ai?.cosmicVerdict || 
       `You asked about **${appState.question || 'your life'}**, and the cards didn't hold back. You already know what to do; you're just looking for an excuse to delay the inevitable. Take a deep breath, accept the plot twist, and move forward.`;
 
@@ -1680,7 +1873,7 @@ function renderActiveReadingTab() {
           <div>
             <div style="display:flex;align-items:center;gap:6px;">
               <span class="fd" style="font-size:14px;font-weight:700;color:var(--gold);">The Oracle's Verdict</span>
-              ${ai ? `<span class="badge" style="background:rgba(58,158,140,.15);border-color:rgba(58,158,140,.4);color:var(--teal);">✦ Live AI</span>` : ''}
+              ${ai ? `<span class="badge" style="background:rgba(58,158,140,.15);border-color:rgba(58,158,140,.4);color:var(--teal);">✦ Gemini</span>` : ''}
             </div>
             <p style="font-size:11px;color:var(--text-muted);margin-top:2px;">"${escapeHTML(appState.question || 'Cosmic Inquiry')}"</p>
           </div>
@@ -1689,7 +1882,7 @@ function renderActiveReadingTab() {
         <!-- Overarching Reality Check -->
         <div class="obox" style="padding:12px 14px;">
           <p style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Cosmic Reality Check</p>
-          <p style="font-size:13px;line-height:1.5;color:var(--text);">${formatMarkdown(verdictText)}</p>
+          <p style="font-size:13px;line-height:1.5;color:var(--text);">${waiting ? oracleWaitingMarkup() : formatMarkdown(verdictText)}</p>
         </div>
 
         <!-- Cards Breakdown Pills -->
@@ -1719,7 +1912,7 @@ function renderActiveReadingTab() {
         <!-- The Cosmic Dare -->
         <div style="background:rgba(194,85,110,.1);border:1px solid rgba(194,85,110,.35);border-radius:12px;padding:12px;">
           <span style="font-size:10px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">⚡ The Cosmic Dare</span>
-          <p style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4;">${dareText}</p>
+          <p style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4;">${waiting ? oracleWaitingMarkup() : formatMarkdown(dareText)}</p>
         </div>
       </div>
     `;
@@ -1738,7 +1931,9 @@ function renderActiveReadingTab() {
 
   // Built-in interpretation or Live Gemini AI quip
   let oracleText = "";
-  if (appState.aiReading?.interpretations?.[appState.activeTabIndex]?.oracleTake) {
+  if (appState.readingStatus === 'loading') {
+    oracleText = '';
+  } else if (appState.aiReading?.interpretations?.[appState.activeTabIndex]?.oracleTake) {
     oracleText = appState.aiReading.interpretations[appState.activeTabIndex].oracleTake;
   } else {
     const opener = ORACLE.openers[card.id % ORACLE.openers.length](card.name, isRev, item.positionTitle);
@@ -1767,7 +1962,7 @@ function renderActiveReadingTab() {
 
       <!-- Interactive 3D Card Display -->
       <div style="display:flex;justify-content:center;padding:6px 0;flex-shrink:0;">
-        <div class="perspective" style="width:130px;height:208px;cursor:pointer;" onclick="flipSingleCard(${appState.activeTabIndex})">
+        <div class="perspective" style="width:130px;aspect-ratio:3/5;cursor:pointer;" onclick="flipSingleCard(${appState.activeTabIndex})">
           <div class="c3d ${item.flipped ? 'flipped' : ''}">
             <div class="cface">${renderCardBackSVG()}</div>
             <div class="cface cface-f">${renderCardFrontSVG(card, isRev)}</div>
@@ -1784,9 +1979,9 @@ function renderActiveReadingTab() {
       <div class="obox" style="padding:12px 14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <span class="fd" style="font-size:11px;font-weight:700;color:var(--gold);">The Oracle Speaks</span>
-          ${appState.aiReading ? `<span class="badge" style="background:rgba(58,158,140,.15);border-color:rgba(58,158,140,.4);color:var(--teal);font-size:9px;">Live AI</span>` : ''}
+          ${appState.aiReading ? `<span class="badge" style="background:rgba(58,158,140,.15);border-color:rgba(58,158,140,.4);color:var(--teal);font-size:9px;">Gemini</span>` : ''}
         </div>
-        <p style="font-size:12px;line-height:1.55;color:var(--text);font-style:italic;">${formatMarkdown(oracleText)}</p>
+        <p style="font-size:12px;line-height:1.55;color:var(--text);font-style:italic;">${appState.readingStatus === 'loading' ? oracleWaitingMarkup() : formatMarkdown(oracleText)}</p>
       </div>
 
       <!-- Tea Note -->
@@ -1803,6 +1998,7 @@ function renderActiveReadingTab() {
 
 // --- UTILITIES & NAVIGATION ---
 function resetToSetup() {
+  cancelOracleReading();
   playSound('tap');
   document.getElementById('stage-draw')?.classList.remove('active');
   document.getElementById('stage-reading')?.classList.remove('active');
@@ -1834,7 +2030,7 @@ function copyToClipboard(text) {
 
 function formatMarkdown(str) {
   if (!str) return '';
-  return str
+  return escapeHTML(str)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>');
 }
