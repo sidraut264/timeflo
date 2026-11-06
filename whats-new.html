@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>What's New – Timeflo Arcade</title>
+  <meta name="description" content="See the latest games added to Timeflo Arcade. Fresh drops including Territory.IO, Shadow Fight: Eclipse of the Demon, and The Trolley Problem.">
+  <meta property="og:title" content="What's New – Timeflo Arcade 🎮">
+  <meta property="og:description" content="3 new games just dropped! Territory.IO, Shadow Fight: Eclipse of the Demon, and The Existential Trolley Problem. Play free, no download.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:       #ffd700;
+      --gold-dark:  #b8860b;
+      --pink:       #ff2d78;
+      --cyan:       #00d4ff;
+      --green:      #39ff14;
+      --purple:     #bc5aff;
+      --bg-deep:    #05000d;
+      --bg-card:    rgba(255,255,255,0.04);
+      --bg-card-h:  rgba(255,255,255,0.08);
+      --border:     rgba(255,255,255,0.08);
+      --border-h:   rgba(255,255,255,0.18);
+      --text:       #f0f0f0;
+      --text-muted: rgba(240,240,240,0.5);
+    }
+
+    html { height: 100%; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ─── Background ─── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 0%,   rgba(188,90,255,.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%,  rgba(255,45,120,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 50% 50%,   rgba(0,212,255,.06) 0%, transparent 70%);
+    }
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* Floating particles */
+    .particle {
+      position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+      animation: floatUp linear infinite;
+      opacity: 0;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    /* ─── Header ─── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+      height: 64px;
+      background: rgba(5,0,13,.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-decoration: none;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
+    .arcade-link {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 18px;
+      border-radius: 40px;
+      border: 1px solid var(--gold-dark);
+      background: rgba(255,215,0,.07);
+      color: var(--gold);
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-decoration: none;
+      transition: all .25s;
+    }
+    .arcade-link:hover {
+      background: rgba(255,215,0,.18);
+      border-color: var(--gold);
+      box-shadow: 0 0 16px rgba(255,215,0,.3);
+    }
+
+    /* ─── Main ─── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 24px 100px;
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(188,90,255,.35);
+      background: rgba(188,90,255,.1);
+      color: var(--purple);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--pink);
+      box-shadow: 0 0 8px var(--pink);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.2;} }
+
+    .hero h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(32px, 7vw, 68px);
+      font-weight: 900;
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+    .hero h1 .line1 {
+      display: block;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,.6) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero h1 .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 500px;
+      margin: 0 auto 32px;
+      line-height: 1.65;
+    }
+
+    .hero-date {
+      display: inline-block;
+      padding: 6px 20px;
+      border-radius: 20px;
+      background: rgba(255,215,0,.07);
+      border: 1px solid rgba(255,215,0,.2);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+    }
+
+    /* ─── Share Bar ─── */
+    .share-bar {
+      display: flex; align-items: center; gap: 10px;
+      justify-content: center;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .share-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+    .share-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 18px;
+      border-radius: 32px;
+      border: 1px solid var(--border-h);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .22s;
+    }
+    .share-btn:hover {
+      background: rgba(255,255,255,.1);
+      border-color: rgba(255,255,255,.3);
+      transform: translateY(-2px);
+    }
+    .share-btn.copied {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* ─── Drop Section ─── */
+    .drop-section {
+      margin-bottom: 20px;
+    }
+
+    .drop-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 24px;
+    }
+    .drop-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--pink), transparent);
+      opacity: .4;
+    }
+    .drop-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--pink);
+      text-shadow: 0 0 10px var(--pink);
+      white-space: nowrap;
+    }
+
+    /* ─── Game Card ─── */
+    .new-game-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 24px;
+      padding: 28px 32px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      text-decoration: none;
+      color: var(--text);
+      position: relative;
+      overflow: hidden;
+      transition: transform .22s, border-color .22s, background .22s, box-shadow .22s;
+      margin-bottom: 16px;
+    }
+    .new-game-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 50%, var(--card-glow, rgba(255,45,120,.12)), transparent 65%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .new-game-card:hover {
+      transform: translateY(-4px) scale(1.005);
+      border-color: var(--card-border, rgba(255,45,120,.5));
+      background: var(--bg-card-h);
+      box-shadow: 0 16px 48px var(--card-shadow, rgba(255,45,120,.2));
+    }
+    .new-game-card:hover::before { opacity: 1; }
+
+    .card-left {
+      position: relative;
+    }
+    .game-emoji {
+      font-size: 56px;
+      line-height: 1;
+      filter: drop-shadow(0 0 16px rgba(255,255,255,.25));
+      display: block;
+      transition: transform .3s;
+    }
+    .new-game-card:hover .game-emoji { transform: scale(1.15) rotate(-5deg); }
+
+    .new-pill {
+      position: absolute;
+      bottom: -6px; right: -10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+      box-shadow: 0 0 12px rgba(255,45,120,.5);
+      animation: newPulse 2s ease-in-out infinite;
+      white-space: nowrap;
+    }
+    @keyframes newPulse {
+      0%,100% { box-shadow: 0 0 8px rgba(255,45,120,.4); }
+      50% { box-shadow: 0 0 20px rgba(255,45,120,.9); }
+    }
+
+    .card-middle {}
+    .game-category-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: rgba(255,255,255,.07);
+      color: var(--tag-color, var(--text-muted));
+      border: 1px solid rgba(255,255,255,.1);
+      margin-bottom: 8px;
+    }
+    .game-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+    .game-description {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 420px;
+    }
+    .game-tags {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .tag {
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 10px;
+      background: rgba(255,255,255,.05);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .card-right {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .play-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 22px;
+      border-radius: 32px;
+      background: linear-gradient(135deg, var(--card-border, var(--pink)), var(--purple));
+      color: #fff;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      box-shadow: 0 4px 18px rgba(0,0,0,.3);
+      transition: transform .22s, box-shadow .22s;
+    }
+    .new-game-card:hover .play-btn {
+      transform: scale(1.05);
+      box-shadow: 0 6px 28px rgba(0,0,0,.4);
+    }
+
+    /* ─── All Games CTA ─── */
+    .cta-section {
+      text-align: center;
+      margin-top: 72px;
+      padding: 48px 32px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,215,0,.12);
+      background: rgba(255,215,0,.03);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 100%, rgba(255,215,0,.06), transparent 60%);
+      pointer-events: none;
+    }
+    .cta-section h2 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(18px, 4vw, 30px);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--gold), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    .cta-section p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 36px;
+      border-radius: 40px;
+      background: linear-gradient(135deg, var(--gold-dark), var(--pink));
+      color: #fff;
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      box-shadow: 0 6px 28px rgba(255,45,120,.35);
+      transition: transform .22s, box-shadow .22s;
+    }
+    .cta-btn:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 10px 36px rgba(255,45,120,.5);
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      header { padding: 0 16px; }
+      .logo { font-size: 15px; letter-spacing: 2px; }
+      main { padding: 36px 16px 80px; }
+
+      .new-game-card {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        gap: 16px;
+      }
+      .card-right { align-items: flex-start; flex-direction: row; }
+      .game-emoji { font-size: 44px; }
+      .cta-section { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg"></div>
+  <div class="bg-grid"></div>
+
+  <header>
+    <a class="logo" href="arcade.html">TIMEFLO</a>
+    <div class="header-right">
+      <a class="arcade-link" href="arcade.html">🕹️ All Games</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-eyebrow"><span class="live-dot"></span> FRESH DROP</div>
+      <h1>
+        <span class="line1">What's New</span>
+        <span class="line2">on Timeflo</span>
+      </h1>
+      <p class="hero-sub">3 brand-new games just landed in the arcade. Free to play, no download, no account needed.</p>
+      <div class="hero-date">📅 November 2026</div>
+
+      <div class="share-bar">
+        <span class="share-label">SHARE</span>
+        <button class="share-btn" id="copyLinkBtn">🔗 Copy Link</button>
+        <a class="share-btn" id="twitterBtn" href="#" target="_blank" rel="noopener">🐦 Twitter / X</a>
+        <a class="share-btn" id="waBtn" href="#" target="_blank" rel="noopener">💬 WhatsApp</a>
+      </div>
+    </div>
+
+    <!-- New Games Drop -->
+    <div class="drop-section">
+      <div class="drop-header">
+        <div class="drop-label">✨ NOVEMBER 2026 DROP — 3 NEW GAMES</div>
+        <div class="drop-line"></div>
+      </div>
+
+      <!-- Territory.IO -->
+      <a class="new-game-card"
+         href="games/territory_io_game.html"
+         style="
+           --card-glow:   rgba(255,45,120,.14);
+           --card-border: #ff2d78;
+           --card-shadow: rgba(255,45,120,.22);
+           --tag-color:   #ff2d78;">
+        <div class="card-left">
+          <span class="game-emoji">🗺️</span>
+          <span class="new-pill">✨ NEW</span>
+        </div>
+        <div class="card-middle">
+          <span class="game-category-tag">Arcade</span>
+          <div class="game-title">Territory.IO</div>
+          <div class="game-description">Capture land, crush rivals. A fast-paced territory-capture arcade game where you expand your domain, cut off enemy zones, and dominate the map before time runs out.</div>
+          <div class="game-tags">
+            <span class="tag">Strategy</span>
+            <span class="tag">Real-time</span>
+            <span class="tag">Competitive</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="play-btn">▶ PLAY NOW</span>
+        </div>
+      </a>
+
+      <!-- Shadow Fight -->
+      <a class="new-game-card"
+         href="games/shadow_fight_2_eclipse_of_the_demon.html"
+         style="
+           --card-glow:   rgba(188,90,255,.14);
+           --card-border: #bc5aff;
+           --card-shadow: rgba(188,90,255,.22);
+           --tag-color:   #bc5aff;">
+        <div class="card-left">
+          <span class="game-emoji">🥷</span>
+          <span class="new-pill">✨ NEW</span>
+        </div>
+        <div class="card-middle">
+          <span class="game-category-tag">Arcade</span>
+          <div class="game-title">Shadow Fight: Eclipse of the Demon</div>
+          <div class="game-description">A dark martial-arts brawler inspired by Shadow Fight 2. Face the demon in a visually stunning eclipse battle, master combos, and survive relentless waves of shadow enemies.</div>
+          <div class="game-tags">
+            <span class="tag">Fighter</span>
+            <span class="tag">Dark Fantasy</span>
+            <span class="tag">Action</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="play-btn">▶ PLAY NOW</span>
+        </div>
+      </a>
+
+      <!-- Trolley Problem -->
+      <a class="new-game-card"
+         href="games/puzzles/the_existential_trolley_problem.html"
+         style="
+           --card-glow:   rgba(0,212,255,.14);
+           --card-border: #00d4ff;
+           --card-shadow: rgba(0,212,255,.22);
+           --tag-color:   #00d4ff;">
+        <div class="card-left">
+          <span class="game-emoji">🚃</span>
+          <span class="new-pill">✨ NEW</span>
+        </div>
+        <div class="card-middle">
+          <span class="game-category-tag">Puzzles</span>
+          <div class="game-title">The Existential Trolley Problem</div>
+          <div class="game-description">An interactive philosophical puzzle game. Navigate increasingly twisted moral dilemmas — from classic runaway trolleys to surreal existential paradoxes — and see where your ethics truly lie.</div>
+          <div class="game-tags">
+            <span class="tag">Philosophy</span>
+            <span class="tag">Interactive</span>
+            <span class="tag">Mind-bending</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="play-btn">▶ PLAY NOW</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <h2>37 Games & Counting</h2>
+      <p>Arcade, Puzzles, Zen, Story, and Board — something for every mood.</p>
+      <a class="cta-btn" href="arcade.html">🎮 Browse All Games</a>
+    </div>
+
+  </main>
+
+  <footer>TIMEFLO ARCADE © 2026 · WHAT'S NEW</footer>
+
+  <script>
+    // Share buttons
+    const pageUrl  = window.location.href;
+    const shareMsg = encodeURIComponent('🎮 3 new games just dropped on Timeflo Arcade! Territory.IO, Shadow Fight: Eclipse of the Demon, and The Existential Trolley Problem — play free: ' + pageUrl);
+
+    document.getElementById('twitterBtn').href =
+      'https://twitter.com/intent/tweet?text=' + shareMsg;
+
+    document.getElementById('waBtn').href =
+      'https://wa.me/?text=' + shareMsg;
+
+    document.getElementById('copyLinkBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(pageUrl).then(() => {
+        const btn = document.getElementById('copyLinkBtn');
+        btn.textContent = '✅ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = '🔗 Copy Link';
+          btn.classList.remove('copied');
+        }, 2200);
+      });
+    });
+
+    // Floating particles
+    const colours = ['#ff2d78','#bc5aff','#00d4ff','#ffd700','#39ff14'];
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 5 + 2;
+      p.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}vw;
+        background:${colours[Math.floor(Math.random()*colours.length)]};
+        animation-duration:${Math.random()*18+10}s;
+        animation-delay:${Math.random()*15}s;
+      `;
+      document.body.appendChild(p);
+    }
+  </script>
+</body>
+</html>
+

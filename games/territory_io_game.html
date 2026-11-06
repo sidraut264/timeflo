@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TERRITOR.IO - Territory Capture Arcade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        /* Allow panning/scrolling inside modals on mobile */
+        .modal-scroll {
+            touch-action: pan-y;
+        }
+        .pointer-auto {
+            touch-action: auto;
+        }
+        @media (max-width: 480px) {
+            #minimapCanvas {
+                width: 112px !important;
+                height: 112px !important;
+            }
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0f19;
+            font-family: 'Inter', sans-serif;
+        }
+        .game-font {
+            font-family: 'Fredoka', sans-serif;
+        }
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        /* Custom Scrollbar & UI Polish */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+        .color-swatch {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .color-swatch:hover {
+            transform: scale(1.15);
+        }
+        .color-swatch.selected {
+            transform: scale(1.22);
+            box-shadow: 0 0 0 3px #fff, 0 0 15px currentColor;
+        }
+        .btn-arcade {
+            transition: all 0.15s ease;
+            box-shadow: 0 6px 0 #1e40af, 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .btn-arcade:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #1e40af, 0 4px 10px rgba(0,0,0,0.4);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes slideInLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .kill-toast {
+            animation: slideInLeft 0.25s ease-out forwards;
+        }
+        .mode-card {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .mode-card.active {
+            border-color: #3b82f6;
+            background: rgba(30, 58, 138, 0.45);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 8px 20px -4px rgba(59, 130, 246, 0.35);
+        }
+    </style>
+</head>
+<body class="relative text-white">
+
+    <!-- MAIN GAME CANVAS -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD OVERLAY -->
+    <div id="hud" class="fixed inset-0 pointer-events-none hidden z-10">
+        
+        <!-- Top Left: Player Stats & Kill Feed -->
+        <div class="absolute top-3 left-3 flex flex-col gap-2 max-w-[48vw] sm:max-w-xs sm:w-64">
+            <!-- Player Score Card -->
+            <div class="glass-panel rounded-2xl p-2.5 sm:p-3.5 flex items-center justify-between pointer-events-auto pointer-auto">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div id="hudPlayerColor" class="w-3 sm:w-4 h-8 sm:h-10 rounded-full bg-blue-500 shadow-lg"></div>
+                    <div>
+                        <div class="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-400 font-bold">Territory</div>
+                        <div id="hudTerritoryPct" class="text-xl sm:text-2xl font-black game-font tracking-wide text-white">0.36%</div>
+                    </div>
+                </div>
+                <div class="text-right border-l border-slate-700/80 pl-2.5 sm:pl-3.5">
+                    <div class="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-400 font-bold">Kills</div>
+                    <div id="hudKills" class="text-lg sm:text-xl font-black game-font text-amber-400">0</div>
+                </div>
+            </div>
+
+            <!-- Active Engine Switcher Pill & Audio Controls -->
+            <div class="flex items-center gap-2 pointer-events-auto pointer-auto">
+                <button id="muteBtn" title="Toggle Audio" class="glass-panel w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800/80 transition shrink-0 cursor-pointer">
+                    <i id="muteIcon" class="fas fa-volume-up"></i>
+                </button>
+                <button id="hudSwitchModeBtn" title="Click to switch Engine Mode live" class="glass-panel px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs text-slate-200 hover:border-blue-400/60 transition flex items-center justify-between w-full cursor-pointer">
+                    <span class="truncate"><i class="fas fa-microchip text-blue-400 mr-1.5"></i><b id="hudEngineLabel">Micro-Grid 360°</b></span>
+                    <span class="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold ml-1 shrink-0">Switch</span>
+                </button>
+            </div>
+
+            <!-- Controls Hint -->
+            <div class="glass-panel px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[10px] sm:text-[11px] text-slate-300 font-medium hidden sm:block">
+                <span id="hudControlHint"><b>Mouse Cursor</b>, <b>Touch Drag</b>, or <b>A/D / Arrows</b> to steer</span>
+            </div>
+
+            <!-- Kill Feed Container -->
+            <div id="killFeed" class="flex flex-col gap-1 sm:gap-1.5 mt-0.5 max-w-[48vw] sm:max-w-none"></div>
+        </div>
+
+        <!-- Top Right: Live Leaderboard -->
+        <div class="absolute top-3 right-3 w-auto max-w-[46vw] sm:w-56 md:w-64 glass-panel rounded-2xl p-2.5 sm:p-3.5 pointer-events-auto pointer-auto">
+            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-700/70">
+                <span class="text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                    <i class="fas fa-crown text-amber-400"></i> <span class="hidden sm:inline">Leaderboard</span><span class="sm:hidden">Top</span>
+                </span>
+                <span id="hudArenaShapeBadge" class="text-[9px] sm:text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-bold truncate max-w-[80px] sm:max-w-none">Circular 360°</span>
+            </div>
+            <div id="leaderboardList" class="flex flex-col gap-1 sm:gap-1.5 text-xs">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <!-- Bottom Right: Circular / Adaptive Minimap -->
+        <div class="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 glass-panel p-2 sm:p-2.5 rounded-2xl pointer-events-auto pointer-auto flex flex-col items-center">
+            <div class="w-full flex justify-between items-center px-1 mb-1">
+                <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Radar</span>
+                <span id="hudCoords" class="text-[9px] sm:text-[10px] font-mono text-slate-400">0, 0</span>
+            </div>
+            <canvas id="minimapCanvas" width="144" height="144" class="rounded-full border-2 border-slate-700/80 bg-slate-950 shadow-inner" style="width:112px;height:112px"></canvas>
+        </div>
+
+        <!-- Center Bottom: Capture Banner Popup -->
+        <div id="captureToast" class="absolute bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-300 opacity-0 translate-y-4">
+            <div class="glass-panel px-4 py-2 sm:px-5 rounded-full border-emerald-500/40 bg-emerald-950/80 text-emerald-300 font-bold text-sm shadow-lg flex items-center gap-2">
+                <i class="fas fa-bolt text-amber-400"></i>
+                <span id="captureToastText">+1.2% Captured!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- START MODAL -->
+    <div id="startModal" class="fixed inset-0 z-30 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto modal-scroll">
+        <div class="glass-panel rounded-3xl max-w-lg w-full p-4 sm:p-5 md:p-7 text-center animate-pop border border-slate-700/80 relative my-auto">
+            <!-- Decorative ambient glow -->
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
+                <i class="fas fa-circle-nodes"></i> Paper.io 2 Circular & Classic Engine
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black game-font tracking-tight bg-gradient-to-r from-white via-blue-100 to-indigo-300 bg-clip-text text-transparent mb-1">
+                TERRITOR.IO
+            </h1>
+            <p class="text-slate-400 text-xs sm:text-sm mb-4">Steer 360° in a circular arena or play classic blocks—compare both capture architectures live!</p>
+
+            <!-- Engine Architecture Selector (Both Options + Classic) -->
+            <div class="mb-4 text-left">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2 ml-1">
+                    Select Territory Capture Engine
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5" id="engineSelector">
+                    <!-- Option A: High-Res Micro-Grid -->
+                    <div data-mode="microgrid" class="mode-card active cursor-pointer rounded-2xl p-3 border border-slate-700/80 bg-slate-900/70 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-black text-blue-400 uppercase">Option A</span>
+                                <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold">Recommended</span>
+                            </div>
+                            <div class="font-bold text-sm text-white mb-1">360° Micro-Grid</div>
+                            <p class="text-[11px] text-slate-400 leading-tight">Circular arena + 360° free steering. Uses a 240×240 high-res circular matrix &amp; BFS flood-fill.</p>
+                        </div>
+                        <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] text-slate-300 font-semibold flex items-center gap-1">
+                            <i class="fas fa-check-circle text-emerald-400"></i> Zero geometry bugs
+                        </div>
+                    </div>
+
+                    <!-- Option B: Pure Vector Polygon -->
+                    <div data-mode="polygon" class="mode-card cursor-pointer rounded-2xl p-3 border border-slate-700/80 bg-slate-900/70 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-black text-purple-400 uppercase">Option B</span>
+                                <span class="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-bold">Pure Vector</span>
+                            </div>
+                            <div class="font-bold text-sm text-white mb-1">360° Vector Poly</div>
+                            <p class="text-[11px] text-slate-400 leading-tight">Circular arena + 360° steering. Stores `[x,y]` vertices, splices loops &amp; runs point-in-polygon math.</p>
+                        </div>
+                        <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] text-slate-300 font-semibold flex items-center gap-1">
+                            <i class="fas fa-bezier-curve text-purple-400"></i> Crisp Bezier curves
+                        </div>
+                    </div>
+
+                    <!-- Option C: Classic 4-Way Grid -->
+                    <div data-mode="classic" class="mode-card cursor-pointer rounded-2xl p-3 border border-slate-700/80 bg-slate-900/70 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-black text-amber-400 uppercase">Option C</span>
+                                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">Paper.io 1</span>
+                            </div>
+                            <div class="font-bold text-sm text-white mb-1">Classic Block Grid</div>
+                            <p class="text-[11px] text-slate-400 leading-tight">90° arcade turns on a 100×100 tile map with 3D block extrusions &amp; classic flood capture.</p>
+                        </div>
+                        <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] text-slate-300 font-semibold flex items-center gap-1">
+                            <i class="fas fa-cubes text-amber-400"></i> Retro 90° tactics
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Name & Wall Behavior Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5 ml-1">Nickname</label>
+                    <div class="relative">
+                        <i class="fas fa-user-astronaut absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input id="playerNameInput" type="text" maxlength="14" placeholder="Enter name..." value="Player 1"
+                            class="w-full bg-slate-900/90 border border-slate-700 focus:border-blue-500 rounded-xl py-2.5 pl-10 pr-3 text-sm text-white font-bold placeholder-slate-500 focus:outline-none transition">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5 ml-1">Circular Wall Rule</label>
+                    <select id="wallRuleSelect" class="w-full bg-slate-900/90 border border-slate-700 focus:border-blue-500 rounded-xl py-2.5 px-3 text-sm text-white font-bold focus:outline-none transition cursor-pointer">
+                        <option value="eliminate">Lethal Laser Ring (Eliminate)</option>
+                        <option value="slide">Smooth Slide Along Circle Edge</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Color Picker -->
+            <div class="mb-5 text-left">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2 ml-1">Choose Your Neon Color</label>
+                <div id="colorPicker" class="grid grid-cols-4 sm:grid-cols-8 gap-2.5 justify-items-center bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+                    <!-- Swatches injected by JS -->
+                </div>
+            </div>
+
+            <!-- Play Button -->
+            <button id="startBtn" class="btn-arcade w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black game-font text-xl py-3.5 rounded-2xl tracking-wide flex items-center justify-center gap-3 cursor-pointer">
+                <span>PLAY NOW</span>
+                <i class="fas fa-play text-sm"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME OVER MODAL -->
+    <div id="gameOverModal" class="fixed inset-0 z-30 hidden items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md modal-scroll overflow-y-auto">
+        <div class="glass-panel rounded-3xl max-w-md w-full p-5 sm:p-6 md:p-8 text-center animate-pop border border-slate-700/80 my-auto">
+            <div id="goBadge" class="w-16 h-16 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">
+                <i id="goIcon" class="fas fa-skull-crossbones"></i>
+            </div>
+
+            <h2 id="goTitle" class="text-3xl sm:text-4xl font-black game-font text-white mb-1">ELIMINATED!</h2>
+            <p id="goReason" class="text-rose-400 font-semibold text-sm mb-6">Your trail was sliced by CyberBot</p>
+
+            <!-- Final Stats Grid -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
+                <div class="bg-slate-900/80 border border-slate-800 p-2.5 sm:p-3.5 rounded-2xl">
+                    <div class="text-[10px] sm:text-[11px] uppercase font-bold text-slate-400 mb-1">Peak Land</div>
+                    <div id="goBestPct" class="text-lg sm:text-xl font-black game-font text-emerald-400">4.20%</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 p-2.5 sm:p-3.5 rounded-2xl">
+                    <div class="text-[10px] sm:text-[11px] uppercase font-bold text-slate-400 mb-1">Eliminations</div>
+                    <div id="goKills" class="text-lg sm:text-xl font-black game-font text-amber-400">3</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 p-2.5 sm:p-3.5 rounded-2xl">
+                    <div class="text-[10px] sm:text-[11px] uppercase font-bold text-slate-400 mb-1">Survived</div>
+                    <div id="goTime" class="text-lg sm:text-xl font-black game-font text-blue-400">1:14</div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="menuBtn" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-4 rounded-2xl transition cursor-pointer">
+                    <i class="fas fa-sliders mr-1"></i> Modes
+                </button>
+                <button id="respawnBtn" class="btn-arcade w-2/3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black game-font text-lg py-4 rounded-2xl tracking-wide flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fas fa-rotate-right"></i> PLAY AGAIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**************************************************************
+         * 1. SOUND SYNTHESIZER (Web Audio API)
+         **************************************************************/
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playCapture(intensity = 20) {
+                if (this.muted || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                const baseFreq = Math.min(620, 280 + intensity * 2.2);
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.55, now + 0.18);
+
+                gain.gain.setValueAtTime(0.16, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+            playKill() {
+                if (this.muted || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [392, 523.25, 659.25];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.055);
+                    gain.gain.setValueAtTime(0.12, now + i * 0.055);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.055 + 0.15);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.055);
+                    osc.stop(now + i * 0.055 + 0.15);
+                });
+            }
+            playDeath() {
+                if (this.muted || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(55, now + 0.4);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.42);
+            }
+        }
+
+        const sfx = new SoundEffects();
+
+        /**************************************************************
+         * 2. PALETTES & SHARED CONSTANTS
+         **************************************************************/
+        const PALETTES = [
+            { name: 'Cyber Blue',   hex: '#3b82f6', dark: '#1d4ed8', trail: 'rgba(96, 165, 250, 0.82)', light: '#93c5fd', rgb: [59, 130, 246] },
+            { name: 'Neon Rose',    hex: '#f43f5e', dark: '#be123c', trail: 'rgba(251, 113, 133, 0.82)', light: '#fda4af', rgb: [244, 63, 94] },
+            { name: 'Emerald Mint', hex: '#10b981', dark: '#047857', trail: 'rgba(52, 211, 153, 0.82)',  light: '#6ee7b7', rgb: [16, 185, 129] },
+            { name: 'Solar Amber',  hex: '#f59e0b', dark: '#b45309', trail: 'rgba(251, 191, 36, 0.82)',  light: '#fcd34d', rgb: [245, 158, 11] },
+            { name: 'Hyper Violet', hex: '#8b5cf6', dark: '#6d28d9', trail: 'rgba(167, 139, 250, 0.82)', light: '#c4b5fd', rgb: [139, 92, 246] },
+            { name: 'Laser Cyan',   hex: '#06b6d4', dark: '#0e7490', trail: 'rgba(34, 211, 238, 0.82)',  light: '#67e8f9', rgb: [6, 182, 212] },
+            { name: 'Hot Magenta',  hex: '#ec4899', dark: '#be185d', trail: 'rgba(244, 114, 182, 0.82)', light: '#f9a8d4', rgb: [236, 72, 153] },
+            { name: 'Acid Lime',    hex: '#84cc16', dark: '#4d7c0f', trail: 'rgba(163, 230, 53, 0.82)',  light: '#bef264', rgb: [132, 204, 22] }
+        ];
+
+        const BOT_NAMES = [
+            'Vortex', 'PixelKing', 'Nova', 'ShadowCut', 'Blaze',
+            'Kitsune', 'ZeroCool', 'Apex', 'Glitch', 'Hyperion',
+            'Nebula', 'Phantom', 'Zephyr', 'Drift'
+        ];
+
+        const BOT_COUNT = 7;
+
+        // Global Mode Selection: 'microgrid' | 'polygon' | 'classic'
+        let currentEngineMode = 'microgrid';
+        let circularWallRule = 'eliminate'; // 'eliminate' | 'slide'
+        let selectedColorIdx = 0;
+
+        // Canvas references
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+
+        let players = [];
+        let humanPlayer = null;
+        let particles = [];
+        let gameActive = false;
+        let lastFrameTime = performance.now();
+
+        // Camera state
+        let camX = 0;
+        let camY = 0;
+
+        // Steering Input State (360° Free-form + Classic 4-way)
+        let mouseScreenX = window.innerWidth / 2;
+        let mouseScreenY = window.innerHeight / 2;
+        let useMouseSteering = false;
+        let pointerDown = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let currentDragAngle = null;
+        const keysPressed = { left: false, right: false };
+
+        /**************************************************************
+         * 3. CIRCULAR ARENA 360° ENGINE (MODES A & B)
+         *    - Arena Center = (0, 0), Radius = ARENA_RADIUS (1560 px)
+         *    - Mode A: High-Res 240x240 Circular Micro-Grid + Offscreen Bitmap
+         *    - Mode B: Pure 2D Vector Polygon Vertices + Point-in-Polygon
+         **************************************************************/
+        const ARENA_RADIUS = 1560;
+        const ARENA_DIAMETER = ARENA_RADIUS * 2;
+        const MGRID_RES = 240; // 240x240 high-res micro-cells across the circle
+        const MCELL_SIZE = ARENA_DIAMETER / MGRID_RES; // 13px per micro-cell
+        const RIDER_SPEED_360 = 265; // Pixels per second
+        const TURN_SPEED_360 = 4.3;  // Max radians per second turning cap
+        const RIDER_RADIUS = 16;
+
+        // Micro-Grid buffers (used in Mode A, and for fast area % gauge)
+        const mTerritory = new Uint8Array(MGRID_RES * MGRID_RES);
+        const mCircleMask = new Uint8Array(MGRID_RES * MGRID_RES);
+        let totalValidCircleCells = 0;
+
+        // Offscreen texture for super-fast 60fps rendering of Mode A High-Res Micro-Grid
+        const offscreenGridCanvas = document.createElement('canvas');
+        offscreenGridCanvas.width = MGRID_RES;
+        offscreenGridCanvas.height = MGRID_RES;
+        const offscreenGridCtx = offscreenGridCanvas.getContext('2d');
+        const offscreenImgData = offscreenGridCtx.createImageData(MGRID_RES, MGRID_RES);
+
+        // Precompute circular mask for the 240x240 micro-grid
+        function initCircularMask() {
+            totalValidCircleCells = 0;
+            const half = MGRID_RES / 2;
+            const rSq = (half - 0.5) * (half - 0.5);
+            for (let my = 0; my < MGRID_RES; my++) {
+                const dy = my + 0.5 - half;
+                for (let mx = 0; mx < MGRID_RES; mx++) {
+                    const dx = mx + 0.5 - half;
+                    const idx = my * MGRID_RES + mx;
+                    if (dx * dx + dy * dy <= rSq) {
+                        mCircleMask[idx] = 1;
+                        totalValidCircleCells++;
+                    } else {
+                        mCircleMask[idx] = 0;
+                    }
+                }
+            }
+        }
+        initCircularMask();
+
+        function worldToMicro(wx, wy) {
+            const mx = Math.floor((wx + ARENA_RADIUS) / MCELL_SIZE);
+            const my = Math.floor((wy + ARENA_RADIUS) / MCELL_SIZE);
+            return {
+                mx: Math.max(0, Math.min(MGRID_RES - 1, mx)),
+                my: Math.max(0, Math.min(MGRID_RES - 1, my))
+            };
+        }
+
+        function setMicroCell(idx, ownerId) {
+            if (!mCircleMask[idx]) return;
+            mTerritory[idx] = ownerId;
+            const pOffset = idx * 4;
+            if (ownerId === 0) {
+                offscreenImgData.data[pOffset + 3] = 0;
+            } else {
+                const rgb = PALETTES[(ownerId - 1) % PALETTES.length].rgb;
+                const player = players[ownerId - 1];
+                const c = player ? player.palette.rgb : rgb;
+                offscreenImgData.data[pOffset] = c[0];
+                offscreenImgData.data[pOffset + 1] = c[1];
+                offscreenImgData.data[pOffset + 2] = c[2];
+                offscreenImgData.data[pOffset + 3] = 242;
+            }
+        }
+
+        function syncOffscreenTexture() {
+            offscreenGridCtx.putImageData(offscreenImgData, 0, 0);
+        }
+
+        /**************************************************************
+         * 4. GEOMETRY HELPERS FOR MODE B (PURE VECTOR POLYGON)
+         **************************************************************/
+        // Ray-casting Point-in-Polygon check
+        function pointInPolygon(px, py, poly) {
+            if (!poly || poly.length < 3) return false;
+            let inside = false;
+            for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+                const xi = poly[i].x, yi = poly[i].y;
+                const xj = poly[j].x, yj = poly[j].y;
+                const intersect = ((yi > py) !== (yj > py)) &&
+                    (px < (xj - xi) * (py - yi) / ((yj - yi) || 1e-7) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        // Point-to-Line-Segment distance squared (for 360° trail cutting)
+        function distToSegmentSq(px, py, x1, y1, x2, y2) {
+            const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+            if (l2 === 0) return (px - x1) * (px - x1) + (py - y1) * (py - y1);
+            let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            const projX = x1 + t * (x2 - x1);
+            const projY = y1 + t * (y2 - y1);
+            return (px - projX) * (px - projX) + (py - projY) * (py - projY);
+        }
+
+        // Signed area of a 2D polygon
+        function getSignedPolygonArea(poly) {
+            let area = 0;
+            for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+                area += (poly[j].x + poly[i].x) * (poly[j].y - poly[i].y);
+            }
+            return area / 2;
+        }
+
+        // Nearest boundary vertex index on a polygon
+        function findClosestPolyIndex(px, py, poly) {
+            let bestIdx = 0;
+            let bestDist = Infinity;
+            for (let i = 0; i < poly.length; i++) {
+                const d = (poly[i].x - px) ** 2 + (poly[i].y - py) ** 2;
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestIdx = i;
+                }
+            }
+            return bestIdx;
+        }
+
+        // Resample a polygon perimeter so vertices remain evenly spaced and smooth
+        function simplifyPolygon(poly, minSpacing = 14) {
+            if (poly.length < 4) return poly;
+            const out = [poly[0]];
+            for (let i = 1; i < poly.length; i++) {
+                const prev = out[out.length - 1];
+                const curr = poly[i];
+                if (Math.hypot(curr.x - prev.x, curr.y - prev.y) >= minSpacing) {
+                    out.push(curr);
+                }
+            }
+            return out.length >= 3 ? out : poly;
+        }
+
+        // Splices a 2D trail polyline into a player's main boundary polygon (Pure Vector Mode B)
+        function spliceTrailIntoPolygon(basePoly, trailPts) {
+            if (!basePoly || basePoly.length < 3 || trailPts.length < 2) return basePoly;
+            const startPt = trailPts[0];
+            const endPt = trailPts[trailPts.length - 1];
+
+            const idxStart = findClosestPolyIndex(startPt.x, startPt.y, basePoly);
+            const idxEnd = findClosestPolyIndex(endPt.x, endPt.y, basePoly);
+
+            if (idxStart === idxEnd) {
+                // Closed loop touching almost the same boundary point: append loop
+                const candidate = [
+                    ...basePoly.slice(0, idxStart + 1),
+                    ...trailPts,
+                    ...basePoly.slice(idxStart + 1)
+                ];
+                return simplifyPolygon(candidate, 14);
+            }
+
+            // Build candidate Polygon 1: forward along basePoly from idxEnd to idxStart, then trail
+            const pathA = [];
+            let curr = idxEnd;
+            let guard = 0;
+            while (curr !== idxStart && guard++ <= basePoly.length) {
+                pathA.push(basePoly[curr]);
+                curr = (curr + 1) % basePoly.length;
+            }
+            pathA.push(basePoly[idxStart]);
+            const poly1 = [...pathA, ...trailPts];
+
+            // Build candidate Polygon 2: backward along basePoly from idxEnd to idxStart, then trail
+            const pathB = [];
+            curr = idxEnd;
+            guard = 0;
+            while (curr !== idxStart && guard++ <= basePoly.length) {
+                pathB.push(basePoly[curr]);
+                curr = (curr - 1 + basePoly.length) % basePoly.length;
+            }
+            pathB.push(basePoly[idxStart]);
+            const poly2 = [...pathB, ...trailPts];
+
+            // Pick the spliced outer boundary with the larger enclosed area
+            const area1 = Math.abs(getSignedPolygonArea(poly1));
+            const area2 = Math.abs(getSignedPolygonArea(poly2));
+            return simplifyPolygon(area1 >= area2 ? poly1 : poly2, 14);
+        }
+
+        /**************************************************************
+         * 5. RIDER CLASS FOR 360° CIRCULAR MODES (A & B)
+         **************************************************************/
+        class CircularRider {
+            constructor(id, name, palette, isBot = true) {
+                this.id = id;
+                this.name = name;
+                this.palette = palette;
+                this.isBot = isBot;
+                this.alive = false;
+                this.kills = 0;
+                this.territoryCount = 0;
+                this.territoryPct = 0;
+                this.peakPct = 0;
+                this.spawnTime = performance.now();
+
+                this.x = 0;
+                this.y = 0;
+                this.angle = 0;
+                this.targetAngle = 0;
+                this.trail = [];       // Array of {x, y} world coordinates
+                this.wasInOwnLand = true;
+
+                // Mode B (Pure Vector Polygon) storage:
+                this.polygon = [];     // Main boundary vertices [{x,y}, ...]
+
+                // AI State
+                this.aiState = 'expand';
+                this.aiTimer = 0;
+                this.aiWanderAngle = 0;
+                this.aiMaxOutDist = 260;
+            }
+
+            spawn() {
+                // Find safe circular spot inside the arena
+                let bestX = 0, bestY = 0, bestScore = -1e9;
+                for (let i = 0; i < 25; i++) {
+                    const r = Math.random() * (ARENA_RADIUS - 360);
+                    const theta = Math.random() * Math.PI * 2;
+                    const cx = Math.cos(theta) * r;
+                    const cy = Math.sin(theta) * r;
+                    let score = 0;
+                    for (const other of players) {
+                        if (other !== this && other.alive) {
+                            const d = Math.hypot(other.x - cx, other.y - cy);
+                            score += Math.min(d, 600);
+                            if (d < 260) score -= 2000;
+                        }
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestX = cx;
+                        bestY = cy;
+                    }
+                }
+
+                this.x = bestX;
+                this.y = bestY;
+                this.angle = Math.random() * Math.PI * 2;
+                this.targetAngle = this.angle;
+                this.trail = [];
+                this.wasInOwnLand = true;
+                this.alive = true;
+                this.kills = 0;
+                this.spawnTime = performance.now();
+                this.aiTimer = 0;
+                this.aiMaxOutDist = 200 + Math.random() * 240;
+
+                const startRadius = 85;
+
+                // Initialize Mode B Vector Polygon (24-vertex smooth circle)
+                this.polygon = [];
+                const numVerts = 24;
+                for (let i = 0; i < numVerts; i++) {
+                    const a = (i / numVerts) * Math.PI * 2;
+                    this.polygon.push({
+                        x: this.x + Math.cos(a) * startRadius,
+                        y: this.y + Math.sin(a) * startRadius
+                    });
+                }
+
+                // Also stamp initial circle onto High-Res Micro-Grid (used by Mode A and area counter)
+                this.stampCircleOnMicroGrid(this.x, this.y, startRadius);
+                syncOffscreenTexture();
+                recalculateAllTerritories();
+            }
+
+            stampCircleOnMicroGrid(wx, wy, radius) {
+                const { mx: cx, my: cy } = worldToMicro(wx, wy);
+                const rCells = Math.ceil(radius / MCELL_SIZE);
+                const rSq = rCells * rCells;
+                for (let dy = -rCells; dy <= rCells; dy++) {
+                    const ny = cy + dy;
+                    if (ny < 0 || ny >= MGRID_RES) continue;
+                    for (let dx = -rCells; dx <= rCells; dx++) {
+                        const nx = cx + dx;
+                        if (nx < 0 || nx >= MGRID_RES) continue;
+                        if (dx * dx + dy * dy <= rSq) {
+                            setMicroCell(ny * MGRID_RES + nx, this.id);
+                        }
+                    }
+                }
+            }
+
+            isPointInOwnTerritory(wx, wy) {
+                if (currentEngineMode === 'polygon') {
+                    return pointInPolygon(wx, wy, this.polygon);
+                } else {
+                    const { mx, my } = worldToMicro(wx, wy);
+                    return mTerritory[my * MGRID_RES + mx] === this.id;
+                }
+            }
+
+            thinkAI(dt) {
+                this.aiTimer -= dt;
+
+                // 1. Urgent Hazard Avoidance: Arena Circular Wall
+                const distFromCenter = Math.hypot(this.x, this.y);
+                if (distFromCenter > ARENA_RADIUS - 170) {
+                    const angleToCenter = Math.atan2(-this.y, -this.x);
+                    this.targetAngle = angleToCenter + (Math.random() - 0.5) * 0.5;
+                    return;
+                }
+
+                // 2. If trail is long, steer back toward home base center/start of trail
+                if (!this.wasInOwnLand && this.trail.length > 16) {
+                    const homePt = this.trail[0] || this.polygon[0] || { x: 0, y: 0 };
+                    this.targetAngle = Math.atan2(homePt.y - this.y, homePt.x - this.x);
+                    return;
+                }
+
+                // 3. Look for nearby vulnerable enemy trails to slice
+                if (this.trail.length < 22) {
+                    for (const other of players) {
+                        if (other !== this && other.alive && other.trail.length > 4) {
+                            const midPt = other.trail[Math.floor(other.trail.length / 2)];
+                            const d = Math.hypot(midPt.x - this.x, midPt.y - this.y);
+                            if (d < 260) {
+                                this.targetAngle = Math.atan2(midPt.y - this.y, midPt.x - this.x);
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // 4. Smooth looping excursion behavior
+                if (this.aiTimer <= 0) {
+                    this.aiTimer = 0.35 + Math.random() * 0.55;
+                    if (this.wasInOwnLand) {
+                        this.aiWanderAngle = this.angle + (Math.random() - 0.5) * 1.4;
+                    } else {
+                        // Curve consistently to form a loop back to territory
+                        this.aiWanderAngle += 0.48;
+                    }
+                    this.targetAngle = this.aiWanderAngle;
+                }
+            }
+
+            update(dt) {
+                if (!this.alive) return;
+
+                if (this.isBot) {
+                    this.thinkAI(dt);
+                } else {
+                    // Human 360° steering: Keyboard A/D or Mouse/Touch Angle
+                    if (keysPressed.left) {
+                        this.targetAngle = this.angle - TURN_SPEED_360 * dt * 1.2;
+                        useMouseSteering = false;
+                    } else if (keysPressed.right) {
+                        this.targetAngle = this.angle + TURN_SPEED_360 * dt * 1.2;
+                        useMouseSteering = false;
+                    } else if (pointerDown && currentDragAngle !== null) {
+                        this.targetAngle = currentDragAngle;
+                    } else if (useMouseSteering) {
+                        const dx = mouseScreenX - canvas.width / 2;
+                        const dy = mouseScreenY - canvas.height / 2;
+                        if (Math.hypot(dx, dy) > 12) {
+                            this.targetAngle = Math.atan2(dy, dx);
+                        }
+                    }
+                }
+
+                // Smoothly rotate current angle toward targetAngle with angular velocity cap
+                let diff = this.targetAngle - this.angle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                const maxTurn = TURN_SPEED_360 * dt;
+                if (Math.abs(diff) <= maxTurn) {
+                    this.angle = this.targetAngle;
+                } else {
+                    this.angle += Math.sign(diff) * maxTurn;
+                }
+
+                // Advance position smoothly
+                this.x += Math.cos(this.angle) * RIDER_SPEED_360 * dt;
+                this.y += Math.sin(this.angle) * RIDER_SPEED_360 * dt;
+
+                // Check Circular Arena Boundary
+                const distCenter = Math.hypot(this.x, this.y);
+                if (distCenter >= ARENA_RADIUS - RIDER_RADIUS) {
+                    if (circularWallRule === 'eliminate') {
+                        eliminateRider(this, null, 'hit the circular laser boundary');
+                        return;
+                    } else {
+                        // Smoothly slide along the circular perimeter
+                        const wallAngle = Math.atan2(this.y, this.x);
+                        this.x = Math.cos(wallAngle) * (ARENA_RADIUS - RIDER_RADIUS - 1);
+                        this.y = Math.sin(wallAngle) * (ARENA_RADIUS - RIDER_RADIUS - 1);
+                        // Align angle tangentially
+                        const tangent1 = wallAngle + Math.PI / 2;
+                        const tangent2 = wallAngle - Math.PI / 2;
+                        const d1 = Math.cos(this.angle - tangent1);
+                        this.angle = d1 >= 0 ? tangent1 : tangent2;
+                        this.targetAngle = this.angle;
+                    }
+                }
+
+                // Check Trail Collisions (Point-to-Segment against all trails)
+                const hitRadiusSq = (RIDER_RADIUS * 1.15) ** 2;
+                for (const other of players) {
+                    if (!other.alive || other.trail.length < 2) continue;
+
+                    // Self-collision grace zone: ignore newest 14 points of own trail
+                    const maxIdx = (other === this) ? other.trail.length - 15 : other.trail.length - 1;
+                    for (let i = 0; i < maxIdx; i++) {
+                        const p1 = other.trail[i];
+                        const p2 = other.trail[i + 1];
+                        const dSq = distToSegmentSq(this.x, this.y, p1.x, p1.y, p2.x, p2.y);
+                        if (dSq <= hitRadiusSq) {
+                            if (other === this) {
+                                eliminateRider(this, null, 'sliced their own trail');
+                                return;
+                            } else {
+                                eliminateRider(other, this, `trail sliced by ${this.name}`);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Check Head-to-Head Collision
+                for (const other of players) {
+                    if (other !== this && other.alive) {
+                        const d = Math.hypot(other.x - this.x, other.y - this.y);
+                        if (d < RIDER_RADIUS * 1.8) {
+                            const mySafe = this.isPointInOwnTerritory(this.x, this.y);
+                            const otherSafe = other.isPointInOwnTerritory(other.x, other.y);
+                            if (mySafe && !otherSafe) {
+                                eliminateRider(other, this, `collided with ${this.name}`);
+                            } else if (otherSafe && !mySafe) {
+                                eliminateRider(this, other, `collided with ${other.name}`);
+                                return;
+                            } else {
+                                eliminateRider(other, this, `clashed head-on with ${this.name}`);
+                                eliminateRider(this, other, `clashed head-on with ${other.name}`);
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // Check Territory & Loop Capture
+                const inOwn = this.isPointInOwnTerritory(this.x, this.y);
+                if (inOwn) {
+                    if (!this.wasInOwnLand && this.trail.length >= 3) {
+                        this.trail.push({ x: this.x, y: this.y });
+                        captureCircularLoop(this);
+                    }
+                    this.trail = [];
+                    this.wasInOwnLand = true;
+                } else {
+                    if (this.wasInOwnLand) {
+                        this.wasInOwnLand = false;
+                        this.trail = [{
+                            x: this.x - Math.cos(this.angle) * 10,
+                            y: this.y - Math.sin(this.angle) * 10
+                        }];
+                    }
+                    const lastPt = this.trail[this.trail.length - 1];
+                    if (!lastPt || Math.hypot(this.x - lastPt.x, this.y - lastPt.y) >= 12) {
+                        this.trail.push({ x: this.x, y: this.y });
+                    }
+                }
+            }
+        }
+
+        /**************************************************************
+         * 6. LOOP CAPTURE FOR MODE A (MICRO-GRID BFS) & MODE B (VECTOR POLY)
+         **************************************************************/
+        function captureCircularLoop(rider) {
+            const prevCount = rider.territoryCount;
+
+            // 1. Update Mode B Pure Vector Polygon via boundary splicing
+            if (rider.trail.length >= 2) {
+                rider.polygon = spliceTrailIntoPolygon(rider.polygon, rider.trail);
+            }
+
+            // 2. Stamp thick trail onto High-Res Micro-Grid & Run Flood-Fill
+            const brushRad = 1; // 3x3 micro-cell brush for watertight trail
+            for (let i = 0; i < rider.trail.length - 1; i++) {
+                const p1 = rider.trail[i];
+                const p2 = rider.trail[i + 1];
+                const steps = Math.max(1, Math.ceil(Math.hypot(p2.x - p1.x, p2.y - p1.y) / (MCELL_SIZE * 0.5)));
+                for (let s = 0; s <= steps; s++) {
+                    const ix = p1.x + (p2.x - p1.x) * (s / steps);
+                    const iy = p1.y + (p2.y - p1.y) * (s / steps);
+                    const { mx, my } = worldToMicro(ix, iy);
+                    for (let dy = -brushRad; dy <= brushRad; dy++) {
+                        for (let dx = -brushRad; dx <= brushRad; dx++) {
+                            const nx = mx + dx, ny = my + dy;
+                            if (nx >= 0 && nx < MGRID_RES && ny >= 0 && ny < MGRID_RES) {
+                                setMicroCell(ny * MGRID_RES + nx, rider.id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Flood-Fill (BFS) from padded exterior of the 240x240 micro-grid
+            const W = MGRID_RES + 2;
+            const H = MGRID_RES + 2;
+            const visited = new Uint8Array(W * H);
+            const queue = new Int32Array(W * H);
+            let head = 0, tail = 0;
+
+            visited[0] = 1;
+            queue[tail++] = 0;
+
+            while (head < tail) {
+                const curr = queue[head++];
+                const cx = curr % W;
+                const cy = (curr / W) | 0;
+
+                const neighbors = [curr - W, curr + W, curr - 1, curr + 1];
+                for (let i = 0; i < 4; i++) {
+                    const nPos = neighbors[i];
+                    if (nPos < 0 || nPos >= W * H || visited[nPos]) continue;
+                    const nx = nPos % W;
+                    const ny = (nPos / W) | 0;
+                    if (Math.abs(nx - cx) + Math.abs(ny - cy) !== 1) continue;
+
+                    const mx = nx - 1;
+                    const my = ny - 1;
+                    if (mx >= 0 && mx < MGRID_RES && my >= 0 && my < MGRID_RES) {
+                        if (mTerritory[my * MGRID_RES + mx] === rider.id) continue;
+                    }
+                    visited[nPos] = 1;
+                    queue[tail++] = nPos;
+                }
+            }
+
+            // Fill all enclosed interior micro-cells
+            for (let my = 0; my < MGRID_RES; my++) {
+                const padRow = (my + 1) * W;
+                const mRow = my * MGRID_RES;
+                for (let mx = 0; mx < MGRID_RES; mx++) {
+                    if (!visited[padRow + (mx + 1)]) {
+                        setMicroCell(mRow + mx, rider.id);
+                    }
+                }
+            }
+
+            // If in Mode B (Pure Vector Polygon), also synchronize any newly captured polygon cells
+            if (currentEngineMode === 'polygon') {
+                // Subtract captured region from overlapping rival polygons
+                for (const other of players) {
+                    if (other !== rider && other.alive && other.polygon.length >= 3) {
+                        other.polygon = other.polygon.map(pt => {
+                            if (pointInPolygon(pt.x, pt.y, rider.polygon)) {
+                                // Push rival vertex slightly inward toward rival's center
+                                return {
+                                    x: pt.x * 0.2 + other.x * 0.8,
+                                    y: pt.y * 0.2 + other.y * 0.8
+                                };
+                            }
+                            return pt;
+                        });
+                    }
+                }
+            }
+
+            syncOffscreenTexture();
+            rider.trail = [];
+            recalculateAllTerritories();
+
+            const gained = Math.max(0, rider.territoryCount - prevCount);
+            if (rider === humanPlayer && gained > 0) {
+                sfx.playCapture(Math.min(100, gained / 4));
+                const pctGain = ((gained / totalValidCircleCells) * 100).toFixed(2);
+                showCaptureToast(`+${pctGain}% Territory Captured!`);
+            }
+        }
+
+        /**************************************************************
+         * 7. CLASSIC 4-WAY GRID ENGINE (OPTION C - PAPER.IO 1)
+         **************************************************************/
+        const GRID_SIZE = 100;
+        const CELL_SIZE = 32;
+        const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
+        const MOVE_INTERVAL = 0.095;
+        const DIRS = [
+            { dx: 0, dy: -1 },
+            { dx: 1, dy: 0 },
+            { dx: 0, dy: 1 },
+            { dx: -1, dy: 0 }
+        ];
+
+        let territoryGrid = new Int16Array(TOTAL_CELLS);
+        let trailGrid = new Int16Array(TOTAL_CELLS);
+        let cellScaleAnim = new Float32Array(TOTAL_CELLS);
+
+        function gIdx(x, y) { return y * GRID_SIZE + x; }
+        function inBounds(x, y) { return x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE; }
+        function isOppositeDir(d1, d2) { return (d1 + 2) % 4 === d2; }
+
+        class ClassicGridRider {
+            constructor(id, name, palette, isBot = true) {
+                this.id = id;
+                this.name = name;
+                this.palette = palette;
+                this.isBot = isBot;
+                this.alive = false;
+                this.kills = 0;
+                this.territoryCount = 0;
+                this.territoryPct = 0;
+                this.peakPct = 0;
+                this.spawnTime = performance.now();
+                this.gx = 50;
+                this.gy = 50;
+                this.prevGx = 50;
+                this.prevGy = 50;
+                this.moveTimer = 0;
+                this.dir = 1;
+                this.nextDir = 1;
+                this.queuedDir = null;
+                this.trail = [];
+                this.aiOutsideSteps = 0;
+                this.aiMaxExcursion = 10;
+            }
+
+            spawn() {
+                const cx = 10 + Math.floor(Math.random() * (GRID_SIZE - 20));
+                const cy = 10 + Math.floor(Math.random() * (GRID_SIZE - 20));
+                this.gx = cx;
+                this.gy = cy;
+                this.prevGx = cx;
+                this.prevGy = cy;
+                this.moveTimer = 0;
+                this.dir = Math.floor(Math.random() * 4);
+                this.nextDir = this.dir;
+                this.queuedDir = null;
+                this.trail = [];
+                this.alive = true;
+                this.kills = 0;
+                this.spawnTime = performance.now();
+
+                for (let dy = -2; dy <= 2; dy++) {
+                    for (let dx = -2; dx <= 2; dx++) {
+                        const nx = this.gx + dx, ny = this.gy + dy;
+                        if (inBounds(nx, ny)) {
+                            const idx = gIdx(nx, ny);
+                            territoryGrid[idx] = this.id;
+                            trailGrid[idx] = 0;
+                            cellScaleAnim[idx] = 1.0;
+                        }
+                    }
+                }
+                recalculateAllTerritories();
+            }
+
+            setDirection(newDir) {
+                if (newDir === null || newDir === undefined) return;
+                if (!isOppositeDir(this.dir, newDir) && newDir !== this.dir) {
+                    this.nextDir = newDir;
+                    this.queuedDir = null;
+                } else if (this.nextDir !== this.dir && !isOppositeDir(this.nextDir, newDir)) {
+                    this.queuedDir = newDir;
+                }
+            }
+
+            getInterpolatedWorldPos() {
+                const t = Math.min(1, this.moveTimer / MOVE_INTERVAL);
+                const ix = this.prevGx + (this.gx - this.prevGx) * t;
+                const iy = this.prevGy + (this.gy - this.prevGy) * t;
+                return { x: (ix + 0.5) * CELL_SIZE, y: (iy + 0.5) * CELL_SIZE };
+            }
+
+            thinkAI() {
+                const validDirs = [];
+                for (let d = 0; d < 4; d++) {
+                    if (isOppositeDir(this.dir, d)) continue;
+                    const nx = this.gx + DIRS[d].dx, ny = this.gy + DIRS[d].dy;
+                    if (!inBounds(nx, ny) || trailGrid[gIdx(nx, ny)] === this.id) continue;
+                    validDirs.push(d);
+                }
+                if (validDirs.length === 0) return;
+
+                const onOwnLand = territoryGrid[gIdx(this.gx, this.gy)] === this.id;
+                if (onOwnLand) {
+                    this.aiOutsideSteps = 0;
+                    this.aiMaxExcursion = 6 + Math.floor(Math.random() * 12);
+                } else {
+                    this.aiOutsideSteps++;
+                }
+
+                let bestDir = validDirs[0], bestScore = -1e9;
+                for (const d of validDirs) {
+                    const nx = this.gx + DIRS[d].dx, ny = this.gy + DIRS[d].dy;
+                    const idx = gIdx(nx, ny);
+                    let score = Math.random() * 8 + (d === this.dir ? 5 : 0);
+                    const borderDist = Math.min(nx, ny, GRID_SIZE - 1 - nx, GRID_SIZE - 1 - ny);
+                    if (borderDist < 3) score -= (4 - borderDist) * 25;
+                    if (trailGrid[idx] > 0 && trailGrid[idx] !== this.id) score += 180;
+                    if (!onOwnLand && (this.aiOutsideSteps > this.aiMaxExcursion || this.trail.length > 10)) {
+                        if (territoryGrid[idx] === this.id) score += 200;
+                        else if (this.trail.length > 0) {
+                            score -= (Math.abs(nx - this.trail[0].x) + Math.abs(ny - this.trail[0].y)) * 14;
+                        }
+                    } else if (onOwnLand && territoryGrid[idx] !== this.id) {
+                        score += 25;
+                    }
+                    if (score > bestScore) { bestScore = score; bestDir = d; }
+                }
+                this.nextDir = bestDir;
+            }
+        }
+
+        function stepClassicRider(rider) {
+            if (!rider.alive) return;
+            if (rider.isBot) rider.thinkAI();
+            rider.dir = rider.nextDir;
+            if (rider.queuedDir !== null) {
+                if (!isOppositeDir(rider.dir, rider.queuedDir)) rider.nextDir = rider.queuedDir;
+                rider.queuedDir = null;
+            }
+            rider.prevGx = rider.gx;
+            rider.prevGy = rider.gy;
+            const nx = rider.gx + DIRS[rider.dir].dx;
+            const ny = rider.gy + DIRS[rider.dir].dy;
+
+            if (!inBounds(nx, ny)) {
+                eliminateRider(rider, null, 'crashed into the arena wall');
+                return;
+            }
+            rider.gx = nx;
+            rider.gy = ny;
+            const cellIdx = gIdx(nx, ny);
+
+            const trailOwnerId = trailGrid[cellIdx];
+            if (trailOwnerId !== 0) {
+                const victim = players.find(p => p.id === trailOwnerId);
+                if (victim && victim.alive) {
+                    if (victim === rider) {
+                        eliminateRider(rider, null, 'sliced their own trail');
+                        return;
+                    } else {
+                        eliminateRider(victim, rider, `trail sliced by ${rider.name}`);
+                    }
+                }
+            }
+
+            if (territoryGrid[cellIdx] === rider.id) {
+                if (rider.trail.length > 0) captureClassicGridArea(rider);
+            } else {
+                trailGrid[cellIdx] = rider.id;
+                rider.trail.push({ x: nx, y: ny });
+            }
+        }
+
+        function captureClassicGridArea(rider) {
+            let newlyCaptured = 0;
+            for (const pt of rider.trail) {
+                const idx = gIdx(pt.x, pt.y);
+                if (territoryGrid[idx] !== rider.id) {
+                    territoryGrid[idx] = rider.id;
+                    newlyCaptured++;
+                }
+                trailGrid[idx] = 0;
+                cellScaleAnim[idx] = 0.35;
+            }
+            rider.trail = [];
+
+            const W = GRID_SIZE + 2, H = GRID_SIZE + 2;
+            const visited = new Uint8Array(W * H);
+            const queue = new Int32Array(W * H);
+            let head = 0, tail = 0;
+            visited[0] = 1;
+            queue[tail++] = 0;
+
+            while (head < tail) {
+                const curr = queue[head++];
+                const cx = curr % W, cy = (curr / W) | 0;
+                const neighbors = [curr - W, curr + W, curr - 1, curr + 1];
+                for (let i = 0; i < 4; i++) {
+                    const nPos = neighbors[i];
+                    if (nPos < 0 || nPos >= W * H || visited[nPos]) continue;
+                    const nx = nPos % W, ny = (nPos / W) | 0;
+                    if (Math.abs(nx - cx) + Math.abs(ny - cy) !== 1) continue;
+                    const gx = nx - 1, gy = ny - 1;
+                    if (inBounds(gx, gy) && territoryGrid[gIdx(gx, gy)] === rider.id) continue;
+                    visited[nPos] = 1;
+                    queue[tail++] = nPos;
+                }
+            }
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                const rowOffset = (y + 1) * W, gridRow = y * GRID_SIZE;
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (!visited[rowOffset + (x + 1)]) {
+                        const idx = gridRow + x;
+                        if (territoryGrid[idx] !== rider.id) {
+                            territoryGrid[idx] = rider.id;
+                            cellScaleAnim[idx] = 0.25;
+                            newlyCaptured++;
+                        }
+                    }
+                }
+            }
+            recalculateAllTerritories();
+            if (rider === humanPlayer && newlyCaptured > 0) {
+                sfx.playCapture(newlyCaptured);
+                showCaptureToast(`+${((newlyCaptured / TOTAL_CELLS) * 100).toFixed(2)}% Captured!`);
+            }
+        }
+
+        /**************************************************************
+         * 8. UNIFIED ELIMINATION, SCOREKEEPING & PARTICLES
+         **************************************************************/
+        function spawnBurst(worldX, worldY, colorHex, count = 24) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 60 + Math.random() * 250;
+                particles.push({
+                    x: worldX,
+                    y: worldY,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 5 + Math.random() * 7,
+                    color: colorHex,
+                    life: 1.0,
+                    decay: 1.4 + Math.random() * 1.2
+                });
+            }
+        }
+
+        function updateParticles(dt) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vx *= 0.94;
+                p.vy *= 0.94;
+                p.life -= p.decay * dt;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function eliminateRider(victim, killer, reasonText) {
+            if (!victim.alive) return;
+            victim.alive = false;
+
+            const pos = currentEngineMode === 'classic'
+                ? victim.getInterpolatedWorldPos()
+                : { x: victim.x, y: victim.y };
+            spawnBurst(pos.x, pos.y, victim.palette.hex, 30);
+
+            if (currentEngineMode === 'classic') {
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    if (territoryGrid[i] === victim.id) territoryGrid[i] = 0;
+                    if (trailGrid[i] === victim.id) trailGrid[i] = 0;
+                }
+            } else {
+                for (let i = 0; i < MGRID_RES * MGRID_RES; i++) {
+                    if (mTerritory[i] === victim.id) setMicroCell(i, 0);
+                }
+                syncOffscreenTexture();
+                victim.polygon = [];
+            }
+            victim.trail = [];
+
+            if (killer && killer !== victim) {
+                killer.kills++;
+                addKillFeed(killer.name, killer.palette.light, victim.name, victim.palette.light);
+                if (killer === humanPlayer) sfx.playKill();
+            } else {
+                addKillFeed(victim.name, victim.palette.light, null, null);
+            }
+
+            recalculateAllTerritories();
+
+            if (victim === humanPlayer) {
+                sfx.playDeath();
+                setTimeout(() => showGameOver(reasonText), 550);
+            } else {
+                setTimeout(() => {
+                    if (gameActive) victim.spawn();
+                }, 2000);
+            }
+        }
+
+        function recalculateAllTerritories() {
+            for (const p of players) p.territoryCount = 0;
+
+            if (currentEngineMode === 'classic') {
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    const owner = territoryGrid[i];
+                    if (owner > 0 && players[owner - 1] && players[owner - 1].alive) {
+                        players[owner - 1].territoryCount++;
+                    }
+                }
+                for (const p of players) {
+                    p.territoryPct = (p.territoryCount / TOTAL_CELLS) * 100;
+                    if (p.territoryPct > p.peakPct) p.peakPct = p.territoryPct;
+                }
+            } else if (currentEngineMode === 'polygon') {
+                // Calculate exact geometric polygon area relative to circle area (pi * R^2)
+                const totalCircleArea = Math.PI * ARENA_RADIUS * ARENA_RADIUS;
+                for (const p of players) {
+                    if (p.alive && p.polygon && p.polygon.length >= 3) {
+                        const polyArea = Math.abs(getSignedPolygonArea(p.polygon));
+                        p.territoryPct = Math.min(100, (polyArea / totalCircleArea) * 100);
+                        p.territoryCount = Math.round((p.territoryPct / 100) * totalValidCircleCells);
+                        if (p.territoryPct > p.peakPct) p.peakPct = p.territoryPct;
+                    } else {
+                        p.territoryPct = 0;
+                    }
+                }
+            } else {
+                // Mode A: High-Res Micro-Grid count
+                for (let i = 0; i < MGRID_RES * MGRID_RES; i++) {
+                    const owner = mTerritory[i];
+                    if (owner > 0 && players[owner - 1] && players[owner - 1].alive) {
+                        players[owner - 1].territoryCount++;
+                    }
+                }
+                for (const p of players) {
+                    p.territoryPct = (p.territoryCount / totalValidCircleCells) * 100;
+                    if (p.territoryPct > p.peakPct) p.peakPct = p.territoryPct;
+                }
+            }
+            updateHUD();
+        }
+
+        /**************************************************************
+         * 9. HUD, LEADERBOARD & KILL FEED
+         **************************************************************/
+        function updateHUD() {
+            if (!humanPlayer) return;
+            document.getElementById('hudTerritoryPct').textContent = `${humanPlayer.territoryPct.toFixed(2)}%`;
+            document.getElementById('hudKills').textContent = humanPlayer.kills;
+
+            if (currentEngineMode === 'classic') {
+                document.getElementById('hudCoords').textContent = `${humanPlayer.gx}, ${humanPlayer.gy}`;
+            } else {
+                document.getElementById('hudCoords').textContent = `${Math.round(humanPlayer.x)}, ${Math.round(humanPlayer.y)}`;
+            }
+
+            const sorted = [...players].filter(p => p.alive).sort((a, b) => b.territoryPct - a.territoryPct);
+            const lbContainer = document.getElementById('leaderboardList');
+            lbContainer.innerHTML = '';
+
+            sorted.slice(0, 6).forEach((p, idx) => {
+                const isMe = p === humanPlayer;
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between px-2.5 py-1.5 rounded-xl ${
+                    isMe ? 'bg-blue-500/25 border border-blue-400/40 font-bold' : 'bg-slate-900/50'
+                }`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 truncate pr-2">
+                        <span class="text-slate-400 font-mono w-3">${idx + 1}.</span>
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${p.palette.hex}"></span>
+                        <span class="truncate ${isMe ? 'text-white' : 'text-slate-200'}">${p.name}</span>
+                    </div>
+                    <span class="font-mono text-slate-300 shrink-0">${p.territoryPct.toFixed(1)}%</span>
+                `;
+                lbContainer.appendChild(row);
+            });
+        }
+
+        function addKillFeed(killerName, killerColor, victimName, victimColor) {
+            const feed = document.getElementById('killFeed');
+            const item = document.createElement('div');
+            item.className = 'kill-toast glass-panel px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-md';
+
+            if (victimName) {
+                item.innerHTML = `
+                    <span class="font-bold" style="color:${killerColor}">${killerName}</span>
+                    <i class="fas fa-bolt text-[10px] text-amber-400 mx-0.5"></i>
+                    <span class="font-bold" style="color:${victimColor}">${victimName}</span>
+                `;
+            } else {
+                item.innerHTML = `
+                    <span class="font-bold" style="color:${killerColor}">${killerName}</span>
+                    <span class="text-slate-400">eliminated themselves</span>
+                `;
+            }
+
+            feed.appendChild(item);
+            if (feed.children.length > 4) feed.removeChild(feed.firstChild);
+            setTimeout(() => {
+                item.style.opacity = '0';
+                item.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => item.remove(), 300);
+            }, 3400);
+        }
+
+        let toastTimeout = null;
+        function showCaptureToast(text) {
+            const toast = document.getElementById('captureToast');
+            document.getElementById('captureToastText').textContent = text;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 1400);
+        }
+
+        /**************************************************************
+         * 10. RENDERING ENGINE (CIRCULAR 360° & CLASSIC GRID)
+         **************************************************************/
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Resize minimap for small screens
+            const mmSize = window.innerWidth <= 480 ? 112 : 144;
+            minimapCanvas.width = mmSize;
+            minimapCanvas.height = mmSize;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Helper to draw a smooth closed Catmull-Rom / Quadratic curve through polygon vertices
+        function traceSmoothPolygon(ctxTarget, poly) {
+            if (!poly || poly.length < 3) return;
+            ctxTarget.beginPath();
+            const len = poly.length;
+            const firstMidX = (poly[len - 1].x + poly[0].x) / 2;
+            const firstMidY = (poly[len - 1].y + poly[0].y) / 2;
+            ctxTarget.moveTo(firstMidX, firstMidY);
+
+            for (let i = 0; i < len; i++) {
+                const p1 = poly[i];
+                const p2 = poly[(i + 1) % len];
+                const midX = (p1.x + p2.x) / 2;
+                const midY = (p1.y + p2.y) / 2;
+                ctxTarget.quadraticCurveTo(p1.x, p1.y, midX, midY);
+            }
+            ctxTarget.closePath();
+        }
+
+        function renderCircularArena(dt) {
+            if (humanPlayer && humanPlayer.alive) {
+                camX += (humanPlayer.x - camX) * Math.min(1, dt * 10);
+                camY += (humanPlayer.y - camY) * Math.min(1, dt * 10);
+            }
+
+            ctx.fillStyle = '#060911';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const offsetX = canvas.width / 2 - camX;
+            const offsetY = canvas.height / 2 - camY;
+
+            ctx.save();
+            ctx.translate(offsetX, offsetY);
+
+            // 1. Draw Circular Arena Floor & Clip to Circle
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(0, 0, ARENA_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            ctx.clip();
+
+            // 2. Subtle Polar Concentric Rings & Radial Web Lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+            ctx.lineWidth = 1.5;
+            for (let r = 260; r < ARENA_RADIUS; r += 260) {
+                ctx.beginPath();
+                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.beginPath();
+            for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(a) * ARENA_RADIUS, Math.sin(a) * ARENA_RADIUS);
+            }
+            ctx.stroke();
+
+            // 3. Render Territory based on Active Mode (Mode A vs Mode B)
+            if (currentEngineMode === 'microgrid') {
+                // Mode A: Draw High-Res Micro-Grid with 3D drop-extrusion
+                ctx.save();
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 6;
+                ctx.drawImage(
+                    offscreenGridCanvas,
+                    -ARENA_RADIUS,
+                    -ARENA_RADIUS,
+                    ARENA_DIAMETER,
+                    ARENA_DIAMETER
+                );
+                ctx.restore();
+            } else {
+                // Mode B: Pure Vector Polygon rendering with smooth quadratic curves & 3D depth lip
+                for (const p of players) {
+                    if (!p.alive || !p.polygon || p.polygon.length < 3) continue;
+
+                    // 3D Bottom Extrusion Lip
+                    ctx.save();
+                    ctx.translate(0, 7);
+                    traceSmoothPolygon(ctx, p.polygon);
+                    ctx.fillStyle = p.palette.dark;
+                    ctx.fill();
+                    ctx.restore();
+
+                    // Main Smooth Vector Polygon
+                    ctx.save();
+                    traceSmoothPolygon(ctx, p.polygon);
+                    ctx.fillStyle = p.palette.hex;
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = p.palette.light;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            // 4. Draw Smooth Curved 360° Trails
+            for (const p of players) {
+                if (!p.alive || p.trail.length === 0) continue;
+                ctx.save();
+                ctx.strokeStyle = p.palette.trail;
+                ctx.lineWidth = RIDER_RADIUS * 1.35;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                ctx.beginPath();
+                ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                for (let i = 1; i < p.trail.length; i++) {
+                    ctx.lineTo(p.trail[i].x, p.trail[i].y);
+                }
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            ctx.restore(); // End Circular Clip
+
+            // 5. Outer Circular Laser Boundary Ring
+            ctx.save();
+            ctx.strokeStyle = circularWallRule === 'eliminate' ? '#ef4444' : '#38bdf8';
+            ctx.lineWidth = 8;
+            ctx.shadowColor = circularWallRule === 'eliminate' ? '#ef4444' : '#38bdf8';
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            ctx.arc(0, 0, ARENA_RADIUS, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+
+            // 6. Particles
+            for (const pt of particles) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, pt.life);
+                ctx.fillStyle = pt.color;
+                ctx.translate(pt.x, pt.y);
+                ctx.beginPath();
+                ctx.arc(0, 0, pt.size * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 7. Draw 360° Rotated Riders & Name Tags
+            for (const p of players) {
+                if (!p.alive) continue;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+
+                // Rotated Avatar Body
+                ctx.save();
+                ctx.rotate(p.angle);
+
+                // Drop Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+                ctx.beginPath();
+                ctx.arc(-2, 5, RIDER_RADIUS, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Circular / Rounded Rider Head
+                ctx.fillStyle = p.palette.hex;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, RIDER_RADIUS, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Directional Eyes facing `angle`
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(6, -5.5, 3.6, 0, Math.PI * 2);
+                ctx.arc(6, 5.5, 3.6, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.arc(7.5, -5.5, 1.8, 0, Math.PI * 2);
+                ctx.arc(7.5, 5.5, 1.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Floating Name Tag (unrotated)
+                ctx.font = '700 12px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+                const tw = ctx.measureText(p.name).width + 12;
+                ctx.beginPath();
+                ctx.roundRect(-tw / 2, -RIDER_RADIUS - 24, tw, 18, 6);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(p.name, 0, -RIDER_RADIUS - 11);
+
+                ctx.restore();
+            }
+
+            ctx.restore();
+
+            // 8. Virtual Touch / Drag Joystick Overlay
+            if (pointerDown && gameActive) {
+                const joyRadius = 56;
+                const knobRadius = 20;
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(dragStartX, dragStartY, joyRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                if (currentDragAngle !== null) {
+                    // Clamp knob position to stay within outer ring
+                    const knobOffset = joyRadius - knobRadius - 4;
+                    const knobX = dragStartX + Math.cos(currentDragAngle) * knobOffset;
+                    const knobY = dragStartY + Math.sin(currentDragAngle) * knobOffset;
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.85)';
+                    ctx.beginPath();
+                    ctx.arc(knobX, knobY, knobRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        function renderClassicGridArena(dt) {
+            if (humanPlayer && humanPlayer.alive) {
+                const target = humanPlayer.getInterpolatedWorldPos();
+                camX += (target.x - camX) * Math.min(1, dt * 10);
+                camY += (target.y - camY) * Math.min(1, dt * 10);
+            }
+
+            ctx.fillStyle = '#070b14';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const offsetX = canvas.width / 2 - camX;
+            const offsetY = canvas.height / 2 - camY;
+
+            ctx.save();
+            ctx.translate(offsetX, offsetY);
+
+            const arenaPixelSize = GRID_SIZE * CELL_SIZE;
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, arenaPixelSize, arenaPixelSize);
+
+            const startX = Math.max(0, Math.floor((-offsetX) / CELL_SIZE) - 1);
+            const endX = Math.min(GRID_SIZE - 1, Math.ceil((canvas.width - offsetX) / CELL_SIZE) + 1);
+            const startY = Math.max(0, Math.floor((-offsetY) / CELL_SIZE) - 1);
+            const endY = Math.min(GRID_SIZE - 1, Math.ceil((canvas.height - offsetY) / CELL_SIZE) + 1);
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let x = startX; x <= endX + 1; x++) {
+                ctx.moveTo(x * CELL_SIZE, startY * CELL_SIZE);
+                ctx.lineTo(x * CELL_SIZE, (endY + 1) * CELL_SIZE);
+            }
+            for (let y = startY; y <= endY + 1; y++) {
+                ctx.moveTo(startX * CELL_SIZE, y * CELL_SIZE);
+                ctx.lineTo((endX + 1) * CELL_SIZE, y * CELL_SIZE);
+            }
+            ctx.stroke();
+
+            for (let y = startY; y <= endY; y++) {
+                const rowIdx = y * GRID_SIZE;
+                for (let x = startX; x <= endX; x++) {
+                    const idx = rowIdx + x;
+                    const ownerId = territoryGrid[idx];
+                    if (ownerId > 0) {
+                        const owner = players[ownerId - 1];
+                        if (!owner) continue;
+                        if (cellScaleAnim[idx] < 1.0) cellScaleAnim[idx] = Math.min(1.0, cellScaleAnim[idx] + dt * 4.5);
+                        const px = x * CELL_SIZE, py = y * CELL_SIZE;
+                        if (y === GRID_SIZE - 1 || territoryGrid[idx + GRID_SIZE] !== ownerId) {
+                            ctx.fillStyle = owner.palette.dark;
+                            ctx.fillRect(px, py + CELL_SIZE - 5, CELL_SIZE + 0.5, 9);
+                        }
+                        ctx.fillStyle = owner.palette.hex;
+                        ctx.fillRect(px, py, CELL_SIZE + 0.6, CELL_SIZE + 0.6);
+                    }
+                }
+            }
+
+            for (const p of players) {
+                if (!p.alive || p.trail.length === 0) continue;
+                const headPos = p.getInterpolatedWorldPos();
+                ctx.save();
+                ctx.strokeStyle = p.palette.trail;
+                ctx.lineWidth = CELL_SIZE * 0.56;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo((p.trail[0].x + 0.5) * CELL_SIZE, (p.trail[0].y + 0.5) * CELL_SIZE);
+                for (let i = 1; i < p.trail.length; i++) {
+                    ctx.lineTo((p.trail[i].x + 0.5) * CELL_SIZE, (p.trail[i].y + 0.5) * CELL_SIZE);
+                }
+                ctx.lineTo(headPos.x, headPos.y);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(-2, -2, arenaPixelSize + 4, arenaPixelSize + 4);
+
+            for (const p of players) {
+                if (!p.alive) continue;
+                const pos = p.getInterpolatedWorldPos();
+                ctx.save();
+                ctx.translate(pos.x, pos.y);
+                ctx.fillStyle = p.palette.hex;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.roundRect(-CELL_SIZE * 0.46, -CELL_SIZE * 0.46, CELL_SIZE * 0.92, CELL_SIZE * 0.92, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.font = '700 12px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(p.name, 0, -CELL_SIZE * 0.8);
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        function renderMinimap() {
+            const mw = minimapCanvas.width;
+            const mh = minimapCanvas.height;
+            minimapCtx.clearRect(0, 0, mw, mh);
+            minimapCtx.fillStyle = '#090d16';
+            minimapCtx.fillRect(0, 0, mw, mh);
+
+            if (currentEngineMode === 'classic') {
+                minimapCanvas.classList.remove('rounded-full');
+                minimapCanvas.classList.add('rounded-xl');
+                const scale = mw / GRID_SIZE;
+                for (let y = 0; y < GRID_SIZE; y += 2) {
+                    const row = y * GRID_SIZE;
+                    for (let x = 0; x < GRID_SIZE; x += 2) {
+                        const ownerId = territoryGrid[row + x];
+                        if (ownerId > 0 && players[ownerId - 1]) {
+                            minimapCtx.fillStyle = players[ownerId - 1].palette.hex;
+                            minimapCtx.fillRect(x * scale, y * scale, scale * 2.1, scale * 2.1);
+                        }
+                    }
+                }
+                for (const p of players) {
+                    if (!p.alive) continue;
+                    minimapCtx.fillStyle = p === humanPlayer ? '#ffffff' : p.palette.light;
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(p.gx * scale, p.gy * scale, p === humanPlayer ? 4 : 2.5, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
+            } else {
+                minimapCanvas.classList.add('rounded-full');
+                minimapCanvas.classList.remove('rounded-xl');
+
+                // Draw territories onto circular radar
+                minimapCtx.drawImage(offscreenGridCanvas, 0, 0, mw, mh);
+
+                // Draw player radar blips
+                for (const p of players) {
+                    if (!p.alive) continue;
+                    const rx = ((p.x + ARENA_RADIUS) / ARENA_DIAMETER) * mw;
+                    const ry = ((p.y + ARENA_RADIUS) / ARENA_DIAMETER) * mh;
+                    minimapCtx.fillStyle = p === humanPlayer ? '#ffffff' : p.palette.light;
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(rx, ry, p === humanPlayer ? 4.2 : 2.6, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                    if (p === humanPlayer) {
+                        minimapCtx.strokeStyle = '#000';
+                        minimapCtx.lineWidth = 1.5;
+                        minimapCtx.stroke();
+                    }
+                }
+            }
+        }
+
+        /**************************************************************
+         * 11. MAIN 60FPS GAME LOOP
+         **************************************************************/
+        let minimapTimer = 0;
+
+        function gameLoop(now) {
+            const dt = Math.min(0.08, (now - lastFrameTime) / 1000);
+            lastFrameTime = now;
+
+            if (gameActive) {
+                if (currentEngineMode === 'classic') {
+                    for (const p of players) {
+                        if (!p.alive) continue;
+                        p.moveTimer += dt;
+                        if (p.moveTimer >= MOVE_INTERVAL) {
+                            p.moveTimer -= MOVE_INTERVAL;
+                            stepClassicRider(p);
+                        }
+                    }
+                } else {
+                    for (const p of players) {
+                        if (p.alive) p.update(dt);
+                    }
+                }
+                updateParticles(dt);
+
+                minimapTimer += dt;
+                if (minimapTimer > 0.2) {
+                    minimapTimer = 0;
+                    renderMinimap();
+                }
+            }
+
+            if (currentEngineMode === 'classic') {
+                renderClassicGridArena(dt);
+            } else {
+                renderCircularArena(dt);
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        /**************************************************************
+         * 12. INPUT CONTROLS (360° Mouse, Touch Analog & Keyboard)
+         **************************************************************/
+        window.addEventListener('keydown', (e) => {
+            if (!gameActive || !humanPlayer || !humanPlayer.alive) return;
+            if (currentEngineMode === 'classic') {
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': case 'W': e.preventDefault(); humanPlayer.setDirection(0); break;
+                    case 'ArrowRight': case 'd': case 'D': e.preventDefault(); humanPlayer.setDirection(1); break;
+                    case 'ArrowDown': case 's': case 'S': e.preventDefault(); humanPlayer.setDirection(2); break;
+                    case 'ArrowLeft': case 'a': case 'A': e.preventDefault(); humanPlayer.setDirection(3); break;
+                }
+            } else {
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keysPressed.left = true;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keysPressed.right = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keysPressed.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keysPressed.right = false;
+        });
+
+        function handlePointerStart(x, y) {
+            if (!gameActive) return;
+            pointerDown = true;
+            dragStartX = x;
+            dragStartY = y;
+            currentDragAngle = null;
+        }
+
+        function handlePointerMove(x, y) {
+            mouseScreenX = x;
+            mouseScreenY = y;
+            if (!pointerDown) {
+                useMouseSteering = true;
+                return;
+            }
+            if (!gameActive || !humanPlayer || !humanPlayer.alive) return;
+            const dx = x - dragStartX;
+            const dy = y - dragStartY;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > 10) {
+                currentDragAngle = Math.atan2(dy, dx);
+                if (currentEngineMode === 'classic') {
+                    if (Math.abs(dx) > Math.abs(dy)) humanPlayer.setDirection(dx > 0 ? 1 : 3);
+                    else humanPlayer.setDirection(dy > 0 ? 2 : 0);
+                }
+            }
+        }
+
+        function handlePointerEnd() {
+            pointerDown = false;
+            currentDragAngle = null;
+        }
+
+        canvas.addEventListener('mousedown', e => handlePointerStart(e.clientX, e.clientY));
+        window.addEventListener('mousemove', e => handlePointerMove(e.clientX, e.clientY));
+        window.addEventListener('mouseup', handlePointerEnd);
+
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length > 0) handlePointerStart(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+        window.addEventListener('touchmove', e => {
+            if (e.touches.length > 0) handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+        window.addEventListener('touchend', handlePointerEnd);
+
+        /**************************************************************
+         * 13. UI SETUP, MODE SWITCHING & MATCH INITIALIZATION
+         **************************************************************/
+        function initColorPicker() {
+            const container = document.getElementById('colorPicker');
+            container.innerHTML = '';
+            PALETTES.forEach((p, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `color-swatch w-10 h-10 sm:w-9 sm:h-9 rounded-xl cursor-pointer ${idx === selectedColorIdx ? 'selected' : ''}`;
+                btn.style.backgroundColor = p.hex;
+                btn.style.color = p.hex;
+                btn.onclick = () => {
+                    selectedColorIdx = idx;
+                    initColorPicker();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // Engine Mode Card Selector on Start Screen
+        document.querySelectorAll('#engineSelector .mode-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#engineSelector .mode-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                currentEngineMode = card.getAttribute('data-mode');
+            });
+        });
+
+        function updateModeBadges() {
+            const labelMap = {
+                microgrid: 'Option A: Micro-Grid 360°',
+                polygon: 'Option B: Vector Poly 360°',
+                classic: 'Option C: Classic 4-Way'
+            };
+            document.getElementById('hudEngineLabel').textContent = labelMap[currentEngineMode];
+
+            const shapeBadge = document.getElementById('hudArenaShapeBadge');
+            const hint = document.getElementById('hudControlHint');
+            if (currentEngineMode === 'classic') {
+                shapeBadge.textContent = '100×100 Block Grid';
+                hint.innerHTML = '<b>WASD / Arrows</b> or <b>Swipe</b> for 90° turns';
+            } else {
+                shapeBadge.textContent = 'Circular 360° Arena';
+                hint.innerHTML = '<b>Mouse Cursor</b>, <b>Touch Drag</b>, or <b>A/D</b> to steer 360°';
+            }
+        }
+
+        function startNewMatch() {
+            sfx.init();
+            circularWallRule = document.getElementById('wallRuleSelect').value;
+            updateModeBadges();
+
+            particles = [];
+            players = [];
+
+            // Reset grids & offscreen textures
+            territoryGrid.fill(0);
+            trailGrid.fill(0);
+            cellScaleAnim.fill(1.0);
+            mTerritory.fill(0);
+            offscreenImgData.data.fill(0);
+            syncOffscreenTexture();
+
+            const rawName = document.getElementById('playerNameInput').value.trim();
+            const playerName = rawName.length > 0 ? rawName : 'Player 1';
+            const playerPalette = PALETTES[selectedColorIdx];
+
+            const RiderClass = currentEngineMode === 'classic' ? ClassicGridRider : CircularRider;
+
+            humanPlayer = new RiderClass(1, playerName, playerPalette, false);
+            players.push(humanPlayer);
+
+            const availablePalettes = PALETTES.filter((_, i) => i !== selectedColorIdx);
+            const shuffledNames = [...BOT_NAMES].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < BOT_COUNT; i++) {
+                const botPalette = availablePalettes[i % availablePalettes.length];
+                const bot = new RiderClass(i + 2, shuffledNames[i], botPalette, true);
+                players.push(bot);
+            }
+
+            for (const p of players) p.spawn();
+
+            if (currentEngineMode === 'classic') {
+                const pos = humanPlayer.getInterpolatedWorldPos();
+                camX = pos.x;
+                camY = pos.y;
+            } else {
+                camX = humanPlayer.x;
+                camY = humanPlayer.y;
+            }
+
+            document.getElementById('hudPlayerColor').style.backgroundColor = playerPalette.hex;
+            document.getElementById('startModal').classList.add('hidden');
+            document.getElementById('gameOverModal').classList.add('hidden');
+            document.getElementById('gameOverModal').classList.remove('flex');
+            document.getElementById('hud').classList.remove('hidden');
+
+            gameActive = true;
+            renderMinimap();
+        }
+
+        function showGameOver(reasonText) {
+            gameActive = false;
+            const modal = document.getElementById('gameOverModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            document.getElementById('goReason').textContent = reasonText || 'Eliminated!';
+            document.getElementById('goBestPct').textContent = `${humanPlayer.peakPct.toFixed(2)}%`;
+            document.getElementById('goKills').textContent = humanPlayer.kills;
+
+            const elapsedSec = Math.max(1, Math.floor((performance.now() - humanPlayer.spawnTime) / 1000));
+            const mins = Math.floor(elapsedSec / 60);
+            const secs = (elapsedSec % 60).toString().padStart(2, '0');
+            document.getElementById('goTime').textContent = `${mins}:${secs}`;
+        }
+
+        // Live In-Game Engine Mode Switcher Button
+        document.getElementById('hudSwitchModeBtn').addEventListener('click', () => {
+            const order = ['microgrid', 'polygon', 'classic'];
+            const nextIdx = (order.indexOf(currentEngineMode) + 1) % order.length;
+            currentEngineMode = order[nextIdx];
+
+            // Sync start modal cards
+            document.querySelectorAll('#engineSelector .mode-card').forEach(c => {
+                c.classList.toggle('active', c.getAttribute('data-mode') === currentEngineMode);
+            });
+
+            startNewMatch();
+            showCaptureToast(`Switched to ${document.getElementById('hudEngineLabel').textContent}`);
+        });
+
+        document.getElementById('startBtn').addEventListener('click', startNewMatch);
+        document.getElementById('respawnBtn').addEventListener('click', startNewMatch);
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            document.getElementById('gameOverModal').classList.add('hidden');
+            document.getElementById('gameOverModal').classList.remove('flex');
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('startModal').classList.remove('hidden');
+        });
+
+        document.getElementById('muteBtn').addEventListener('click', () => {
+            sfx.muted = !sfx.muted;
+            const icon = document.getElementById('muteIcon');
+            icon.className = sfx.muted ? 'fas fa-volume-mute text-rose-400' : 'fas fa-volume-up';
+        });
+
+        // Start live circular AI demo battle in background on load
+        window.onload = () => {
+            initColorPicker();
+            mTerritory.fill(0);
+            offscreenImgData.data.fill(0);
+            for (let i = 0; i < 6; i++) {
+                const bot = new CircularRider(i + 1, BOT_NAMES[i], PALETTES[i], true);
+                players.push(bot);
+                bot.spawn();
+            }
+            gameActive = true;
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>

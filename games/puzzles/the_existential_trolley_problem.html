@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Trolley Problem // Existential Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            background-color: #09090b;
+            color: #111111;
+            overscroll-behavior: none;
+            margin: 0;
+            padding: 0;
+        }
+        /* Signature flat putty-gray canvas from the reference memes */
+        .meme-canvas-bg {
+            background-color: #d9d9d9;
+        }
+        /* Subtle tram idle vibration */
+        .tram-rumble {
+            animation: tramIdle 0.25s infinite alternate ease-in-out;
+        }
+        @keyframes tramIdle {
+            0% { transform: translate(0px, 0px); }
+            100% { transform: translate(0.5px, 0.8px); }
+        }
+        /* Speech bubble pop animation */
+        .bubble-pop {
+            animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.85) translateY(6px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        /* Slide-up diagnosis card */
+        .sheet-up {
+            animation: sheetSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes sheetSlide {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0%); }
+        }
+        /* Deadpan typography styling matching the screenshots */
+        .meme-copy {
+            letter-spacing: -0.025em;
+            line-height: 1.22;
+            color: #111111;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 9999px; }
+
+        /* ── Mobile-first responsive overrides ──────────────────────────── */
+
+        /* Keep action buttons single-column on very small phones */
+        @media (max-height: 680px) {
+            #actionButtonsContainer { gap: 0.375rem; }
+            #actionButtonsContainer button { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+            #carouselDots { padding-top: 0; padding-bottom: 0; }
+        }
+
+        /* Fluid meme text: clamp between 15px and 22px */
+        .meme-copy {
+            font-size: clamp(15px, 4.5vw, 22px);
+        }
+
+        /* Smooth tap feedback on interactive SVG elements */
+        #leverInteractive, #standingGuyGroup, #trolleyLayer {
+            touch-action: manipulation;
+        }
+
+        /* Bottom safe-area padding for notched/island phones */
+        footer {
+            padding-bottom: max(0.875rem, env(safe-area-inset-bottom));
+        }
+
+        /* Diagnosis sheet: cap height so it never overflows */
+        #diagnosisSheet > div {
+            max-height: 90dvh;
+            overflow-y: auto;
+        }
+
+        /* Dossier + builder modals: proper inset safe area */
+        #dossierModal, #builderModal {
+            padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+        }
+
+        /* Choice button font: scale down on tiny phones */
+        #actionButtonsContainer button {
+            font-size: clamp(11px, 3.2vw, 13px);
+            line-height: 1.35;
+            border-radius: 1rem;
+        }
+
+        /* Swipe-hint fade pulse */
+        @keyframes hintPulse {
+            0%, 100% { opacity: 0.5; }
+            50%       { opacity: 1; }
+        }
+        #canvasHint { animation: hintPulse 2.8s ease-in-out infinite; }
+
+        /* Carousel pill glow when active */
+        #slideCounterPill {
+            letter-spacing: 0.03em;
+        }
+
+        /* Smooth scene scale on very short viewports */
+        @media (max-height: 600px) {
+            #sceneSvg { max-height: 220px !important; }
+            #topTextZone  { padding-top: 2rem; padding-bottom: 0.125rem; }
+            #bottomTextZone { padding-bottom: 1.75rem; }
+        }
+    </style>
+</head>
+<body class="h-[100dvh] w-screen overflow-hidden flex items-center justify-center bg-[#09090b]">
+
+    <!-- MOBILE-FIRST PORTRAIT FRAME -->
+    <div id="appFrame" class="relative w-full max-w-[450px] h-[100dvh] sm:h-[95dvh] sm:rounded-[34px] bg-[#0f0f12] sm:border-[3px] sm:border-zinc-800 shadow-[0_0_90px_rgba(0,0,0,0.95)] flex flex-col justify-between overflow-hidden">
+
+        <!-- 1. MINIMAL SOCIAL-STYLE TOP HEADER -->
+        <header class="px-3.5 py-2 bg-[#0f0f12] border-b border-zinc-800/80 flex items-center justify-between shrink-0 z-30">
+            <div class="flex items-center gap-2">
+                <!-- Little Avatar Icon -->
+                <div onclick="tapGuyThought()" class="w-8 h-8 rounded-full bg-[#d9d9d9] border border-zinc-600 flex items-center justify-center overflow-hidden cursor-pointer active:scale-95 transition shrink-0" title="Tap to overthink">
+                    <svg viewBox="0 0 40 40" class="w-7 h-7 mt-1">
+                        <circle cx="20" cy="12" r="6" fill="#e8c39e"/>
+                        <path d="M14,10 C14,6 26,6 26,10 C26,8 14,8 14,10 Z" fill="#271c15"/>
+                        <path d="M15,13 C15,17 25,17 25,13 C25,16 22,18 20,18 C18,18 15,16 15,13 Z" fill="#271c15"/>
+                        <rect x="12" y="19" width="16" height="16" rx="3" fill="#f5f5f5" stroke="#222" stroke-width="1"/>
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1 flex-wrap">
+                        <span class="font-semibold text-[11px] text-white tracking-tight">existential.trolley</span>
+                        <span class="text-[9px] text-zinc-500">•</span>
+                        <button onclick="openDossierModal()" class="text-[11px] font-medium text-amber-400 active:opacity-70">Diagnosis (<span id="solvedCount">0</span>/10)</button>
+                    </div>
+                    <p id="headerSubcaption" class="text-[10px] text-zinc-500 truncate max-w-[160px] leading-tight mt-0.5">Can we just skip the small talk.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="openBuilderModal()" class="px-2 py-1 rounded-full bg-zinc-800 active:bg-zinc-700 text-zinc-300 text-[10px] font-medium active:scale-95 transition hidden xs:flex items-center gap-0.5 sm:flex">
+                    <span class="hidden sm:inline">+</span> Custom
+                </button>
+                <button onclick="openBuilderModal()" class="p-1.5 rounded-full bg-zinc-800 active:bg-zinc-700 text-zinc-200 text-xs active:scale-95 transition sm:hidden" title="Custom Meme Builder">
+                    ✏️
+                </button>
+                <button onclick="openDossierModal()" class="p-1.5 rounded-full bg-zinc-800 active:bg-zinc-700 text-zinc-200 text-xs active:scale-95 transition" title="Psychological Dossier">
+                    🧠
+                </button>
+            </div>
+        </header>
+
+        <!-- 2. MAIN GRAY-VOID ISOMETRIC MEME CANVAS -->
+        <main id="canvasContainer" class="relative flex-grow w-full meme-canvas-bg overflow-hidden flex flex-col justify-between select-none">
+
+            <!-- Top-Right Carousel Counter Pill (Exact match to 2/10, 3/10 badge) -->
+            <div class="absolute top-3.5 right-3.5 z-20 flex items-center gap-1.5">
+                <button onclick="prevLevel()" class="w-7 h-7 rounded-full bg-black/65 text-white text-xs flex items-center justify-center active:scale-90 transition" title="Previous">‹</button>
+                <div id="slideCounterPill" class="px-3 py-1 rounded-full bg-black/70 text-white text-xs font-medium tracking-wide">
+                    1/10
+                </div>
+                <button onclick="nextLevel()" class="w-7 h-7 rounded-full bg-black/65 text-white text-xs flex items-center justify-center active:scale-90 transition" title="Next">›</button>
+            </div>
+
+            <!-- Lever Spam Counter Badge (Appears on Level 2 or when flipping lever) -->
+            <div id="leverCountBadge" class="hidden absolute top-3.5 left-3.5 z-20 px-2.5 py-1 rounded-full bg-black/75 text-white text-[11px] font-mono">
+                Lever pulls: <span id="leverPullCount">0</span> (Future changed: 0%)
+            </div>
+
+            <!-- TOP FLOATING DEADPAN TEXT -->
+            <div id="topTextZone" class="px-5 pt-9 pb-1 z-10 pointer-events-none">
+                <p id="topMemeText" class="meme-copy text-[19px] sm:text-[21px] font-normal"></p>
+            </div>
+
+            <!-- ISOMETRIC SVG SCENE (400 x 370) -->
+            <div class="relative w-full flex-grow flex items-center justify-center my-auto">
+                <svg id="sceneSvg" viewBox="0 0 400 370" class="w-full h-full max-h-[340px] sm:max-h-[390px] block overflow-visible">
+                    <defs>
+                        <!-- Soft floor drop shadow filter -->
+                        <filter id="floorShadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                            <feOffset dx="-4" dy="5" result="offsetblur"/>
+                            <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.28"/>
+                            </feComponentTransfer>
+                            <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+
+                        <!-- REUSABLE HOSTAGE GUY LYING ON TRACKS (White T-shirt, Blue Jeans, Brown Shoes, Beard) -->
+                        <g id="hostageGuy">
+                            <!-- Drop Shadow -->
+                            <ellipse cx="0" cy="2" rx="18" ry="6" fill="rgba(0,0,0,0.22)" transform="rotate(-38)"/>
+                            <g transform="rotate(-38)">
+                                <!-- Legs / Blue Jeans -->
+                                <path d="M-16,-3 L-2,-2 L-2,1 L-16,1 Z" fill="#2c5e8a" stroke="#111" stroke-width="0.8"/>
+                                <path d="M-16,2 L-2,1 L-2,4 L-16,5 Z" fill="#1d466b" stroke="#111" stroke-width="0.8"/>
+                                <!-- Brown Shoes -->
+                                <ellipse cx="-17" cy="-1.5" rx="2.5" ry="1.6" fill="#6b3410" stroke="#111" stroke-width="0.7"/>
+                                <ellipse cx="-17" cy="3.5" rx="2.5" ry="1.6" fill="#6b3410" stroke="#111" stroke-width="0.7"/>
+                                <!-- White T-Shirt Torso -->
+                                <rect x="-2" y="-4.5" width="13" height="9" rx="2" fill="#f3f4f6" stroke="#111" stroke-width="0.8"/>
+                                <!-- Arms tied at sides -->
+                                <rect x="0" y="-6.2" width="9" height="2.2" rx="1" fill="#e5b890" stroke="#111" stroke-width="0.6"/>
+                                <rect x="0" y="4" width="9" height="2.2" rx="1" fill="#e5b890" stroke="#111" stroke-width="0.6"/>
+                                <!-- Rope across torso -->
+                                <line x1="3" y1="-5.5" x2="3" y2="5.5" stroke="#52525b" stroke-width="1" stroke-dasharray="1.5 1"/>
+                                <line x1="6" y1="-5.5" x2="6" y2="5.5" stroke="#52525b" stroke-width="1" stroke-dasharray="1.5 1"/>
+                                <!-- Head & Beard -->
+                                <circle cx="14.5" cy="0" r="3.6" fill="#e5b890" stroke="#111" stroke-width="0.7"/>
+                                <!-- Beard & Hair -->
+                                <path d="M12.5,-2.5 C14,-3.5 17,-2.5 17,0 C17,2.5 14,3.5 12.5,2.5 C13.5,1.5 13.5,-1.5 12.5,-2.5 Z" fill="#2b1d14"/>
+                            </g>
+                        </g>
+                    </defs>
+
+                    <!-- 1. RAILWAY TRACKS LAYER -->
+                    <g id="tracksLayer"></g>
+
+                    <!-- 2. TIED-DOWN HOSTAGES LAYER -->
+                    <g id="hostagesLayer"></g>
+
+                    <!-- 3. STANDING GUY & FLOOR LEVER LAYER -->
+                    <g id="actorAndLeverLayer"></g>
+
+                    <!-- 4. ISOMETRIC RED & CREAM VINTAGE TROLLEY CAR -->
+                    <g id="trolleyLayer" class="cursor-pointer" onclick="tapTrolley()">
+                        <g id="trolleyCarGroup" transform="translate(82, 118)">
+                            <g id="trolleyRumbleWrap" class="tram-rumble">
+                                <!-- Soft Isometric Ground Shadow -->
+                                <polygon points="-78,-18 28,42 54,24 -52,-36" fill="rgba(0,0,0,0.24)" transform="translate(-4, 16)"/>
+
+                                <!-- Undercarriage Wheels / Bogies -->
+                                <g fill="#18181b" stroke="#09090b" stroke-width="1">
+                                    <ellipse cx="-52" cy="-2" rx="6" ry="3.5" transform="rotate(29 -52 -2)"/>
+                                    <ellipse cx="-32" cy="9" rx="6" ry="3.5" transform="rotate(29 -32 9)"/>
+                                    <ellipse cx="-2" cy="26" rx="6" ry="3.5" transform="rotate(29 -2 26)"/>
+                                    <ellipse cx="16" cy="36" rx="6" ry="3.5" transform="rotate(29 16 36)"/>
+                                </g>
+
+                                <!-- Left Long Side Face (Isometric 29 deg) -->
+                                <polygon points="-72,-52 20,0 20,40 -72,-12" fill="#b91c1c" stroke="#111111" stroke-width="1.3" stroke-linejoin="round"/>
+
+                                <!-- Lower Red Skirt Panel Detail -->
+                                <line x1="-72" y1="-22" x2="20" y2="30" stroke="#fde047" stroke-width="1.2"/>
+
+                                <!-- Cream/Yellow Passenger Windows Along Side -->
+                                <g fill="#27272a" stroke="#fde047" stroke-width="1.4" stroke-linejoin="round">
+                                    <!-- Back Door -->
+                                    <polygon points="-68,-43 -60,-38.5 -60,-17 -68,-21.5" fill="#3f3f46"/>
+                                    <!-- 5 Side Passenger Windows -->
+                                    <polygon points="-56,-36 -45,-30 -45,-17 -56,-23"/>
+                                    <polygon points="-41,-27.5 -30,-21.5 -30,-8.5 -41,-14.5"/>
+                                    <polygon points="-26,-19 -15,-13 -15,0 -26,-6"/>
+                                    <polygon points="-11,-10.5 0,-4.5 0,8.5 -11,2.5"/>
+                                    <!-- Front Boarding Door (Double Fold) -->
+                                    <polygon points="4,-2 15,4 15,26 4,20" fill="#3f3f46"/>
+                                    <line x1="9.5" y1="1" x2="9.5" y2="23" stroke="#fde047" stroke-width="1"/>
+                                </g>
+
+                                <!-- Passengers Silhouettes Inside Windows -->
+                                <g fill="#71717a" opacity="0.65">
+                                    <circle cx="-50" cy="-24" r="2.8"/>
+                                    <circle cx="-35" cy="-16" r="2.8"/>
+                                    <circle cx="-20" cy="-7" r="2.8"/>
+                                    <circle cx="-5" cy="1" r="2.8"/>
+                                </g>
+
+                                <!-- Front Face of the Tram -->
+                                <polygon points="20,0 50,-16 50,24 20,40" fill="#dc2626" stroke="#111111" stroke-width="1.3" stroke-linejoin="round"/>
+
+                                <!-- Front Trim & Number "2006" -->
+                                <line x1="20" y1="30" x2="50" y2="14" stroke="#fde047" stroke-width="1.3"/>
+                                <text x="35" y="23" text-anchor="middle" fill="#fef08a" font-size="5.5" font-weight="bold" transform="skewY(-28)">2006</text>
+
+                                <!-- 3 Front Windshield Windows -->
+                                <g fill="#18181b" stroke="#fde047" stroke-width="1.2" stroke-linejoin="round">
+                                    <polygon points="23,1 30,-3 30,11 23,15"/>
+                                    <polygon points="32,-4 40,-8.5 40,5.5 32,10"/>
+                                    <polygon points="42,-9.5 48,-13 48,1 42,4.5"/>
+                                </g>
+
+                                <!-- Haunted/Deadpan Driver Silhouette in Front Window -->
+                                <circle cx="36" cy="0" r="3" fill="#a1a1aa" opacity="0.6"/>
+
+                                <!-- Glowing Center Headlight -->
+                                <circle cx="35" cy="27" r="3.2" fill="#fef9c3" stroke="#ca8a04" stroke-width="1"/>
+                                <circle cx="25" cy="33" r="1.5" fill="#fca5a5"/>
+                                <circle cx="45" cy="22" r="1.5" fill="#fca5a5"/>
+
+                                <!-- Rounded White/Cream Tram Roof -->
+                                <path d="M -72,-52 L -42,-68 C -40,-69 -37,-69 -34,-68 L 50,-16 L 20,0 Z" fill="#f4f4f5" stroke="#18181b" stroke-width="1.3" stroke-linejoin="round"/>
+                                <!-- Subtle Roof Highlight Ridge -->
+                                <line x1="-55" y1="-55" x2="32" y2="-6" stroke="#ffffff" stroke-width="1.5" opacity="0.8"/>
+                            </g>
+                        </g>
+                    </g>
+
+                    <!-- 5. FLOATING SPEECH BUBBLES / INTERACTIVE OVERLAYS -->
+                    <g id="speechLayer"></g>
+                </svg>
+            </div>
+
+            <!-- BOTTOM FLOATING DEADPAN TEXT -->
+            <div id="bottomTextZone" class="px-5 pt-1 pb-8 z-10 pointer-events-none">
+                <p id="bottomMemeText" class="meme-copy text-[19px] sm:text-[21px] font-normal"></p>
+            </div>
+
+            <!-- Authentic Bottom-Right Mute/Sound Circle Button (Exact match to screenshot) -->
+            <button id="muteBtn" onclick="toggleAudio()" class="absolute bottom-2.5 right-3.5 w-8 h-8 rounded-full bg-black/55 active:bg-black/75 text-white flex items-center justify-center z-20 active:scale-90 transition" title="Toggle Sound">
+                <span id="muteIcon" class="text-sm">🔊</span>
+            </button>
+
+            <!-- Tiny Interactive Hint Pill at Bottom-Left of Canvas -->
+            <div class="absolute bottom-3 left-4 z-20 pointer-events-none">
+                <span id="canvasHint" class="text-[10px] text-zinc-500 font-medium">tap lever · guy · trolley</span>
+            </div>
+        </main>
+
+        <!-- 3. THUMB-ZONE EXISTENTIAL ACTION DECK + INSTAGRAM-STYLE CAPTION BAR -->
+        <footer class="bg-[#0f0f12] border-t border-zinc-800/90 px-3 pt-2 pb-3.5 shrink-0 z-30 space-y-2">
+            <!-- Carousel Pagination Dots -->
+            <div id="carouselDots" class="flex items-center justify-center gap-1.5 py-0.5"></div>
+
+            <!-- Dynamic Action Buttons (Thumb Zone) -->
+            <div id="actionButtonsContainer" class="grid grid-cols-2 gap-2"></div>
+        </footer>
+
+        <!-- =====================================================================
+             4. SLIDE-UP DEADPAN PSYCHOLOGICAL DIAGNOSIS SHEET
+             ===================================================================== -->
+        <div id="diagnosisSheet" class="hidden absolute inset-0 bg-black/75 backdrop-blur-xs z-40 flex flex-col justify-end">
+            <div class="sheet-up bg-[#141418] border-t border-zinc-700 rounded-t-[28px] p-4 pb-5 space-y-3 text-zinc-100 shadow-2xl max-h-[88dvh] overflow-y-auto">
+                <div class="w-10 h-1 bg-zinc-700 rounded-full mx-auto shrink-0"></div>
+
+                <div class="flex items-start justify-between gap-3 shrink-0">
+                    <div class="min-w-0">
+                        <span id="diagCaptionPill" class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 inline-block">
+                            kaanomeg • caption
+                        </span>
+                        <h2 id="diagHeadline" class="text-base font-bold text-white mt-1.5 leading-snug">
+                            Can we just skip the small talk.
+                        </h2>
+                    </div>
+                    <button onclick="replayCurrent()" class="px-3 py-1.5 rounded-full bg-zinc-800 active:bg-zinc-700 text-xs text-zinc-300 font-medium shrink-0 active:scale-95">
+                        ↺ Replay
+                    </button>
+                </div>
+
+                <!-- Deadpan Outcome Description -->
+                <p id="diagBody" class="text-xs text-zinc-300 leading-relaxed bg-zinc-900/90 p-3 rounded-2xl border border-zinc-800"></p>
+
+                <!-- Global Neurotic Poll Split -->
+                <div class="bg-zinc-900/60 p-3 rounded-2xl border border-zinc-800/80 space-y-1.5">
+                    <div class="flex justify-between text-[11px] font-mono text-zinc-400">
+                        <span id="pollLabelA" class="truncate mr-2">78% avoided small talk</span>
+                        <span id="pollLabelB" class="truncate text-right">22% endured small talk</span>
+                    </div>
+                    <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden flex">
+                        <div id="pollBarA" class="bg-zinc-200 h-full transition-all duration-500" style="width: 78%"></div>
+                        <div id="pollBarB" class="bg-zinc-600 h-full transition-all duration-500" style="width: 22%"></div>
+                    </div>
+                </div>
+
+                <button id="nextSlideBtn" onclick="nextLevel()" class="w-full py-3 rounded-2xl bg-[#d9d9d9] active:bg-white text-black font-semibold text-sm tracking-tight active:scale-[0.98] transition flex items-center justify-center gap-2 shrink-0">
+                    <span>Next Slide</span>
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- =====================================================================
+             5. PSYCHOLOGICAL DOSSIER MODAL (END-OF-GAME SUMMARY)
+             ===================================================================== -->
+        <div id="dossierModal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col justify-between p-4 overflow-y-auto text-zinc-100">
+            <div class="space-y-3.5">
+                <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                    <div>
+                        <span class="text-[10px] font-mono uppercase text-zinc-400">CLINICAL EVALUATION</span>
+                        <h2 id="dossierArchetype" class="text-lg font-bold text-white mt-0.5 leading-tight">Socially Exhausted Bystander</h2>
+                    </div>
+                    <button onclick="closeDossierModal()" class="w-9 h-9 rounded-full bg-zinc-800 active:bg-zinc-700 text-zinc-300 text-sm shrink-0">✕</button>
+                </div>
+
+                <!-- Minimalist Gray Share Card Preview -->
+                <div class="meme-canvas-bg text-black p-4 rounded-2xl shadow-inner space-y-2.5">
+                    <p id="dossierMemeQuote" class="text-base font-normal leading-snug tracking-tight">
+                        "There is no trolley. You just stood in a gray room overthinking for ten slides."
+                    </p>
+                    <div class="pt-2 border-t border-black/15 flex items-center justify-between text-[11px] font-mono text-zinc-700 gap-2">
+                        <span class="truncate">LEVER CLACKS: <strong id="dossierLeverTotal">0</strong></span>
+                        <span class="truncate text-right">SMALL TALK AVOIDED: <strong id="dossierAvoidCount">100%</strong></span>
+                    </div>
+                </div>
+
+                <!-- Trait Breakdown -->
+                <div class="space-y-2.5 bg-zinc-900 p-3.5 rounded-2xl border border-zinc-800">
+                    <div>
+                        <div class="flex justify-between text-[11px] font-mono text-zinc-400 mb-1">
+                            <span>SOCIAL AVOIDANCE</span>
+                            <span id="barSocialVal">85%</span>
+                        </div>
+                        <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                            <div id="barSocial" class="bg-zinc-200 h-full" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[11px] font-mono text-zinc-400 mb-1">
+                            <span>NEED TO BE NEEDED</span>
+                            <span id="barSaviorVal">60%</span>
+                        </div>
+                        <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                            <div id="barSavior" class="bg-zinc-200 h-full" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[11px] font-mono text-zinc-400 mb-1">
+                            <span>EXISTENTIAL ACCEPTANCE</span>
+                            <span id="barVoidVal">72%</span>
+                        </div>
+                        <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                            <div id="barVoid" class="bg-zinc-200 h-full" style="width: 72%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide History -->
+                <div class="space-y-1.5">
+                    <span class="text-[10px] font-mono uppercase text-zinc-500">Your Decisions</span>
+                    <div id="dossierLogList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5 pt-3 border-t border-zinc-800 mt-4 sticky bottom-0 bg-black/90 pb-1">
+                <button onclick="resetAllProgress()" class="py-3 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-medium active:scale-95">
+                    Reset Progress
+                </button>
+                <button id="copyDiagnosisBtn" onclick="copyDiagnosis()" class="py-3 rounded-xl bg-[#d9d9d9] text-black text-xs font-semibold active:scale-95">
+                    Copy My Diagnosis
+                </button>
+            </div>
+        </div>
+
+        <!-- =====================================================================
+             6. CUSTOM EXISTENTIAL MEME BUILDER MODAL
+             ===================================================================== -->
+        <div id="builderModal" class="hidden absolute inset-0 bg-black/95 backdrop-blur-md z-50 flex flex-col justify-between p-4 overflow-y-auto text-zinc-100">
+            <div class="space-y-3">
+                <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                    <div>
+                        <span class="text-[10px] font-mono uppercase text-zinc-400">MEME GENERATOR</span>
+                        <h2 class="text-base font-bold text-white leading-tight">Build Existential Trolley Meme</h2>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="randomizeMemeBuilder()" class="px-2.5 py-1 rounded-full bg-zinc-800 text-xs text-zinc-200 active:scale-95">🎲 Random</button>
+                        <button onclick="closeBuilderModal()" class="w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 text-sm active:scale-95">✕</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[11px] text-zinc-400">Top Deadpan Text</label>
+                    <textarea id="buildTopText" rows="2" class="w-full mt-1 px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500">The trolley is running 15 minutes late.</textarea>
+                </div>
+
+                <div>
+                    <label class="text-[11px] text-zinc-400">Bottom Deadpan Text</label>
+                    <textarea id="buildBottomText" rows="2" class="w-full mt-1 px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500">Everyone tied to the tracks is checking their watch and judging you.</textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[11px] text-zinc-400">Track Geometry</label>
+                        <select id="buildTrackType" class="w-full mt-1 px-2.5 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-xs focus:outline-none">
+                            <option value="single">Single Diagonal</option>
+                            <option value="split" selected>Classic Split</option>
+                            <option value="converge">Converging</option>
+                            <option value="none">No Tracks</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-zinc-400">Trolley Car</label>
+                        <select id="buildTrolleyState" class="w-full mt-1 px-2.5 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-xs focus:outline-none">
+                            <option value="present" selected>Red Trolley</option>
+                            <option value="none">No Trolley</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-zinc-400">Floor Lever</label>
+                        <select id="buildLeverState" class="w-full mt-1 px-2.5 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-xs focus:outline-none">
+                            <option value="present" selected>Lever Present</option>
+                            <option value="none">No Lever</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-zinc-400">People Tied Down</label>
+                        <select id="buildHostageCount" class="w-full mt-1 px-2.5 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-xs focus:outline-none">
+                            <option value="0">0 People</option>
+                            <option value="5v1" selected>5 vs 1</option>
+                            <option value="7">7 in a Row</option>
+                            <option value="20">20 (Infinite)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="applyCustomMeme()" class="w-full py-3.5 rounded-2xl bg-[#d9d9d9] text-black font-semibold text-sm active:scale-95 mt-4">
+                Render onto Canvas →
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        /* ============================================================================
+           1. ALL 10 SURREAL & PSYCHOLOGICAL SCENARIOS FROM THE REFERENCE IMAGES
+           ============================================================================ */
+        const SCENARIOS = [
+            {
+                id: 1,
+                caption: "Can we just skip the small talk.",
+                topText: "",
+                bottomText: "you can stop the trolley at any time\nbut doing so would lead\nthese people to thank you\nand you have to make small talk with them",
+                trackType: "single",
+                hasTrolley: true,
+                hasLever: true,
+                hostageLayout: "line7",
+                guyMode: "normal",
+                choices: [
+                    {
+                        label: "Stop the trolley (Endure small talk)",
+                        code: "stop_talk",
+                        primary: true
+                    },
+                    {
+                        label: "Do nothing (Skip the small talk)",
+                        code: "let_roll",
+                        primary: false
+                    }
+                ],
+                pollA: "78% skipped the small talk",
+                pollB: "22% endured the small talk",
+                pctA: 78
+            },
+            {
+                id: 2,
+                caption: "Your existence is meaningless.",
+                topText: "",
+                bottomText: "no one is tied down, no one is in danger.\neverything leads to the same future.\nyou have zero affect on the future.\nyour actions have no consequences,\nyour existence is meaningles.\ndo you pull the lever?",
+                trackType: "converge",
+                hasTrolley: true,
+                hasLever: true,
+                hostageLayout: "none",
+                guyMode: "normal",
+                choices: [
+                    {
+                        label: "Pull the lever anyway",
+                        code: "pull_meaningless",
+                        primary: true
+                    },
+                    {
+                        label: "Don't pull the lever",
+                        code: "dont_pull_meaningless",
+                        primary: false
+                    }
+                ],
+                pollA: "69% pulled it just to hear it clack",
+                pollB: "31% stared into the void",
+                pctA: 69
+            },
+            {
+                id: 3,
+                caption: "Are you the hero?",
+                topText: "you can save everyone,\nbut they will think the trolley stopped on its own.",
+                bottomText: "they don't believe you\neven if you tell them that you are the hero.",
+                trackType: "splitLoop",
+                hasTrolley: true,
+                hasLever: true,
+                hostageLayout: "5v1",
+                guyMode: "normal",
+                choices: [
+                    {
+                        label: "Save them quietly",
+                        code: "save_uncredited",
+                        primary: true
+                    },
+                    {
+                        label: "Save them & insist I'm the hero!",
+                        code: "save_brag",
+                        primary: false
+                    }
+                ],
+                pollA: "54% needed the validation",
+                pollB: "46% accepted zero credit",
+                pctA: 54
+            },
+            {
+                id: 4,
+                caption: "Need to be needed.",
+                topText: "There is no trolley. Everyone is safe.",
+                bottomText: "You are disappointed\nbecause nobody needs you",
+                trackType: "splitLoop",
+                hasTrolley: false,
+                hasLever: false,
+                hostageLayout: "5v1",
+                guyMode: "normal",
+                choices: [
+                    {
+                        label: "Stand here hoping a trolley shows up",
+                        code: "wait_for_trolley",
+                        primary: true
+                    },
+                    {
+                        label: "Untie them (They didn't ask)",
+                        code: "untie_awkward",
+                        primary: false
+                    }
+                ],
+                pollA: "64% secretly wished for a crisis",
+                pollB: "36% awkwardly walked home",
+                pctA: 64
+            },
+            {
+                id: 5,
+                caption: "This is the real problem.",
+                topText: "Trolley problem: nobody is in danger\nDo you jump infront of the moving trolley?",
+                bottomText: "",
+                trackType: "single",
+                hasTrolley: true,
+                hasLever: false,
+                hostageLayout: "none",
+                guyMode: "closerToTrack",
+                choices: [
+                    {
+                        label: "Step onto the tracks (Call of the void)",
+                        code: "jump_infront",
+                        primary: false
+                    },
+                    {
+                        label: "Just stand here & overthink why I thought that",
+                        code: "stand_overthink",
+                        primary: true
+                    }
+                ],
+                pollA: "81% experienced l'appel du vide",
+                pollB: "19% waved politely at the driver",
+                pctA: 81
+            },
+            {
+                id: 6,
+                caption: "Must watch.",
+                topText: "You can only watch.",
+                bottomText: "",
+                trackType: "single",
+                hasTrolley: true,
+                hasLever: false,
+                hostageLayout: "line18",
+                guyMode: "normal",
+                choices: [
+                    {
+                        label: "Watch",
+                        code: "watch_closely",
+                        primary: true
+                    },
+                    {
+                        label: "Try to look away (You still peek)",
+                        code: "watch_peek",
+                        primary: false
+                    }
+                ],
+                pollA: "92% watched the entire thing",
+                pollB: "8% pretended to check their phone",
+                pctA: 92
+            },
+            {
+                id: 7,
+                caption: "I am my problems.",
+                topText: "There is no trolley, no lever,\nand no one to save.\nYou are free to leave.",
+                bottomText: "You would prefer a problem",
+                trackType: "none",
+                hasTrolley: false,
+                hasLever: false,
+                hostageLayout: "none",
+                guyMode: "centerSmall",
+                choices: [
+                    {
+                        label: "Stay in the gray void & invent a problem",
+                        code: "prefer_problem",
+                        primary: true
+                    },
+                    {
+                        label: "Leave (You come right back)",
+                        code: "try_leave",
+                        primary: false
+                    }
+                ],
+                pollA: "88% preferred having a problem",
+                pollB: "12% actually touched grass",
+                pctA: 88
+            },
+            {
+                id: 8,
+                caption: "I live for arguing.",
+                topText: "The trolley stopped years ago,\nbut you still visit the lever to argue your case.",
+                bottomText: "",
+                trackType: "split",
+                hasTrolley: true,
+                hasLever: true,
+                hostageLayout: "none",
+                guyMode: "normal",
+                choices: [
+                    {
+                        label: "Explain why my 2019 decision was right",
+                        code: "argue_case",
+                        primary: true
+                    },
+                    {
+                        label: "Pull the rusty lever to prove a point",
+                        code: "pull_rusty",
+                        primary: false
+                    }
+                ],
+                pollA: "74% are still winning shower arguments from 2019",
+                pollB: "26% finally let it go",
+                pctA: 74
+            },
+            {
+                id: 9,
+                caption: "Philosopher King",
+                topText: "You can stop the trolley any time.\nBut there will never be another\ntrolley problem ever again",
+                bottomText: "",
+                trackType: "split",
+                hasTrolley: true,
+                hasLever: true,
+                hostageLayout: "5v1",
+                guyMode: "normal",
+                choices: [
+                    {
+                        label: "Keep the trolley rolling (Save the meme)",
+                        code: "keep_discourse",
+                        primary: true
+                    },
+                    {
+                        label: "Stop it forever (End all philosophy)",
+                        code: "end_philosophy",
+                        primary: false
+                    }
+                ],
+                pollA: "67% refused to end trolley memes",
+                pollB: "33% ended ethics 101 forever",
+                pctA: 67
+            },
+            {
+                id: 10,
+                caption: "Accept that you are the problem and you'll be happy.",
+                topText: "NO HOSTAGES. NO LEVER. NO TROLLEY",
+                bottomText: "YOU ARE THE PROBLEM",
+                trackType: "none",
+                hasTrolley: false,
+                hasLever: false,
+                hostageLayout: "none",
+                guyMode: "centerLarge",
+                choices: [
+                    {
+                        label: "Accept that I am the problem",
+                        code: "accept_self",
+                        primary: true
+                    },
+                    {
+                        label: "Blame the non-existent trolley",
+                        code: "blame_trolley",
+                        primary: false
+                    }
+                ],
+                pollA: "95% realized they are the problem",
+                pollB: "5% are still looking for a lever",
+                pctA: 95
+            }
+        ];
+
+        /* ============================================================================
+           2. STATE & WEB AUDIO SYNTHESIS (Deadpan Clacks & Tram Rumble)
+           ============================================================================ */
+        let currentIndex = 0;
+        let activeScenario = SCENARIOS[0];
+        let leverFlipped = false;
+        let totalLeverClacks = 0;
+        let levelLeverClacks = 0;
+        let isAnimating = false;
+        let soundEnabled = true;
+        let audioCtx = null;
+        let smallTalkStep = 0;
+        let solvedMap = {};
+
+        const SMALL_TALK_LINES = [
+            "\"Crazy weather we're having lately, huh?\"",
+            "\"Thanks! Hey, so what do you do for work?\"",
+            "\"Working hard or hardly working, am I right?\"",
+            "\"It's not the heat, it's the humidity!\"",
+            "\"Did you take the highway here? Traffic is brutal.\"",
+            "\"We should totally grab coffee sometime and catch up!\""
+        ];
+
+        const UNCREDITED_LINES = [
+            "\"Relax bro, the emergency brakes clearly kicked in on their own.\"",
+            "\"Why are you standing by that fake pole trying to take credit?\"",
+            "\"Okay main character, whatever helps you sleep at night.\""
+        ];
+
+        const GUY_THOUGHTS = [
+            "\"Did I lock the front door?\"",
+            "\"I should have stayed in bed.\"",
+            "\"Why am I always in this gray room.\"",
+            "\"I hope nobody talks to me.\""
+        ];
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (AC) audioCtx = new AC();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('muteIcon').textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) playLeverClack();
+        }
+
+        function playLeverClack() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(leverFlipped ? 290 : 210, now);
+            osc.frequency.exponentialRampToValueAtTime(95, now + 0.065);
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.075);
+        }
+
+        function playTramBell() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            [680, 1020].forEach(freq => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.26);
+            });
+        }
+
+        /* ============================================================================
+           3. ISOMETRIC SCENE RENDERING (Tracks, Bearded Guy, Lever, Hostages)
+           ============================================================================ */
+        // Main Isometric Line Equation: from (-30, 56) to (430, 312) -> slope dy/dx = 256/460 = 0.5565 (~29 deg)
+        function getMainTrackPoint(t) {
+            return {
+                x: -30 + t * 460,
+                y: 56 + t * 256
+            };
+        }
+
+        function renderTracks(type) {
+            const layer = document.getElementById('tracksLayer');
+            if (type === 'none') {
+                layer.innerHTML = '';
+                return;
+            }
+
+            let svg = '';
+            // Main diagonal double rails
+            const mainRails = `
+                <line x1="-30" y1="53" x2="430" y2="309" stroke="#18181b" stroke-width="2.6"/>
+                <line x1="-30" y1="62" x2="430" y2="318" stroke="#18181b" stroke-width="2.6"/>
+            `;
+
+            if (type === 'single') {
+                svg = mainRails;
+            } else if (type === 'converge') {
+                // Slide 2: Branches off at (130, 145) down-left and merges right back at (325, 255)
+                svg = `
+                    ${mainRails}
+                    <!-- Lower converging loop track -->
+                    <polyline points="130,142 130,192 220,240 330,253" fill="none" stroke="#18181b" stroke-width="2.5" stroke-linejoin="round"/>
+                    <polyline points="138,147 138,187 224,233 342,260" fill="none" stroke="#18181b" stroke-width="2.5" stroke-linejoin="round"/>
+                    <!-- Second inner converging branch matching Slide 2's triple-merge look -->
+                    <polyline points="148,152 148,176 230,222 315,245" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linejoin="round"/>
+                `;
+            } else if (type === 'splitLoop') {
+                // Slide 3 & 4: Upper & lower bypass branches that rejoin at bottom-right
+                svg = `
+                    ${mainRails}
+                    <!-- Upper side branch (1 guy) -->
+                    <polyline points="145,150 265,172 308,195 352,265" fill="none" stroke="#18181b" stroke-width="2.3" stroke-linejoin="round"/>
+                    <polyline points="155,156 262,178 302,200 342,260" fill="none" stroke="#18181b" stroke-width="2.3" stroke-linejoin="round"/>
+                    <!-- Lower empty bypass branch -->
+                    <polyline points="132,144 150,218 228,258 348,264" fill="none" stroke="#18181b" stroke-width="2.3" stroke-linejoin="round"/>
+                    <polyline points="140,149 157,213 232,251 335,256" fill="none" stroke="#18181b" stroke-width="2.3" stroke-linejoin="round"/>
+                `;
+            } else if (type === 'split') {
+                // Slide 8 & 9: Classic split track
+                svg = `
+                    ${mainRails}
+                    <polyline points="150,153 275,178 430,264" fill="none" stroke="#18181b" stroke-width="2.4" stroke-linejoin="round"/>
+                    <polyline points="160,159 272,185 430,273" fill="none" stroke="#18181b" stroke-width="2.4" stroke-linejoin="round"/>
+                `;
+            }
+
+            layer.innerHTML = svg;
+        }
+
+        function renderHostages(layout) {
+            const layer = document.getElementById('hostagesLayer');
+            if (!layout || layout === 'none') {
+                layer.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            if (layout === 'line7') {
+                // Slide 1: 7 guys in a neat isometric row
+                for (let i = 0; i < 7; i++) {
+                    const t = 0.56 + i * 0.055;
+                    const pt = getMainTrackPoint(t);
+                    html += `<use href="#hostageGuy" x="${pt.x}" y="${pt.y + 3}" class="hostage-sprite" data-idx="${i}"/>`;
+                }
+            } else if (layout === 'line18') {
+                // Slide 6 ("You can only watch"): 18 guys packed tightly all the way down the track
+                for (let i = 0; i < 18; i++) {
+                    const t = 0.34 + i * 0.036;
+                    const pt = getMainTrackPoint(t);
+                    html += `<use href="#hostageGuy" x="${pt.x}" y="${pt.y + 3}" class="hostage-sprite" data-idx="${i}"/>`;
+                }
+            } else if (layout === '5v1') {
+                // 5 guys on the main track + 1 guy on the upper side branch
+                for (let i = 0; i < 5; i++) {
+                    const t = 0.49 + i * 0.048;
+                    const pt = getMainTrackPoint(t);
+                    html += `<use href="#hostageGuy" x="${pt.x}" y="${pt.y + 3}" class="hostage-sprite" data-idx="${i}"/>`;
+                }
+                // 1 guy on the upper branch
+                html += `<use href="#hostageGuy" x="276" y="182" class="hostage-sprite" data-idx="5"/>`;
+            }
+
+            layer.innerHTML = html;
+        }
+
+        function renderGuyAndLever(sc) {
+            const layer = document.getElementById('actorAndLeverLayer');
+            let guyX = 192, guyY = 112, scale = 1;
+
+            if (sc.guyMode === 'closerToTrack') {
+                guyX = 300; guyY = 195; scale = 1.25;
+            } else if (sc.guyMode === 'centerSmall') {
+                guyX = 200; guyY = 175; scale = 1.35;
+            } else if (sc.guyMode === 'centerLarge') {
+                guyX = 200; guyY = 175; scale = 2.35;
+            }
+
+            const leverAngle = leverFlipped ? 22 : -22;
+
+            let leverHtml = '';
+            if (sc.hasLever) {
+                leverHtml = `
+                    <g id="leverInteractive" onclick="tapLeverOnCanvas()" class="cursor-pointer" transform="translate(${guyX - 12}, ${guyY + 22})">
+                        <!-- Invisible larger touch target for mobile thumb/finger -->
+                        <circle cx="0" cy="-12" r="24" fill="transparent"/>
+                        <!-- Shadow -->
+                        <ellipse cx="-2" cy="2" rx="7" ry="2.5" fill="rgba(0,0,0,0.25)"/>
+                        <!-- Lever Stick + Knob -->
+                        <g id="leverStick" transform="rotate(${leverAngle})">
+                            <line x1="0" y1="0" x2="0" y2="-24" stroke="#111111" stroke-width="2.6" stroke-linecap="round"/>
+                            <circle cx="0" cy="-25" r="3" fill="#111111"/>
+                        </g>
+                        <!-- Floor Base -->
+                        <ellipse cx="0" cy="0" rx="5.2" ry="2.4" fill="#18181b" stroke="#000" stroke-width="0.8"/>
+                    </g>
+                `;
+            }
+
+            // Standing Bearded Guy in White T-Shirt, Blue Jeans & Brown Shoes
+            const guyHtml = `
+                <g id="standingGuyGroup" onclick="tapGuyThought()" class="cursor-pointer transition-transform duration-300" transform="translate(${guyX}, ${guyY}) scale(${scale})">
+                    <!-- Soft Floor Shadow -->
+                    <ellipse cx="-6" cy="24" rx="11" ry="3.5" fill="rgba(0,0,0,0.22)" transform="rotate(-15 -6 24)"/>
+                    <!-- Brown Shoes -->
+                    <ellipse cx="-3.5" cy="23.5" rx="3" ry="1.6" fill="#6b3410" stroke="#111" stroke-width="0.6"/>
+                    <ellipse cx="3.5" cy="24.2" rx="3" ry="1.6" fill="#6b3410" stroke="#111" stroke-width="0.6"/>
+                    <!-- Blue Jeans -->
+                    <path d="M-5.5,2 L-1,2 L-1.5,23 L-5.5,23 Z" fill="#1e4b75" stroke="#111" stroke-width="0.7"/>
+                    <path d="M1,2 L5.5,2 L5,23.5 L1.2,23.5 Z" fill="#285e8f" stroke="#111" stroke-width="0.7"/>
+                    <rect x="-5.5" y="0" width="11" height="4" fill="#1e4b75"/>
+                    <!-- Belt line -->
+                    <line x1="-5.5" y1="1" x2="5.5" y2="1" stroke="#111" stroke-width="1"/>
+                    <!-- Arms -->
+                    <path d="M-6,-15 L-8,-2 L-5.5,-2 L-4,-13 Z" fill="#e5b890" stroke="#111" stroke-width="0.6"/>
+                    <path d="M6,-15 L8,-2 L5.5,-2 L4,-13 Z" fill="#e5b890" stroke="#111" stroke-width="0.6"/>
+                    <!-- White Crewneck T-Shirt -->
+                    <path d="M-6.5,-16 L6.5,-16 L8,-10 L5.5,-9.5 L5,1 L-5,1 L-5.5,-9.5 L-8,-10 Z" fill="#f4f4f5" stroke="#111" stroke-width="0.75" stroke-linejoin="round"/>
+                    <!-- Neck -->
+                    <rect x="-2" y="-19" width="4" height="3.5" fill="#e5b890"/>
+                    <!-- Head -->
+                    <ellipse cx="0" cy="-23.5" rx="4.2" ry="5" fill="#e5b890" stroke="#111" stroke-width="0.7"/>
+                    <!-- Hair & Full Beard (Exact match to screenshot guy) -->
+                    <path d="M-4.2,-25 C-4.2,-29 4.2,-29 4.2,-25 C3,-26.5 -3,-26.5 -4.2,-25 Z" fill="#271c15"/>
+                    <path d="M-4,-22.5 C-4,-18 4,-18 4,-22.5 C3.5,-20.5 2,-19.8 0,-19.8 C-2,-19.8 -3.5,-20.5 -4,-22.5 Z" fill="#271c15"/>
+                    <!-- Tiny Deadpan Eyes -->
+                    <circle cx="-1.5" cy="-24" r="0.55" fill="#111"/>
+                    <circle cx="1.5" cy="-24" r="0.55" fill="#111"/>
+                </g>
+            `;
+
+            layer.innerHTML = leverHtml + guyHtml;
+        }
+
+        function renderSpeechBubble(x, y, text) {
+            const layer = document.getElementById('speechLayer');
+            // Split text into max 2 lines
+            const words = text.split(' ');
+            const mid = Math.ceil(words.length / 2);
+            const line1 = words.slice(0, mid).join(' ');
+            const line2 = words.slice(mid).join(' ');
+
+            layer.innerHTML = `
+                <g class="bubble-pop" transform="translate(${x}, ${y})">
+                    <rect x="-115" y="-42" width="230" height="36" rx="10" fill="#111111" stroke="#ffffff" stroke-width="1"/>
+                    <polygon points="-6,-6 6,-6 0,4" fill="#111111"/>
+                    <text x="0" y="-26" text-anchor="middle" fill="#ffffff" font-size="9.5" font-family="Inter" font-weight="500">${line1}</text>
+                    <text x="0" y="-14" text-anchor="middle" fill="#d4d4d8" font-size="9.5" font-family="Inter">${line2}</text>
+                </g>
+            `;
+        }
+
+        /* ============================================================================
+           4. LOADING SCENARIOS & INTERACTIVE MECHANICS
+           ============================================================================ */
+        function loadScenario(idx, customScenario = null) {
+            isAnimating = false;
+            leverFlipped = false;
+            levelLeverClacks = 0;
+            smallTalkStep = 0;
+
+            document.getElementById('diagnosisSheet').classList.add('hidden');
+            document.getElementById('speechLayer').innerHTML = '';
+
+            if (customScenario) {
+                activeScenario = customScenario;
+            } else {
+                currentIndex = (idx + SCENARIOS.length) % SCENARIOS.length;
+                activeScenario = SCENARIOS[currentIndex];
+            }
+
+            // Update Header & Counter Pill
+            document.getElementById('slideCounterPill').textContent = customScenario ? 'CUSTOM' : `${currentIndex + 1}/10`;
+            document.getElementById('headerSubcaption').textContent = activeScenario.caption;
+
+            // Show/hide Lever Spam Counter on Level 2
+            const badge = document.getElementById('leverCountBadge');
+            if (activeScenario.id === 2) {
+                badge.classList.remove('hidden');
+                document.getElementById('leverPullCount').textContent = '0';
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            // Format Top & Bottom Deadpan Meme Text
+            const topEl = document.getElementById('topMemeText');
+            const botEl = document.getElementById('bottomMemeText');
+            topEl.innerHTML = activeScenario.topText ? activeScenario.topText.replace(/\n/g, '<br>') : '';
+            botEl.innerHTML = activeScenario.bottomText ? activeScenario.bottomText.replace(/\n/g, '<br>') : '';
+
+            // Center text on pure-void slides (Slides 6, 7, 10)
+            const centerAlign = (activeScenario.id === 6 || activeScenario.id === 7 || activeScenario.id === 10);
+            topEl.className = `meme-copy ${centerAlign ? 'text-center text-[20px] sm:text-[24px]' : 'text-left text-[18px] sm:text-[21px]'}`;
+            botEl.className = `meme-copy ${centerAlign ? 'text-center text-[21px] sm:text-[25px]' : 'text-left text-[18px] sm:text-[20px]'}`;
+
+            // Render SVG Layers
+            renderTracks(activeScenario.trackType);
+            renderHostages(activeScenario.hostageLayout);
+            renderGuyAndLever(activeScenario);
+
+            // Position Trolley
+            const trolleyLayer = document.getElementById('trolleyLayer');
+            const trolleyGroup = document.getElementById('trolleyCarGroup');
+            const rumbleWrap = document.getElementById('trolleyRumbleWrap');
+
+            if (activeScenario.hasTrolley) {
+                trolleyLayer.classList.remove('hidden');
+                // Slide 8 trolley is parked and weathered
+                if (activeScenario.id === 8) {
+                    trolleyGroup.setAttribute('transform', 'translate(92, 124)');
+                    rumbleWrap.classList.remove('tram-rumble');
+                } else {
+                    trolleyGroup.setAttribute('transform', 'translate(82, 118)');
+                    rumbleWrap.classList.add('tram-rumble');
+                }
+            } else {
+                trolleyLayer.classList.add('hidden');
+            }
+
+            renderActionButtons();
+            renderCarouselDots();
+        }
+
+        function renderActionButtons() {
+            const container = document.getElementById('actionButtonsContainer');
+            container.innerHTML = activeScenario.choices.map((ch, idx) => {
+                const style = ch.primary
+                    ? 'bg-[#d9d9d9] active:bg-white text-black font-semibold'
+                    : 'bg-zinc-900 active:bg-zinc-800 text-zinc-200 border border-zinc-700 font-medium';
+                return `
+                    <button onclick="handleChoice('${ch.code}')" class="py-3 px-2.5 rounded-2xl text-xs leading-snug transition active:scale-95 ${style}" style="touch-action:manipulation">
+                        ${ch.label}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderCarouselDots() {
+            const dots = document.getElementById('carouselDots');
+            dots.innerHTML = SCENARIOS.map((sc, i) => {
+                const isCurrent = (i === currentIndex && activeScenario.id <= 10);
+                const isSolved = !!solvedMap[sc.id];
+                const cls = isCurrent
+                    ? 'w-5 h-1.5 bg-white rounded-full'
+                    : (isSolved ? 'w-1.5 h-1.5 bg-emerald-400 rounded-full' : 'w-1.5 h-1.5 bg-zinc-700 rounded-full');
+                return `<button onclick="loadScenario(${i})" class="${cls} transition-all" title="Slide ${i + 1}"></button>`;
+            }).join('');
+        }
+
+        // Direct Canvas Interactions
+        function tapLeverOnCanvas() {
+            if (!activeScenario.hasLever) return;
+            leverFlipped = !leverFlipped;
+            totalLeverClacks++;
+            levelLeverClacks++;
+            playLeverClack();
+
+            const stick = document.getElementById('leverStick');
+            if (stick) {
+                stick.setAttribute('transform', `rotate(${leverFlipped ? 22 : -22})`);
+            }
+
+            const badge = document.getElementById('leverCountBadge');
+            badge.classList.remove('hidden');
+            document.getElementById('leverPullCount').textContent = levelLeverClacks;
+
+            if (activeScenario.id === 2 && levelLeverClacks >= 3) {
+                renderSpeechBubble(200, 72, `"You pulled it ${levelLeverClacks} times. The future remains identical."`);
+            } else if (activeScenario.id === 8) {
+                renderSpeechBubble(200, 72, `"*rusty squeak* Nobody is here to hear your point."`);
+            }
+        }
+
+        function tapGuyThought() {
+            playLeverClack();
+            const line = GUY_THOUGHTS[Math.floor(Math.random() * GUY_THOUGHTS.length)];
+            const yPos = activeScenario.guyMode === 'centerLarge' ? 88 : 74;
+            renderSpeechBubble(200, yPos, line);
+        }
+
+        function tapTrolley() {
+            if (!activeScenario.hasTrolley) return;
+            playTramBell();
+            if (activeScenario.id === 8) {
+                renderSpeechBubble(115, 70, `"Out of service since 2019."`);
+            } else {
+                renderSpeechBubble(115, 70, `"*ding ding*"`);
+            }
+        }
+
+        /* ============================================================================
+           5. SCENARIO TWIST RESOLUTIONS & ANIMATIONS
+           ============================================================================ */
+        function animateTrolleyDownTrack(stopEarly, callback) {
+            isAnimating = true;
+            playTramBell();
+            const trolleyGroup = document.getElementById('trolleyCarGroup');
+            let progress = 0;
+            const targetProgress = stopEarly ? 0.22 : 1.15;
+
+            function step() {
+                progress += stopEarly ? 0.012 : 0.024;
+                const dx = 82 + progress * 290;
+                const dy = 118 + progress * 161;
+                trolleyGroup.setAttribute('transform', `translate(${dx}, ${dy})`);
+
+                if (progress < targetProgress) {
+                    requestAnimationFrame(step);
+                } else {
+                    isAnimating = false;
+                    if (callback) callback();
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        function handleChoice(code) {
+            if (isAnimating) return;
+            playLeverClack();
+
+            // SLIDE 1: SKIP THE SMALL TALK TWIST
+            if (code === 'stop_talk') {
+                leverFlipped = true;
+                renderGuyAndLever(activeScenario);
+                document.getElementById('trolleyRumbleWrap').classList.remove('tram-rumble');
+
+                // Interactive Small Talk Trap!
+                const line = SMALL_TALK_LINES[smallTalkStep % SMALL_TALK_LINES.length];
+                smallTalkStep++;
+                renderSpeechBubble(245, 165, line);
+
+                const container = document.getElementById('actionButtonsContainer');
+                container.innerHTML = `
+                    <button onclick="handleChoice('stop_talk')" class="py-3 px-2.5 rounded-2xl text-xs bg-zinc-900 text-zinc-200 border border-zinc-700 font-medium active:scale-95 leading-snug" style="touch-action:manipulation">
+                        "Haha yeah totally..." (${smallTalkStep}/4)
+                    </button>
+                    <button onclick="finishScenario('You saved all 7 people, but you are now trapped in a 45-minute conversation about local humidity and real estate prices.')" class="py-3 px-2.5 rounded-2xl text-xs bg-[#d9d9d9] text-black font-semibold active:scale-95 leading-snug" style="touch-action:manipulation">
+                        Fake a phone call &amp; escape
+                    </button>
+                `;
+                if (smallTalkStep >= 4) {
+                    finishScenario("You politely nodded through 4 rounds of excruciating small talk. One of them just asked for your LinkedIn.");
+                }
+                return;
+            }
+
+            if (code === 'let_roll') {
+                animateTrolleyDownTrack(false, () => {
+                    finishScenario("Complete, uninterrupted silence. Nobody asked you what you do for a living or how your weekend was.");
+                });
+                return;
+            }
+
+            // SLIDE 2: MEANINGLESS CONVERGING TRACKS
+            if (code === 'pull_meaningless' || code === 'dont_pull_meaningless') {
+                if (code === 'pull_meaningless') tapLeverOnCanvas();
+                animateTrolleyDownTrack(false, () => {
+                    finishScenario(
+                        code === 'pull_meaningless'
+                            ? `You pulled the lever (${levelLeverClacks}x). The trolley took the detour and immediately merged back onto the exact same track.`
+                            : "You didn't touch the lever. The trolley glided down the track to the exact same destination anyway."
+                    );
+                });
+                return;
+            }
+
+            // SLIDE 3: UNCREDITED HERO
+            if (code === 'save_brag') {
+                leverFlipped = true;
+                renderGuyAndLever(activeScenario);
+                document.getElementById('trolleyRumbleWrap').classList.remove('tram-rumble');
+                const reply = UNCREDITED_LINES[smallTalkStep % UNCREDITED_LINES.length];
+                smallTalkStep++;
+                renderSpeechBubble(240, 155, reply);
+
+                if (smallTalkStep >= 2) {
+                    setTimeout(() => {
+                        finishScenario("Everyone walked away praising the city's automatic braking sensors while giving you side-eye for standing by a pole.");
+                    }, 900);
+                }
+                return;
+            }
+
+            if (code === 'save_uncredited') {
+                leverFlipped = true;
+                renderGuyAndLever(activeScenario);
+                document.getElementById('trolleyRumbleWrap').classList.remove('tram-rumble');
+                renderSpeechBubble(240, 155, `"Whoa, the trolley stopped by itself! We're so lucky!"`);
+                setTimeout(() => {
+                    finishScenario("You saved 6 lives in total anonymity. Not a single person looked in your direction.");
+                }, 850);
+                return;
+            }
+
+            // SLIDE 4: NO TROLLEY / NEED TO BE NEEDED
+            if (code === 'wait_for_trolley') {
+                renderSpeechBubble(200, 75, `"Any minute now... a crisis will validate my existence..."`);
+                setTimeout(() => {
+                    finishScenario("You waited 3 hours. No trolley ever came. Without an emergency to solve, you had to confront your own thoughts.");
+                }, 800);
+                return;
+            }
+            if (code === 'untie_awkward') {
+                renderSpeechBubble(235, 155, `"Bro stop touching our ropes, we're doing decompressive spine yoga."`);
+                setTimeout(() => {
+                    finishScenario("It turns out they weren't even hostages. Nobody needed rescuing today.");
+                }, 850);
+                return;
+            }
+
+            // SLIDE 5: NOBODY IN DANGER / INTRUSIVE THOUGHT
+            if (code === 'jump_infront') {
+                const guy = document.getElementById('standingGuyGroup');
+                if (guy) guy.setAttribute('transform', 'translate(245, 215) scale(1.25)');
+                animateTrolleyDownTrack(true, () => {
+                    renderSpeechBubble(175, 110, `"*SCREECH* Watch where you're standing, pal!"`);
+                    setTimeout(() => {
+                        finishScenario("The driver slammed the brakes and honked at you. Now everyone on the 5:15 commuter tram is staring at you.");
+                    }, 850);
+                });
+                return;
+            }
+            if (code === 'stand_overthink') {
+                animateTrolleyDownTrack(false, () => {
+                    finishScenario("The trolley passed safely. Philosophers call that flash of intrusive absurdity 'l'appel du vide'—the call of the void.");
+                });
+                return;
+            }
+
+            // SLIDE 6: YOU CAN ONLY WATCH
+            if (code === 'watch_closely' || code === 'watch_peek') {
+                animateTrolleyDownTrack(false, () => {
+                    finishScenario(
+                        code === 'watch_closely'
+                            ? "With no lever in sight, you stood with your hands in your pockets and watched the entire spectacle unfold."
+                            : "You covered your eyes with your fingers, but separated them just enough to watch anyway."
+                    );
+                });
+                return;
+            }
+
+            // SLIDE 7: YOU WOULD PREFER A PROBLEM
+            if (code === 'prefer_problem' || code === 'try_leave') {
+                renderSpeechBubble(200, 105, `"Wait... if nothing is wrong, what do I do with my hands?"`);
+                setTimeout(() => {
+                    finishScenario("Freedom from problems felt suspiciously uncomfortable, so you immediately started worrying about why there wasn't a problem.");
+                }, 750);
+                return;
+            }
+
+            // SLIDE 8: THE TROLLEY STOPPED YEARS AGO
+            if (code === 'argue_case' || code === 'pull_rusty') {
+                if (code === 'pull_rusty') tapLeverOnCanvas();
+                renderSpeechBubble(200, 72, `"And ANOTHER thing about utilitarianism in 2019—!"`);
+                setTimeout(() => {
+                    finishScenario("The empty tram didn't argue back, which you counted as another decisive intellectual victory.");
+                }, 800);
+                return;
+            }
+
+            // SLIDE 9: PHILOSOPHER KING (LAST TROLLEY PROBLEM EVER)
+            if (code === 'keep_discourse') {
+                animateTrolleyDownTrack(false, () => {
+                    finishScenario("You kept the trolley rolling so freshmen philosophy majors and meme pages will have content for another 100 years.");
+                });
+                return;
+            }
+            if (code === 'end_philosophy') {
+                leverFlipped = true;
+                renderGuyAndLever(activeScenario);
+                document.getElementById('trolleyRumbleWrap').classList.remove('tram-rumble');
+                finishScenario("You stopped the trolley forever. Thousands of ethics professors just had to update their résumés.");
+                return;
+            }
+
+            // SLIDE 10: YOU ARE THE PROBLEM
+            if (code === 'accept_self' || code === 'blame_trolley') {
+                renderSpeechBubble(200, 70, code === 'accept_self' ? `"Yeah. Fair enough."` : `"Where did the trolley go?!"`);
+                setTimeout(() => {
+                    finishScenario(
+                        code === 'accept_self'
+                            ? "Accept that you are the problem and you'll be happy. You have completed all 10 stages of Trolley Enlightenment."
+                            : "You tried blaming a non-existent locomotive in an empty gray room, proving the caption 100% correct."
+                    );
+                }, 700);
+                return;
+            }
+
+            // Custom Meme Fallback
+            animateTrolleyDownTrack(false, () => {
+                finishScenario("Your custom existential scenario played out in deadpan silence.");
+            });
+        }
+
+        function finishScenario(outcomeText) {
+            if (activeScenario.id <= 10) {
+                solvedMap[activeScenario.id] = {
+                    id: activeScenario.id,
+                    caption: activeScenario.caption,
+                    summary: outcomeText
+                };
+                document.getElementById('solvedCount').textContent = Object.keys(solvedMap).length;
+            }
+            renderCarouselDots();
+
+            document.getElementById('diagHeadline').textContent = activeScenario.caption;
+            document.getElementById('diagBody').textContent = outcomeText;
+            document.getElementById('pollLabelA').textContent = activeScenario.pollA;
+            document.getElementById('pollLabelB').textContent = activeScenario.pollB;
+            document.getElementById('pollBarA').style.width = `${activeScenario.pctA}%`;
+            document.getElementById('pollBarB').style.width = `${100 - activeScenario.pctA}%`;
+
+            const nextBtn = document.getElementById('nextSlideBtn');
+            if (currentIndex === SCENARIOS.length - 1 && activeScenario.id === 10) {
+                nextBtn.innerHTML = `<span>View Full Psychological Dossier</span> <span>🧠</span>`;
+            } else {
+                nextBtn.innerHTML = `<span>Next Slide (${((currentIndex + 1) % 10) + 1}/10)</span> <span>→</span>`;
+            }
+
+            document.getElementById('diagnosisSheet').classList.remove('hidden');
+        }
+
+        function replayCurrent() {
+            loadScenario(currentIndex, activeScenario.id > 10 ? activeScenario : null);
+        }
+
+        function nextLevel() {
+            if (currentIndex === SCENARIOS.length - 1 && !document.getElementById('diagnosisSheet').classList.contains('hidden')) {
+                document.getElementById('diagnosisSheet').classList.add('hidden');
+                openDossierModal();
+                return;
+            }
+            loadScenario(currentIndex + 1);
+        }
+
+        function prevLevel() {
+            loadScenario(currentIndex - 1);
+        }
+
+        /* ============================================================================
+           6. PSYCHOLOGICAL DOSSIER & CUSTOM MEME BUILDER
+           ============================================================================ */
+        function openDossierModal() {
+            const count = Object.keys(solvedMap).length;
+            document.getElementById('dossierLeverTotal').textContent = totalLeverClacks;
+
+            let archetype = "Chronically Overthinking Commuter";
+            let quote = "\"I am my problems.\"";
+
+            if (totalLeverClacks >= 6) {
+                archetype = "Compulsive Lever Fidgeter";
+                quote = "\"Your actions have zero effect on the future, yet you pulled the lever " + totalLeverClacks + " times.\"";
+            } else if (count >= 10) {
+                archetype = "Enlightened Void Philosopher";
+                quote = "\"NO HOSTAGES. NO LEVER. NO TROLLEY. YOU ACCEPTED YOU ARE THE PROBLEM.\"";
+            }
+
+            document.getElementById('dossierArchetype').textContent = archetype;
+            document.getElementById('dossierMemeQuote').textContent = quote;
+
+            const logEl = document.getElementById('dossierLogList');
+            const items = Object.values(solvedMap);
+            if (items.length === 0) {
+                logEl.innerHTML = `<p class="text-xs text-zinc-500">Complete a slide to log your psychological profile.</p>`;
+            } else {
+                logEl.innerHTML = items.map(it => `
+                    <div class="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs">
+                        <span class="font-semibold text-white">Slide ${it.id}/10:</span>
+                        <span class="text-zinc-400"> "${it.caption}"</span>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('dossierModal').classList.remove('hidden');
+        }
+
+        function closeDossierModal() {
+            document.getElementById('dossierModal').classList.add('hidden');
+        }
+
+        function copyDiagnosis() {
+            const arch = document.getElementById('dossierArchetype').textContent;
+            const quote = document.getElementById('dossierMemeQuote').textContent;
+            const text = `🚃 The Existential Trolley Problem\nDiagnosis: ${arch}\n${quote}\n(Lever pulls: ${totalLeverClacks})`;
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+
+            const btn = document.getElementById('copyDiagnosisBtn');
+            btn.textContent = 'Copied to Clipboard ✓';
+            setTimeout(() => { btn.textContent = 'Copy My Diagnosis'; }, 2000);
+        }
+
+        function resetAllProgress() {
+            solvedMap = {};
+            totalLeverClacks = 0;
+            document.getElementById('solvedCount').textContent = '0';
+            closeDossierModal();
+            loadScenario(0);
+        }
+
+        function openBuilderModal() {
+            document.getElementById('builderModal').classList.remove('hidden');
+        }
+
+        function closeBuilderModal() {
+            document.getElementById('builderModal').classList.add('hidden');
+        }
+
+        const RANDOM_MEME_PRESETS = [
+            {
+                top: "The people on the tracks are filming a TikTok.",
+                bot: "If you pull the lever, you will be in the background of their video forever.",
+                track: "single", trolley: "present", lever: "present", hostages: "7"
+            },
+            {
+                top: "The trolley is full of people you went to high school with.",
+                bot: "If you stop it, they will recognize you and ask what you've been up to.",
+                track: "split", trolley: "present", lever: "present", hostages: "0"
+            },
+            {
+                top: "Nobody tied these people down.",
+                bot: "They just lay down on the tracks to avoid answering emails.",
+                track: "single", trolley: "none", lever: "present", hostages: "20"
+            }
+        ];
+
+        function randomizeMemeBuilder() {
+            const p = RANDOM_MEME_PRESETS[Math.floor(Math.random() * RANDOM_MEME_PRESETS.length)];
+            document.getElementById('buildTopText').value = p.top;
+            document.getElementById('buildBottomText').value = p.bot;
+            document.getElementById('buildTrackType').value = p.track;
+            document.getElementById('buildTrolleyState').value = p.trolley;
+            document.getElementById('buildLeverState').value = p.lever;
+            document.getElementById('buildHostageCount').value = p.hostages;
+            playLeverClack();
+        }
+
+        function applyCustomMeme() {
+            const top = document.getElementById('buildTopText').value;
+            const bot = document.getElementById('buildBottomText').value;
+            const track = document.getElementById('buildTrackType').value;
+            const trolley = document.getElementById('buildTrolleyState').value === 'present';
+            const lever = document.getElementById('buildLeverState').value === 'present';
+            const hVal = document.getElementById('buildHostageCount').value;
+
+            const hMap = { '0': 'none', '5v1': '5v1', '7': 'line7', '20': 'line18' };
+
+            const customSc = {
+                id: 99,
+                caption: "Custom existential crisis.",
+                topText: top,
+                bottomText: bot,
+                trackType: track,
+                hasTrolley: trolley,
+                hasLever: lever,
+                hostageLayout: hMap[hVal] || 'none',
+                guyMode: track === 'none' ? 'centerLarge' : 'normal',
+                choices: [
+                    { label: lever ? "Pull the lever" : "Stand awkwardly", code: "custom_a", primary: true },
+                    { label: "Do nothing & overthink", code: "custom_b", primary: false }
+                ],
+                pollA: "73% overthought this custom meme",
+                pollB: "27% walked away",
+                pctA: 73
+            };
+
+            closeBuilderModal();
+            loadScenario(currentIndex, customSc);
+        }
+
+        // Swipe Left/Right on the Gray Canvas to Flip Through Slides (Like Instagram Carousel)
+        let startX = null;
+        let startY = null;
+        const canvasEl = document.getElementById('canvasContainer');
+
+        canvasEl.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        canvasEl.addEventListener('touchend', e => {
+            if (startX === null || isAnimating) return;
+            const dx = e.changedTouches[0].clientX - startX;
+            const dy = e.changedTouches[0].clientY - startY;
+            if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+                if (dx < 0) nextLevel();
+                else prevLevel();
+            }
+            startX = null;
+            startY = null;
+        }, { passive: true });
+
+        window.onload = () => {
+            loadScenario(0);
+        };
+    </script>
+</body>
+</html>

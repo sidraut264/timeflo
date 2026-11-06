@@ -376,10 +376,58 @@
 
     @keyframes ripple { to { transform: scale(40); opacity: 0; } }
 
+    .new-badge {
+      position: absolute; top: 14px; left: 14px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #ff2d78, #bc5aff);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(255,45,120,.5);
+      animation: newPulse 2s ease-in-out infinite;
+    }
+    @keyframes newPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(255,45,120,.4); }
+      50% { box-shadow: 0 0 18px rgba(255,45,120,.8); }
+    }
+
+    .whats-new-link {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 18px;
+      border-radius: 40px;
+      border: 1px solid rgba(188,90,255,.4);
+      background: rgba(188,90,255,.08);
+      color: #bc5aff;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-decoration: none;
+      transition: all .25s;
+      position: relative;
+    }
+    .whats-new-link:hover {
+      background: rgba(188,90,255,.18);
+      border-color: #bc5aff;
+      box-shadow: 0 0 16px rgba(188,90,255,.3);
+    }
+    .whats-new-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #ff2d78;
+      box-shadow: 0 0 6px #ff2d78;
+      animation: dotBlink 1.4s ease-in-out infinite;
+    }
+    @keyframes dotBlink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
     @media (max-width: 600px) {
       header { padding: 0 16px; }
       .logo { font-size: 15px; letter-spacing: 2px; }
       .slot-link span { display: none; }
+      .whats-new-link span { display: none; }
       main { padding: 28px 16px 60px; }
       #gamesGrid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; }
       .game-card { padding: 18px 14px 14px; }
@@ -395,6 +443,7 @@
   <header>
     <div class="logo">TIMEFLO</div>
     <div class="header-right">
+      <a class="whats-new-link" href="whats-new.html"><span class="whats-new-dot"></span><span>WHAT'S NEW</span></a>
       <a class="slot-link" href="index.html">🎰 <span>SLOT MACHINE</span></a>
       <button class="random-btn" id="randomBtn">🎲 RANDOM</button>
     </div>
@@ -404,17 +453,17 @@
     <div class="hero">
       <div class="hero-tag">🕹️ GAME LIBRARY</div>
       <h1>Choose Your Game</h1>
-      <p><span id="heroCount">34</span> games across Arcade, Puzzles, Zen, Story, and Board. Pick one, or let fate decide.</p>
+      <p><span id="heroCount">37</span> games across Arcade, Puzzles, Zen, Story, and Board. Pick one, or let fate decide.</p>
     </div>
 
     <div class="stats-bar">
       <div class="stat">
-        <span class="stat-num" id="arcadeCount">14</span>
+        <span class="stat-num" id="arcadeCount">16</span>
         <span class="stat-label">Arcade</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-num" id="puzzleCount">7</span>
+        <span class="stat-num" id="puzzleCount">8</span>
         <span class="stat-label">Puzzles</span>
       </div>
       <div class="stat-divider"></div>
@@ -434,7 +483,7 @@
       </div>
       <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-num" id="totalCount">34</span>
+        <span class="stat-num" id="totalCount">37</span>
         <span class="stat-label">Total</span>
       </div>
     </div>
@@ -445,9 +494,9 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-cat="all"     style="--tab-color:#ffd700;">🎮 All <span class="count" id="tabCountAll">34</span></button>
-      <button class="tab-btn"        data-cat="Arcade"  style="--tab-color:#ff2d78;">🕹️ Arcade <span class="count" id="tabCountArcade">14</span></button>
-      <button class="tab-btn"        data-cat="Puzzles" style="--tab-color:#00d4ff;">🧩 Puzzles <span class="count" id="tabCountPuzzles">7</span></button>
+      <button class="tab-btn active" data-cat="all"     style="--tab-color:#ffd700;">🎮 All <span class="count" id="tabCountAll">37</span></button>
+      <button class="tab-btn"        data-cat="Arcade"  style="--tab-color:#ff2d78;">🕹️ Arcade <span class="count" id="tabCountArcade">16</span></button>
+      <button class="tab-btn"        data-cat="Puzzles" style="--tab-color:#00d4ff;">🧩 Puzzles <span class="count" id="tabCountPuzzles">8</span></button>
       <button class="tab-btn"        data-cat="Zen"     style="--tab-color:#39ff14;">🍃 Zen <span class="count" id="tabCountZen">7</span></button>
       <button class="tab-btn"        data-cat="Story"   style="--tab-color:#bc5aff;">📜 Story <span class="count" id="tabCountStory">3</span></button>
       <button class="tab-btn"        data-cat="Board"   style="--tab-color:#ff8c00;">🎲 Board <span class="count" id="tabCountBoard">3</span></button>
@@ -474,6 +523,8 @@
       { name: 'Smash Grid',     url: 'games/smash-grid.html',          icon: '💥', desc: 'Brick breaker grid',          category: 'Arcade' },
       { name: 'Meteor Drift', url: 'games/meteor-drift.html', icon: '☄️', desc: 'Dodge meteors and gather starlight', category: 'Arcade' },
       { name: 'Neon Slither 3D', url: 'games/neon_slither_3d.html', icon: '🐍', desc: 'Glow, grow, and rule the arena', category: 'Arcade' },
+      { name: 'Territory.IO', url: 'games/territory_io_game.html', icon: '🗺️', desc: 'Capture land, crush rivals', category: 'Arcade', isNew: true },
+      { name: 'Shadow Fight', url: 'games/shadow_fight_2_eclipse_of_the_demon.html', icon: '🥷', desc: 'Eclipse of the Demon', category: 'Arcade', isNew: true },
       { name: 'Inkwell',        url: 'games/puzzles/crossword.html',   icon: '✏️', desc: 'Random crossword puzzle',     category: 'Puzzles' },
       { name: 'Hangman',        url: 'games/puzzles/hangman.html',     icon: '📝', desc: 'Chalkboard word guessing',    category: 'Puzzles' },
       { name: 'Mastermind',     url: 'games/puzzles/mastermind.html',  icon: '🔐', desc: 'Crack the secret code',       category: 'Puzzles' },
@@ -481,6 +532,7 @@
       { name: 'Sudoku',         url: 'games/puzzles/sudoku.html',      icon: '🔢', desc: 'Classic number grid',         category: 'Puzzles' },
       { name: 'Minesweeper',    url: 'games/puzzles/minesweeper.html', icon: '💣', desc: 'Classic minefield logic',     category: 'Puzzles' },
       { name: 'Circuit Bloom', url: 'games/puzzles/circuit-bloom.html', icon: '💡', desc: 'Bring every light into bloom', category: 'Puzzles' },
+      { name: 'Trolley Problem', url: 'games/puzzles/the_existential_trolley_problem.html', icon: '🚃', desc: 'Existential moral dilemmas', category: 'Puzzles', isNew: true },
       { name: 'Zen Garden',     url: 'games/zen/zen-garden.html',      icon: '🪨', desc: 'Mindful sand garden',         category: 'Zen' },
       { name: 'Cloud Hop', url: 'games/zen/cloud-hop/', icon: '☁️', desc: 'Hop through random 3D sky islands', category: 'Zen' },
       { name: 'Mandala Maker',  url: 'games/zen/mandala-maker.html',   icon: '🌸', desc: 'Draw symmetrical mandalas',   category: 'Zen' },
@@ -574,6 +626,7 @@
       a.style.setProperty('--card-shadow', cfg.shadow || 'rgba(255,45,120,.2)');
       a.style.setProperty('--badge-color', cfg.color  || '#aaa');
       a.innerHTML = `
+        ${g.isNew ? '<span class="new-badge">✨ New</span>' : ''}
         <span class="card-category-badge">${g.category}</span>
         <div class="card-icon">${g.icon}</div>
         <div class="card-name">${g.name}</div>
