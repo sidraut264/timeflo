@@ -1041,20 +1041,54 @@
 
         function renderSpeechBubble(x, y, text) {
             const layer = document.getElementById('speechLayer');
-            // Split text into max 2 lines
-            const words = text.split(' ');
-            const mid = Math.ceil(words.length / 2);
-            const line1 = words.slice(0, mid).join(' ');
-            const line2 = words.slice(mid).join(' ');
+            const width = 230;
+            const padding = 12;
+            const lineHeight = 12;
+            const margin = 8;
+            const { width: sceneWidth, height: sceneHeight } = document.getElementById('sceneSvg').viewBox.baseVal;
 
+            // Keep positioning separate from the pop animation's CSS transform.
             layer.innerHTML = `
-                <g class="bubble-pop" transform="translate(${x}, ${y})">
-                    <rect x="-115" y="-42" width="230" height="36" rx="10" fill="#111111" stroke="#ffffff" stroke-width="1"/>
-                    <polygon points="-6,-6 6,-6 0,4" fill="#111111"/>
-                    <text x="0" y="-26" text-anchor="middle" fill="#ffffff" font-size="9.5" font-family="Inter" font-weight="500">${line1}</text>
-                    <text x="0" y="-14" text-anchor="middle" fill="#d4d4d8" font-size="9.5" font-family="Inter">${line2}</text>
+                <g>
+                    <g class="bubble-pop">
+                        <rect width="${width}" rx="10" fill="#111111" stroke="#ffffff" stroke-width="1"/>
+                        <polygon points="-6,-6 6,-6 0,4" fill="#111111"/>
+                        <text text-anchor="middle" fill="#ffffff" font-size="9.5" font-family="Inter, sans-serif" font-weight="500"></text>
+                    </g>
                 </g>
             `;
+            const textNode = layer.querySelector('text');
+            const lines = [];
+            let line = '';
+            // Measure rendered text so long replies can use as many lines as needed.
+            for (const word of text.split(/\s+/)) {
+                const candidate = line ? `${line} ${word}` : word;
+                textNode.textContent = candidate;
+                if (line && textNode.getComputedTextLength() > width - padding * 2) {
+                    lines.push(line);
+                    line = word;
+                } else {
+                    line = candidate;
+                }
+            }
+            lines.push(line);
+            textNode.textContent = '';
+            const height = padding * 2 + lines.length * lineHeight;
+            lines.forEach((line, index) => {
+                const span = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                span.setAttribute('x', '0');
+                span.setAttribute('y', -height - 6 + padding + (index + 0.8) * lineHeight);
+                span.textContent = line;
+                textNode.appendChild(span);
+            });
+
+            const bubbleX = Math.max(width / 2 + margin, Math.min(x, sceneWidth - width / 2 - margin));
+            const bubbleY = Math.max(height + 6 + margin, Math.min(y, sceneHeight - margin - 4));
+            layer.firstElementChild.setAttribute('transform', `translate(${bubbleX}, ${bubbleY})`);
+            const rect = layer.querySelector('rect');
+            rect.setAttribute('x', -width / 2);
+            rect.setAttribute('y', -height - 6);
+            rect.setAttribute('height', height);
         }
 
         /* ============================================================================
