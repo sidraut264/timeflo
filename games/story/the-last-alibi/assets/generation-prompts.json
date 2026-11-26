@@ -1,0 +1,155 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-26",
+  "assets": [
+    {
+      "id": "billiard_room",
+      "path": "environments/billiard_room/layer_2_mid.png",
+      "prompt": "Use case: illustration-story. Create a background for The Last Alibi, a 1999-style painted noir point-and-click adventure. Billiard room in gothic English manor at night, 1997. Wide horizontal 1600x720 composition. Dark oak door at far left, green felt billiard table centered slightly left with neatly racked balls, low brass hood lamp, burgundy wainscot, cue rack, smoldering stone fireplace at about 68% across with charred paper in grate, second oak door far right. Eye-level shallow architectural perspective, room floor visible lower quarter. Painterly oil and gouache realism, richly detailed aged wood, muted umber, pine green, burgundy and slate blue, warm tungsten lighting and deep atmospheric shadows. No people, text, UI or watermark. Complete opaque room background."
+    },
+    {
+      "id": "guest_bedroom",
+      "path": "environments/guest_room/layer_2_mid.png",
+      "prompt": "Use case: illustration-story. Complete opaque wide 1600x720 painted background for a 1999 noir PC adventure, gothic English manor guest bedroom at stormy night in 1997. Eye-level shallow perspective. Oak exit door at 7% across, raincoat and polished black Oxford shoes at 22%, four-poster bed with neat olive quilt at 43%, nightstand with cold porcelain tea and travel clock at 61%, oxblood Gladstone doctor's bag on bench at 75%. No people. Moody oil paint and gouache realism, aged dark wood, umber green burgundy slate blue, tungsten lamp warmth against cool rain-streaked window. Detailed and legible, floor lower quarter. No text, UI, watermark."
+    },
+    {
+      "id": "arthur",
+      "path": "characters/portraits/arthur.png",
+      "prompt": "Use case: illustration-story. Portrait of Detective Arthur Hayes, early 40s English former police detective, weathered brown tweed coat, rain-soaked collar, sharp hazel eyes with dark circles, short dark hair greying at temples, stoic determination. Bust portrait, vertical 4:5 composition. 1999 detective adventure game painterly oil-on-canvas realism and chiaroscuro, muted umber and slate tones, warm tungsten key light, deep shadow vignette background. No text, UI or watermark."
+    },
+    {
+      "id": "eleanor_sprite",
+      "path": "characters/sprites/eleanor.png",
+      "reference": "/home/qtech/Downloads/timeflo/games/story/the-last-alibi/assets/characters/portraits/eleanor.jpg",
+      "prompt": "Use case: identity-preserve. Reference image is identity and painterly style reference. Create a full-body standing game character of Eleanor Blackwood, aristocratic woman late 40s, high-collared burgundy velvet ankle-length dress, one pearl drop earring, silver streaked dark updo, guarded poised stance. Preserve reference facial likeness, hair and clothing details. Head through shoes completely visible, centered upright figure occupying 90% height, arms naturally near body, slight three-quarter view toward viewer. Single isolated figure on genuinely transparent background. Painterly 1999 noir adventure game illustration, muted colors, warm tungsten key light, subtle cool rim light. No scenery, text, ground plane, UI, border or watermark. Vertical 240:460 proportions."
+    },
+    {
+      "id": "thomas_sprite",
+      "path": "characters/sprites/thomas.png",
+      "reference": "/home/qtech/Downloads/timeflo/games/story/the-last-alibi/assets/characters/portraits/thomas.jpg",
+      "prompt": "Use case: identity-preserve. Reference image is identity and painterly style reference. Create a full-body standing game character of Thomas Blackwood, exhausted man early 40s, rumpled brown tweed waistcoat, loosened tie and off-white shirt, dark trousers and leather shoes, anxious stance. Preserve reference facial likeness, hair and clothing details. Head through shoes completely visible, centered upright figure occupying 90% height, arms naturally near body, slight three-quarter view toward viewer. Single isolated figure on genuinely transparent background. Painterly 1999 noir adventure game illustration, muted colors, warm tungsten key light, subtle cool rim light. No scenery, text, ground plane, UI, border or watermark. Vertical 240:460 proportions."
+    },
+    {
+      "id": "margaret_sprite",
+      "path": "characters/sprites/margaret.png",
+      "reference": "/home/qtech/Downloads/timeflo/games/story/the-last-alibi/assets/characters/portraits/margaret.jpg",
+      "prompt": "Use case: identity-preserve. Reference image is identity and painterly style reference. Create a full-body standing game character of Margaret Wells, stern housekeeper mid 60s, neat grey bun, black long wool dress, starched white collar, silver brooch, clasped hands. Preserve reference facial likeness, hair and clothing details. Head through shoes completely visible, centered upright figure occupying 90% height, arms naturally near body, slight three-quarter view toward viewer. Single isolated figure on genuinely transparent background. Painterly 1999 noir adventure game illustration, muted colors, warm tungsten key light, subtle cool rim light. No scenery, text, ground plane, UI, border or watermark. Vertical 240:460 proportions."
+    },
+    {
+      "id": "victor_sprite",
+      "path": "characters/sprites/victor.png",
+      "reference": "/home/qtech/Downloads/timeflo/games/story/the-last-alibi/assets/characters/portraits/victor.jpg",
+      "prompt": "Use case: identity-preserve. Reference image is identity and painterly style reference. Create a full-body standing game character of Victor Hale, cynical man late 40s, angular jaw, damp dark hair, wet dark trenchcoat over pinstripe suit, black trousers and leather shoes. Preserve reference facial likeness, hair and clothing details. Head through shoes completely visible, centered upright figure occupying 90% height, arms naturally near body, slight three-quarter view toward viewer. Single isolated figure on genuinely transparent background. Painterly 1999 noir adventure game illustration, muted colors, warm tungsten key light, subtle cool rim light. No scenery, text, ground plane, UI, border or watermark. Vertical 240:460 proportions."
+    },
+    {
+      "id": "clara_sprite",
+      "path": "characters/sprites/clara.png",
+      "reference": "/home/qtech/Downloads/timeflo/games/story/the-last-alibi/assets/characters/portraits/clara.jpg",
+      "prompt": "Use case: identity-preserve. Reference image is identity and painterly style reference. Create a full-body standing game character of Clara Blackwood, haunted observant young woman early 20s, dark hair gathered loosely back, muted green wool cardigan over cream linen blouse, dark modest skirt and low leather shoes, charcoal pencil in one hand. Preserve reference facial likeness, hair and clothing details. Head through shoes completely visible, centered upright figure occupying 90% height, arms naturally near body, slight three-quarter view toward viewer. Single isolated figure on genuinely transparent background. Painterly 1999 noir adventure game illustration, muted colors, warm tungsten key light, subtle cool rim light. No scenery, text, ground plane, UI, border or watermark. Vertical 240:460 proportions."
+    },
+    {
+      "id": "reed_sprite",
+      "path": "characters/sprites/reed.png",
+      "reference": "/home/qtech/Downloads/timeflo/games/story/the-last-alibi/assets/characters/portraits/reed.jpg",
+      "prompt": "Use case: identity-preserve. Reference image is identity and painterly style reference. Create a full-body standing game character of Dr. Samuel Reed, composed calculating man late 40s, wire-rim spectacles, neatly trimmed dark beard, tailored charcoal three-piece suit and polished black Oxford shoes. Preserve reference facial likeness, hair and clothing details. Head through shoes completely visible, centered upright figure occupying 90% height, arms naturally near body, slight three-quarter view toward viewer. Single isolated figure on genuinely transparent background. Painterly 1999 noir adventure game illustration, muted colors, warm tungsten key light, subtle cool rim light. No scenery, text, ground plane, UI, border or watermark. Vertical 240:460 proportions."
+    },
+    {
+      "id": "edward_invitation",
+      "path": "objects/clues/edward_invitation.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: A crinkled rain-stained telegram dated November 16, 1997, folded yellowed paper. Heading TELEGRAM. Body text: \"COME TO BLACKWOOD MANOR BEFORE MIDNIGHT. I KNOW WHAT HAPPENED THAT NIGHT. YOU WERE WRONG ABOUT EVERYTHING. — E.B.\" Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "iron_poker",
+      "path": "objects/clues/iron_poker.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: A single long heavy wrought-iron hearth poker with hooked soot-darkened tip and loop handle, arranged diagonally with entire object visible. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "broken_pocket_watch",
+      "path": "objects/clues/broken_pocket_watch.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: A gold pocket watch with cracked crystal, ivory face, hands stopped precisely at 11:32: minute hand points slightly past numeral VI, short hour hand between XI and XII closer to XII. Roman numerals, subtle chain. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "brass_paperweight",
+      "path": "objects/clues/brass_paperweight.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: Heavy cast-brass lion paperweight on rectangular base, tarnished gold, faint dried reddish-brown smear and tiny grey wool fibers along base, non-graphic. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "laced_brandy_glass",
+      "path": "objects/clues/laced_brandy_glass.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: A cut-crystal brandy snifter half full of amber brandy with cloudy white medicinal sediment settled at bottom. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "torn_threatening_note",
+      "path": "objects/clues/torn_threatening_note.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: A torn cream stationery scrap with charred curled edges, handwritten note reading \"Forty thousand pounds in Soho gaming houses is your ruin, Thomas...\" Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "eleanor_handkerchief",
+      "path": "objects/clues/eleanor_handkerchief.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: Folded ivory silk handkerchief embroidered with exact burgundy initials \"E.B.\", delicate stitched border. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "revised_will_draft",
+      "path": "objects/clues/revised_will_draft.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: An unsigned aged cream legal codicil with heading \"DRAFT CODICIL\", discreet crossed-out lines and handwritten corrections, blank signature line, no signature. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition.",
+      "correctionPrompt": "Replace all body lettering with exactly these three lines: \"Edward Blackwood\" / \"Eleanor: bequest revoked.\" / \"Estate to Clara Blackwood and trust.\" Keep the heading \"DRAFT CODICIL\" and blank signature line. Remove all other names, dates, amounts and text. Preserve aged paper, composition, lighting and painterly style."
+    },
+    {
+      "id": "falsified_ledger",
+      "path": "objects/clues/falsified_ledger.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: An open worn burgundy leather shipping ledger, ruled accounting columns, red ink audit flags around missing sum \"£120,000\", cream paper. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition.",
+      "correctionPrompt": "Correct the ledger heading to \"BLACKWOOD INDUSTRIES\" and date to \"1997\". Remove all vessel names and invented company text, replacing those entries with short abstract ink strokes. Keep the account columns and red \"£120,000\" missing sum. Preserve book, composition, light and painted style."
+    },
+    {
+      "id": "turkish_cigarette",
+      "path": "objects/clues/turkish_cigarette.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: One half-smoked gold-tipped cigarette with crushed ash end, dry golden filter and loose flecks of grey ash, close-up, no packaging. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "apothecary_key",
+      "path": "objects/clues/apothecary_key.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: A tiny nickel-plated silver apothecary key for a medical bag clasp, miniature oval bow and small single tooth, angled diagonally. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "guest_room_teacup",
+      "path": "objects/clues/guest_room_teacup.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: Cold chamomile tea in an aged porcelain cup and saucer, dried tannin rings inside, beside small brass travel alarm clock with open rear battery hatch, no steam. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "medical_bag_vial",
+      "path": "objects/clues/medical_bag_vial.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: Small nearly empty amber apothecary bottle with cream label reading \"Chloral Hydrate\" and \"Dr. S. Reed\", old stopper, modest medicinal residue, no other objects. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "case_1992_dossier",
+      "path": "objects/clues/case_1992_dossier.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: A manila police dossier open to an altered typed toxicology chart, red stamped heading \"CONFIDENTIAL 1992\", ink corrections on report. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition.",
+      "correctionPrompt": "Remove the photograph, police department name, crest, dates other than 1992, case number, names and all specific toxicology values and substances. Replace those areas with abstract faded ink lines and a chart with crossed-out entries, no readable invented words. Retain only readable heading \"CONFIDENTIAL 1992\" and subheading \"TOXICOLOGY REPORT\". Preserve aged open manila folder, paper, composition, warm light, painterly style."
+    },
+    {
+      "id": "servant_passage_blueprint",
+      "path": "objects/clues/servant_passage_blueprint.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: Faded 1920 architectural blueprint of English manor, room outlines in pale ink on aged slate blue paper, concealed spiral staircase and passage traced in red ink, small heading \"BLACKWOOD MANOR — 1920\". Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "coal_dust_footprints",
+      "path": "objects/clues/coal_dust_footprints.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: Narrow size-10 Oxford dress-shoe sole impressions in damp black coal dust on a small patch of rough cellar limestone. Two clear heel-and-sole prints, no actual shoes. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "missing_study_key",
+      "path": "objects/clues/missing_study_key.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: An ornate large brass mortise skeleton key with round bow, heavily dusted with black furnace soot, warm metal showing through ash, arranged diagonally. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "clara_sketchbook",
+      "path": "objects/clues/clara_sketchbook.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: An open cream charcoal sketchbook. On right page a hurried charcoal drawing of a bespectacled bearded man beside a scullery sink, glinting round spectacles, note \"11:36 PM\". Left page loose charcoal studies. No actual person outside drawing. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    },
+    {
+      "id": "damp_washcloth",
+      "path": "objects/clues/damp_washcloth.png",
+      "prompt": "Use case: illustration-story. Asset type: square inventory evidence illustration for The Last Alibi. Subject: A crumpled damp ivory linen towel stained with grey-black coal soot and faint carbolic soap residue, detailed woven cloth texture. Style: 1998 noir adventure game oil-painted realism, fine gouache grain, muted umber, aged gold and slate colors, warm directional spotlight. Centered object clearly readable at small size, generous edge margin, on dark nearly black velvet background. No decorative border, no UI, no watermark. Only specified lettering, if any. Square 1:1 composition."
+    }
+  ]
+}

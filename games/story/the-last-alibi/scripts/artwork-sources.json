@@ -1,0 +1,69 @@
+{
+  "environments": {
+    "main_hall": {
+      "mid": "./assets/environments/mansion/layer_2_mid.jpg"
+    },
+    "study": {
+      "mid": "./assets/environments/study/layer_2_mid.jpg"
+    },
+    "library": {
+      "mid": "./assets/environments/library/layer_2_mid.jpg"
+    },
+    "dining_room": {
+      "mid": "./assets/environments/dining_room/layer_2_mid.jpg"
+    },
+    "basement": {
+      "mid": "./assets/environments/basement/layer_2_mid.jpg"
+    },
+    "kitchen": {
+      "mid": "./assets/environments/kitchen/layer_2_mid.jpg"
+    },
+    "upstairs_corridor": {
+      "mid": "./assets/environments/corridor/layer_2_mid.jpg"
+    },
+    "billiard_room": {
+      "mid": "./assets/environments/billiard_room/layer_2_mid.png"
+    },
+    "guest_bedroom": {
+      "mid": "./assets/environments/guest_room/layer_2_mid.png"
+    }
+  },
+  "portraits": {
+    "eleanor": "./assets/characters/portraits/eleanor.jpg",
+    "thomas": "./assets/characters/portraits/thomas.jpg",
+    "margaret": "./assets/characters/portraits/margaret.jpg",
+    "reed": "./assets/characters/portraits/reed.jpg",
+    "victor": "./assets/characters/portraits/victor.jpg",
+    "clara": "./assets/characters/portraits/clara.jpg",
+    "arthur": "./assets/characters/portraits/arthur.png"
+  },
+  "clues": {
+    "apothecary_key": "./assets/objects/clues/apothecary_key.png",
+    "brass_paperweight": "./assets/objects/clues/brass_paperweight.png",
+    "broken_pocket_watch": "./assets/objects/clues/broken_pocket_watch.png",
+    "case_1992_dossier": "./assets/objects/clues/case_1992_dossier.png",
+    "clara_sketchbook": "./assets/objects/clues/clara_sketchbook.png",
+    "coal_dust_footprints": "./assets/objects/clues/coal_dust_footprints.png",
+    "damp_washcloth": "./assets/objects/clues/damp_washcloth.png",
+    "edward_invitation": "./assets/objects/clues/edward_invitation.png",
+    "eleanor_handkerchief": "./assets/objects/clues/eleanor_handkerchief.png",
+    "falsified_ledger": "./assets/objects/clues/falsified_ledger.png",
+    "guest_room_teacup": "./assets/objects/clues/guest_room_teacup.png",
+    "iron_poker": "./assets/objects/clues/iron_poker.png",
+    "laced_brandy_glass": "./assets/objects/clues/laced_brandy_glass.png",
+    "medical_bag_vial": "./assets/objects/clues/medical_bag_vial.png",
+    "missing_study_key": "./assets/objects/clues/missing_study_key.png",
+    "revised_will_draft": "./assets/objects/clues/revised_will_draft.png",
+    "servant_passage_blueprint": "./assets/objects/clues/servant_passage_blueprint.png",
+    "torn_threatening_note": "./assets/objects/clues/torn_threatening_note.png",
+    "turkish_cigarette": "./assets/objects/clues/turkish_cigarette.png"
+  },
+  "sprites": {
+    "clara": "./assets/characters/sprites/clara.png",
+    "eleanor": "./assets/characters/sprites/eleanor.png",
+    "margaret": "./assets/characters/sprites/margaret.png",
+    "reed": "./assets/characters/sprites/reed.png",
+    "thomas": "./assets/characters/sprites/thomas.png",
+    "victor": "./assets/characters/sprites/victor.png"
+  }
+}

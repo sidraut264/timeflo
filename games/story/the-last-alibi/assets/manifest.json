@@ -1,0 +1,69 @@
+{
+  "environments": {
+    "main_hall": {
+      "mid": "./assets/optimized/environments/mansion/layer_2_mid.823f3426342d.webp"
+    },
+    "study": {
+      "mid": "./assets/optimized/environments/study/layer_2_mid.329d2690dd5b.webp"
+    },
+    "library": {
+      "mid": "./assets/optimized/environments/library/layer_2_mid.56bcbe2d4c79.webp"
+    },
+    "dining_room": {
+      "mid": "./assets/optimized/environments/dining_room/layer_2_mid.7b6f2f642605.webp"
+    },
+    "basement": {
+      "mid": "./assets/optimized/environments/basement/layer_2_mid.7994a841c81d.webp"
+    },
+    "kitchen": {
+      "mid": "./assets/optimized/environments/kitchen/layer_2_mid.392a1e6a338f.webp"
+    },
+    "upstairs_corridor": {
+      "mid": "./assets/optimized/environments/corridor/layer_2_mid.960bf8b99d12.webp"
+    },
+    "billiard_room": {
+      "mid": "./assets/optimized/environments/billiard_room/layer_2_mid.a20f82b42b5c.webp"
+    },
+    "guest_bedroom": {
+      "mid": "./assets/optimized/environments/guest_room/layer_2_mid.cb3f78611ab1.webp"
+    }
+  },
+  "portraits": {
+    "eleanor": "./assets/optimized/characters/portraits/eleanor.05d56621bc32.webp",
+    "thomas": "./assets/optimized/characters/portraits/thomas.440bba85ca23.webp",
+    "margaret": "./assets/optimized/characters/portraits/margaret.5989d39be9d0.webp",
+    "reed": "./assets/optimized/characters/portraits/reed.c10671c9b6a0.webp",
+    "victor": "./assets/optimized/characters/portraits/victor.fce2395a6190.webp",
+    "clara": "./assets/optimized/characters/portraits/clara.a103e040f5b5.webp",
+    "arthur": "./assets/optimized/characters/portraits/arthur.ccae258deb07.webp"
+  },
+  "clues": {
+    "apothecary_key": "./assets/optimized/objects/clues/apothecary_key.1889ae31ef2a.webp",
+    "brass_paperweight": "./assets/optimized/objects/clues/brass_paperweight.413091730185.webp",
+    "broken_pocket_watch": "./assets/optimized/objects/clues/broken_pocket_watch.54c4f05e6f8a.webp",
+    "case_1992_dossier": "./assets/optimized/objects/clues/case_1992_dossier.0d0754155e3a.webp",
+    "clara_sketchbook": "./assets/optimized/objects/clues/clara_sketchbook.9124c86b9e86.webp",
+    "coal_dust_footprints": "./assets/optimized/objects/clues/coal_dust_footprints.bebfbc3c82f3.webp",
+    "damp_washcloth": "./assets/optimized/objects/clues/damp_washcloth.71d65fdea883.webp",
+    "edward_invitation": "./assets/optimized/objects/clues/edward_invitation.f5d86fd92429.webp",
+    "eleanor_handkerchief": "./assets/optimized/objects/clues/eleanor_handkerchief.82f46314fb09.webp",
+    "falsified_ledger": "./assets/optimized/objects/clues/falsified_ledger.6e8ffd199d4a.webp",
+    "guest_room_teacup": "./assets/optimized/objects/clues/guest_room_teacup.f5a3582c2db7.webp",
+    "iron_poker": "./assets/optimized/objects/clues/iron_poker.417cd7fb47bd.webp",
+    "laced_brandy_glass": "./assets/optimized/objects/clues/laced_brandy_glass.215808966aa8.webp",
+    "medical_bag_vial": "./assets/optimized/objects/clues/medical_bag_vial.306f50bfbe55.webp",
+    "missing_study_key": "./assets/optimized/objects/clues/missing_study_key.0b8931722268.webp",
+    "revised_will_draft": "./assets/optimized/objects/clues/revised_will_draft.25f64cb07811.webp",
+    "servant_passage_blueprint": "./assets/optimized/objects/clues/servant_passage_blueprint.6f1c1dee894c.webp",
+    "torn_threatening_note": "./assets/optimized/objects/clues/torn_threatening_note.66860b430522.webp",
+    "turkish_cigarette": "./assets/optimized/objects/clues/turkish_cigarette.9c44497713a8.webp"
+  },
+  "sprites": {
+    "clara": "./assets/optimized/characters/sprites/clara.68f569e15785.webp",
+    "eleanor": "./assets/optimized/characters/sprites/eleanor.d74a4f194393.webp",
+    "margaret": "./assets/optimized/characters/sprites/margaret.fc3296ce2be7.webp",
+    "reed": "./assets/optimized/characters/sprites/reed.61c74c9ceca0.webp",
+    "thomas": "./assets/optimized/characters/sprites/thomas.3d02b51bf12e.webp",
+    "victor": "./assets/optimized/characters/sprites/victor.891ab6c45bf2.webp"
+  }
+}

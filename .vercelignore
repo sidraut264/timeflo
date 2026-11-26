@@ -13,3 +13,6 @@ node_modules
 scripts
 tests
 docs
+# Full-resolution Last Alibi artwork is kept locally; the game serves dist/.
+games/story/the-last-alibi/assets
+games/story/the-last-alibi/scripts
