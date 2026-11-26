@@ -1,0 +1,2210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Existential Compendium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#f4f3ef',
+                        charcoal: '#eeede8',
+                        panel: '#ffffff',
+                        borderDim: '#d6d5ce',
+                        cream: '#242622',
+                        creamMuted: '#666b63',
+                        ochre: '#93642f',
+                        sage: '#476b5b',
+                        rust: '#a94e42',
+                        slate: '#6d7185'
+                    },
+                    fontFamily: {
+                        serif: ['Instrument Serif', 'Georgia', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { margin: 0; background: #f4f3ef; color: #242622; font-family: 'Plus Jakarta Sans', sans-serif; }
+        button { touch-action: manipulation; }
+        button:focus-visible { outline: 2px solid #476b5b; outline-offset: 4px; }
+        button:disabled { cursor: default; }
+        .font-mono { font-family: 'Plus Jakarta Sans', sans-serif !important; letter-spacing: 0 !important; }
+        .shadow-xl, .shadow-2xl, .shadow-lg { box-shadow: none !important; }
+        .border-2, .border-t-2 { border-width: 1px; }
+        .animate-ping { animation: none !important; }
+        .bg-gradient-to-r { background-image: none; background-color: #93642f; }
+        header { position: relative !important; }
+        header > div > div + div { display: none !important; }
+        main { max-width: 620px !important; }
+        #view-hub > div:first-child { background: transparent; border: 0; padding: 18px 0; }
+        #view-hub > div:first-child > .absolute { display: none; }
+        #view-hub h1 { font-size: clamp(32px, 7vw, 44px); line-height: 1.05; }
+        #view-hub h2 { font-size: 26px; }
+        #view-hub p { font-size: 13px; line-height: 1.7; }
+        #stage-card-border > div:first-child { flex-wrap: wrap; gap: 8px; }
+        #stage-card-border > div:first-child > div { flex-wrap: wrap; gap: 6px; }
+        #case-domain-badge { display: none; }
+        #svg-stage-wrapper { background: #deded8; height: auto; aspect-ratio: 360 / 205; }
+        #svg-canvas-container svg { overflow: hidden; }
+        #svg-canvas-container svg > rect:first-child { fill: #deded8; }
+        #svg-canvas-container svg text { font-family: 'Plus Jakarta Sans', sans-serif; }
+        #svg-stage-wrapper > .absolute { display: none; }
+        #scene-controls { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #d6d5ce; background: #eeede8; }
+        #scene-status { margin: 0; flex: 1; font-size: 12px; line-height: 1.5; }
+        #replay-action { flex-shrink: 0; font-size: 12px; color: #476b5b; padding: 8px 0 8px 8px; }
+        #replay-action:disabled { opacity: .4; }
+        #choices-grid button { min-height: 112px; transition: background .2s, border-color .2s; }
+        #choices-grid button[aria-pressed="true"] { border-color: #476b5b; background: #edf2ed; }
+        #choices-grid button:disabled:not([aria-pressed="true"]) { opacity: .5; }
+        #debrief-panel > div:first-child, #debrief-panel > div:nth-child(3) > div { flex-wrap: wrap; gap: 8px; }
+        #delta-badges-row { flex-wrap: wrap; gap: 4px; }
+        nav { padding-bottom: max(10px, env(safe-area-inset-bottom)) !important; }
+        @keyframes arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-card { animation: arrive .25s ease-out; }
+        @media (max-width: 380px) {
+            header > div > div:first-child { flex-wrap: wrap; gap: 10px; }
+            #step-dots-container { gap: 4px; }
+            #view-hub > div > div:first-child { flex-wrap: wrap; gap: 8px; }
+        }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-obsidian text-cream bg-grid-pattern relative selection:bg-ochre selection:text-obsidian">
+
+    <!-- TOP TELEMETRY HEADER -->
+    <header class="sticky top-0 z-40 bg-charcoal/90 backdrop-blur-md border-b border-borderDim px-3.5 py-2.5 shadow-xl">
+        <div class="max-w-lg mx-auto flex flex-col space-y-2">
+            <div class="flex items-center justify-between">
+                <!-- Bureau Identity -->
+                <button onclick="app.showHub()" class="flex items-center space-x-2 text-left group">
+                    
+                    <div>
+                        <div class="font-mono text-[10px] tracking-widest text-ochre font-bold flex items-center space-x-1.5">
+                            <span>The thought experiment club</span>
+                            
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Controls: Audio & Quick Dossier -->
+                <div class="flex items-center space-x-2">
+                    <button id="audio-toggle-btn" onclick="soundEngine.toggleMute()" class="font-mono text-[10px] px-2.5 py-1 rounded bg-panel border border-borderDim text-creamMuted hover:text-ochre hover:border-ochre/50 transition flex items-center space-x-1">
+                        <span id="audio-dot" class="w-1.5 h-1.5 rounded-full bg-sage"></span>
+                        <span id="audio-label">Sound on</span>
+                    </button>
+                    <button onclick="app.openDossier()" class="font-mono text-[10px] px-2.5 py-1 rounded bg-ochre/10 border border-ochre/40 text-ochre hover:bg-ochre hover:text-obsidian font-bold transition">
+                        Your choices [<span id="answered-count-badge">0/20</span>]
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live 4-Axis Moral Telemetry Mini-HUD -->
+            <div class="grid grid-cols-4 gap-1.5 pt-1 border-t border-borderDim/60">
+                <div class="bg-obsidian/80 px-2 py-1 rounded border border-borderDim/70">
+                    <div class="flex justify-between font-mono text-[8px] text-creamMuted">
+                        <span>UTILITARIAN</span>
+                        <span id="hud-val-util" class="text-ochre">50%</span>
+                    </div>
+                    <div class="w-full bg-charcoal h-1 rounded-full overflow-hidden mt-0.5">
+                        <div id="hud-bar-util" class="bg-ochre h-full transition-all duration-500" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="bg-obsidian/80 px-2 py-1 rounded border border-borderDim/70">
+                    <div class="flex justify-between font-mono text-[8px] text-creamMuted">
+                        <span>KANTIAN</span>
+                        <span id="hud-val-deon" class="text-sage">50%</span>
+                    </div>
+                    <div class="w-full bg-charcoal h-1 rounded-full overflow-hidden mt-0.5">
+                        <div id="hud-bar-deon" class="bg-sage h-full transition-all duration-500" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="bg-obsidian/80 px-2 py-1 rounded border border-borderDim/70">
+                    <div class="flex justify-between font-mono text-[8px] text-creamMuted">
+                        <span>NEUROSIS</span>
+                        <span id="hud-val-neur" class="text-rust">50%</span>
+                    </div>
+                    <div class="w-full bg-charcoal h-1 rounded-full overflow-hidden mt-0.5">
+                        <div id="hud-bar-neur" class="bg-rust h-full transition-all duration-500" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="bg-obsidian/80 px-2 py-1 rounded border border-borderDim/70">
+                    <div class="flex justify-between font-mono text-[8px] text-creamMuted">
+                        <span>ABSURDISM</span>
+                        <span id="hud-val-absu" class="text-slate">50%</span>
+                    </div>
+                    <div class="w-full bg-charcoal h-1 rounded-full overflow-hidden mt-0.5">
+                        <div id="hud-bar-absu" class="bg-slate h-full transition-all duration-500" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN VIEWPORT -->
+    <main class="flex-1 max-w-lg w-full mx-auto px-3.5 py-4 z-10 flex flex-col justify-between">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: COMPENDIUM HUB (DECK SELECTION)    -->
+        <!-- ========================================== -->
+        <section id="view-hub" class="space-y-5 animate-card my-auto">
+            <!-- Bureau Terminal Hero Banner -->
+            <div class="bg-panel border-2 border-borderDim rounded-2xl p-5 glow-amber relative overflow-hidden">
+                <div class="absolute -right-8 -top-8 w-36 h-36 bg-ochre/10 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div class="flex items-center justify-between font-mono text-[10px] text-ochre mb-2">
+                    <span class="bg-ochre/10 border border-ochre/30 px-2 py-0.5 rounded uppercase tracking-widest">A little room for big questions</span>
+                    <span class="text-creamMuted">20 SCENARIOS</span>
+                </div>
+
+                <h1 class="font-serif italic text-3xl sm:text-4xl text-cream tracking-tight leading-none mt-1">
+                    The Existential &amp; Philosophical Compendium
+                </h1>
+                
+                <p class="text-xs text-creamMuted mt-3 leading-relaxed">
+                    Twenty small scenes. Some impossible choices. Pick what you would do, watch it happen, and see what your instincts reveal.
+                </p>
+
+                <!-- Quick Status Strip -->
+                <div class="mt-4 pt-3 border-t border-borderDim flex items-center justify-between font-mono text-[10px] text-creamMuted">
+                    <span>Your outlook: <strong id="hub-current-archetype" class="text-sage">UNDIAGNOSED SUBJECT</strong></span>
+                    <button onclick="app.resetAllProgress()" class="text-rust hover:underline">Start over</button>
+                </div>
+            </div>
+
+            <!-- DECK I CARD: THE MORAL MACHINE -->
+            <div class="bg-panel border-2 border-borderDim hover:border-ochre transition-all rounded-2xl p-5 glow-amber group">
+                <div class="flex items-center justify-between font-mono text-[10px]">
+                    <span class="text-ochre font-bold tracking-widest uppercase">01 / Moral dilemmas</span>
+                    <span id="deck1-progress-pill" class="bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">0 / 10 COMPLETED</span>
+                </div>
+
+                <h2 class="font-serif text-2xl text-cream mt-1.5 group-hover:text-ochre transition-colors">
+                    The moral machine
+                </h2>
+                <p class="text-xs text-creamMuted mt-1 leading-relaxed">
+                    10 foundational thought experiments from Philippa Foot, Judith Jarvis Thomson, Peter Singer, Robert Nozick, Plato, and Derek Parfit.
+                </p>
+
+                <!-- Mini Scenario Chips -->
+                <div class="flex flex-wrap gap-1.5 mt-3.5">
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">01. Trolley Fork</span>
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">02. Footbridge</span>
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">03. Drowning Child</span>
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">07. Experience Tank</span>
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-ochre">+6 More</span>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-borderDim flex items-center space-x-2">
+                    <button onclick="app.startDeck('part1', 0)" class="flex-1 bg-ochre text-obsidian font-mono text-xs font-bold py-2.5 rounded-xl uppercase tracking-wider hover:bg-amber-400 active:scale-[0.99] transition shadow-lg">
+                        Explore moral dilemmas →
+                    </button>
+                    <button onclick="app.openScenarioPicker('part1')" class="px-3 py-2.5 bg-obsidian border border-borderDim hover:border-ochre rounded-xl font-mono text-[10px] text-creamMuted hover:text-cream transition">
+                        INDEX
+                    </button>
+                </div>
+            </div>
+
+            <!-- DECK II CARD: EVERYDAY SOCIAL SPIN-OFFS -->
+            <div class="bg-panel border-2 border-borderDim hover:border-sage transition-all rounded-2xl p-5 glow-cyan group">
+                <div class="flex items-center justify-between font-mono text-[10px]">
+                    <span class="text-sage font-bold tracking-widest uppercase">02 / Everyday life</span>
+                    <span id="deck2-progress-pill" class="bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">0 / 10 COMPLETED</span>
+                </div>
+
+                <h2 class="font-serif text-2xl text-cream mt-1.5 group-hover:text-sage transition-colors">
+                    The everyday absurd
+                </h2>
+                <p class="text-xs text-creamMuted mt-1 leading-relaxed">
+                    10 excruciatingly relatable modern paralysis scenarios: claustrophobic elevators, HR jargon trolleys, breakroom pastry fractions, and 6:15 PM cancellation texts.
+                </p>
+
+                <!-- Mini Scenario Chips -->
+                <div class="flex flex-wrap gap-1.5 mt-3.5">
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">01. Coughing Elevator</span>
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">04. Read 11:42 PM</span>
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">05. 1/8th Pastry</span>
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-creamMuted">10. Void Grocery</span>
+                    <span class="font-mono text-[9px] bg-obsidian px-2 py-0.5 rounded border border-borderDim text-sage">+6 More</span>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-borderDim flex items-center space-x-2">
+                    <button onclick="app.startDeck('part2', 0)" class="flex-1 bg-sage text-obsidian font-mono text-xs font-bold py-2.5 rounded-xl uppercase tracking-wider hover:bg-teal-300 active:scale-[0.99] transition shadow-lg">
+                        Explore everyday life →
+                    </button>
+                    <button onclick="app.openScenarioPicker('part2')" class="px-3 py-2.5 bg-obsidian border border-borderDim hover:border-sage rounded-xl font-mono text-[10px] text-creamMuted hover:text-cream transition">
+                        INDEX
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: INTERACTIVE DILEMMA STAGE          -->
+        <!-- ========================================== -->
+        <section id="view-stage" class="hidden space-y-3.5 animate-card my-auto">
+            <!-- Top Case Navigation & Step Dots -->
+            <div class="bg-panel border border-borderDim rounded-xl px-3.5 py-2.5 flex items-center justify-between">
+                <button onclick="app.prevScenario()" id="btn-prev-case" class="font-mono text-[10px] text-creamMuted hover:text-ochre disabled:opacity-30 transition">
+                    ← PREV
+                </button>
+                <div id="step-dots-container" class="flex items-center space-x-1.5">
+                    <!-- 10 interactive dots injected via JS -->
+                </div>
+                <button onclick="app.nextScenario()" id="btn-next-case" class="font-mono text-[10px] text-creamMuted hover:text-ochre transition">
+                    NEXT →
+                </button>
+            </div>
+
+            <!-- Main Case Card -->
+            <div id="stage-card-border" class="bg-panel border-2 border-borderDim rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                
+                <!-- Case Metadata Header -->
+                <div class="bg-obsidian/90 border-b border-borderDim px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span id="case-code-badge" class="font-mono text-[10px] font-bold bg-ochre/15 text-ochre border border-ochre/40 px-2 py-0.5 rounded">
+                            CASE 01 // 1967
+                        </span>
+                        <span id="case-domain-badge" class="font-mono text-[10px] text-creamMuted uppercase">
+                            Negative vs. Positive Duty
+                        </span>
+                    </div>
+                    <span id="case-author-badge" class="font-mono text-[10px] text-sage">
+                        Philippa Foot
+                    </span>
+                </div>
+
+                <!-- Bespoke Animated SVG Stage -->
+                <div class="relative w-full h-56 sm:h-64 bg-obsidian border-b border-borderDim overflow-hidden flex items-center justify-center group" id="svg-stage-wrapper">
+                    <div id="svg-canvas-container" class="w-full h-full flex items-center justify-center">
+                        <!-- Dynamic Animated SVG Injected Here -->
+                    </div>
+                    <!-- Floating Interactive Stage Overlay Tag -->
+                    <div class="absolute bottom-2.5 left-3 right-3 flex items-center justify-between pointer-events-none">
+                        <span id="svg-caption-pill" class="font-mono text-[9px] bg-obsidian/90 border border-borderDim text-creamMuted px-2 py-0.5 rounded backdrop-blur-sm">
+                            FIG 1.0 // LIVE TELEMETRY SIMULATION
+                        </span>
+                        <span id="case-tension-pill" class="font-mono text-[9px] bg-rust/20 border border-rust/40 text-rust px-2 py-0.5 rounded">
+                            MORAL FRICTION: HIGH
+                        </span>
+                    </div>
+                </div>
+
+                <div id="scene-controls">
+                    <p id="scene-status" role="status" aria-live="polite">Choose an action to see what happens.</p>
+                    <button id="replay-action" onclick="app.replayAction()" disabled>↻ Replay</button>
+                </div>
+
+                <!-- Case Narrative & Interactive Controls -->
+                <div class="p-4 sm:p-5 space-y-4">
+                    <div>
+                        <h2 id="case-title" class="font-serif italic text-2xl sm:text-3xl text-cream leading-tight">
+                            The Trolley Problem
+                        </h2>
+                        <p id="case-setup" class="text-xs sm:text-sm text-cream/90 mt-2 leading-relaxed">
+                            A runaway vintage red tram hurtles toward five maintenance workers tied to the main track. You stand beside a mechanical switch lever that can divert the tram onto a side spur—where one innocent worker is tied down.
+                        </p>
+                    </div>
+
+                    <!-- Collapsible Philosophical Field Briefing -->
+                    <div class="bg-obsidian/75 border border-borderDim rounded-xl overflow-hidden">
+                        <button onclick="app.toggleBriefing()" class="w-full px-3.5 py-2 flex items-center justify-between text-left font-mono text-[10px] text-ochre hover:bg-charcoal/60 transition">
+                            <span class="flex items-center space-x-1.5">
+                                <span>⊕</span>
+                                <span id="briefing-header-label">The idea behind this</span>
+                            </span>
+                            <span id="briefing-chevron">▼</span>
+                        </button>
+                        <div id="briefing-content" class="hidden px-3.5 pb-3 pt-1 text-xs text-creamMuted border-t border-borderDim/60 leading-relaxed font-sans">
+                            <!-- Philosophical crux text -->
+                        </div>
+                    </div>
+
+                    <!-- Two Stark Tactical Choice Switches -->
+                    <div id="choices-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                        <!-- Dynamically populated choice buttons -->
+                    </div>
+
+                    <!-- POST-CHOICE CLINICAL DEBRIEF PANEL (Revealed on Choice) -->
+                    <div id="debrief-panel" class="hidden space-y-3.5 pt-4 border-t-2 border-borderDim animate-card">
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-[10px] uppercase tracking-wider text-sage font-bold flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-sage animate-ping"></span>
+                                <span>Illustrative choice split</span>
+                            </span>
+                            <span id="user-selected-pill" class="font-mono text-[10px] bg-ochre/20 text-ochre border border-ochre/40 px-2 py-0.5 rounded">
+                                LOGGED: OPTION A
+                            </span>
+                        </div>
+
+                        <!-- Dual Split Comparison Bar -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between font-mono text-[10px]">
+                                <span id="poll-label-a" class="text-ochre font-bold">Option A: 73%</span>
+                                <span id="poll-label-b" class="text-sage font-bold">Option B: 27%</span>
+                            </div>
+                            <div class="w-full h-3.5 bg-obsidian rounded-lg overflow-hidden border border-borderDim flex p-0.5">
+                                <div id="poll-bar-a" class="bg-ochre h-full rounded-l transition-all duration-700" style="width: 73%"></div>
+                                <div id="poll-bar-b" class="bg-sage h-full rounded-r transition-all duration-700" style="width: 27%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Clinical Diagnosis & Axis Shifts -->
+                        <div class="bg-obsidian border border-borderDim rounded-xl p-3.5 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-[10px] text-ochre uppercase font-bold">What your choice suggests</span>
+                                <div id="delta-badges-row" class="flex space-x-1">
+                                    <!-- e.g. +15 UTIL -->
+                                </div>
+                            </div>
+                            <p id="debrief-analysis-text" class="text-xs text-cream leading-relaxed">
+                                Analysis of choice appears here.
+                            </p>
+                        </div>
+
+                        <!-- Next Case CTA -->
+                        <button onclick="app.nextScenario()" class="w-full bg-gradient-to-r from-ochre to-amber-500 text-obsidian font-mono text-xs font-bold py-3 rounded-xl uppercase tracking-widest hover:opacity-95 active:scale-[0.99] transition shadow-lg flex items-center justify-center space-x-2">
+                            <span id="next-btn-label">PROCEED TO NEXT CASE FILE</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: PSYCHOLOGICAL DOSSIER & RADAR      -->
+        <!-- ========================================== -->
+        <section id="view-dossier" class="hidden space-y-4 animate-card my-auto">
+            <div class="bg-panel border-2 border-borderDim rounded-2xl p-5 glow-amber space-y-5">
+                
+                <!-- Header -->
+                <div class="flex items-start justify-between border-b border-borderDim pb-3.5">
+                    <div>
+                        <span class="font-mono text-[10px] bg-ochre/15 text-ochre border border-ochre/40 px-2 py-0.5 rounded uppercase">
+                            A reflection on your choices
+                        </span>
+                        <h1 class="font-serif italic text-3xl text-cream mt-1.5">
+                            Your philosophical portrait
+                        </h1>
+                    </div>
+                    <button onclick="app.showHub()" class="font-mono text-[10px] bg-obsidian border border-borderDim hover:border-ochre px-2.5 py-1.5 rounded text-creamMuted hover:text-cream">
+                        [ CLOSE ]
+                    </button>
+                </div>
+
+                <!-- Primary & Secondary Archetype Box -->
+                <div class="bg-obsidian border border-borderDim rounded-xl p-4 relative overflow-hidden">
+                    <div class="font-mono text-[10px] text-sage uppercase tracking-widest">Your outlook</div>
+                    <h2 id="dossier-archetype-name" class="font-serif italic text-2xl sm:text-3xl text-ochre mt-0.5">
+                        The Pragmatic Utilitarian
+                    </h2>
+                    <div id="dossier-sub-archetype" class="font-mono text-[10px] text-creamMuted mt-0.5">
+                        Secondary Tendency: Pathological Conflict Avoider
+                    </div>
+                    <p id="dossier-archetype-desc" class="text-xs text-cream/90 mt-2.5 leading-relaxed">
+                        You view morality as an engineering optimization problem while treating everyday human interaction in elevators and breakrooms as hazardous radiation zones.
+                    </p>
+                </div>
+
+                <!-- Custom SVG Radar Chart + Axis Metrics -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center bg-obsidian/70 border border-borderDim rounded-xl p-4">
+                    <div class="flex flex-col items-center">
+                        <div class="font-mono text-[9px] text-creamMuted uppercase mb-1">Your tendencies</div>
+                        <div id="radar-svg-container" class="w-48 h-48 flex items-center justify-center">
+                            <!-- Dynamic SVG Radar Chart Injected Here -->
+                        </div>
+                    </div>
+                    <div class="space-y-2.5 font-mono text-[11px]" id="dossier-metrics-list">
+                        <!-- 4 Axis Detail Bars -->
+                    </div>
+                </div>
+
+                <!-- Decision Log Transcript -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between font-mono text-[10px] text-creamMuted uppercase">
+                        <span>Your decisions</span>
+                        <span id="dossier-completion-stat">0 OF 20 LOGGED</span>
+                    </div>
+                    <div id="dossier-log-list" class="max-h-52 overflow-y-auto space-y-1.5 pr-1">
+                        <!-- Logged decisions inserted here -->
+                    </div>
+                </div>
+
+                <!-- Export / Copy Dossier & Return -->
+                <div class="pt-2 border-t border-borderDim flex flex-col sm:flex-row gap-2.5">
+                    <button onclick="app.copyDossierReport()" id="copy-report-btn" class="flex-1 bg-sage/15 border border-sage/50 text-sage hover:bg-sage hover:text-obsidian font-mono text-xs font-bold py-3 rounded-xl uppercase tracking-wider transition">
+                        Copy your portrait
+                    </button>
+                    <button onclick="app.showHub()" class="flex-1 bg-ochre text-obsidian font-mono text-xs font-bold py-3 rounded-xl uppercase tracking-wider hover:bg-amber-400 transition">
+                        Back to the collection
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SCENARIO INDEX MODAL (Quick Jump to any of the 20 dilemmas) -->
+    <div id="modal-picker" class="fixed inset-0 z-50 hidden bg-obsidian/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-panel border-2 border-borderDim rounded-2xl max-w-md w-full p-5 space-y-4 max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="flex items-center justify-between border-b border-borderDim pb-3">
+                <div>
+                    <div id="picker-deck-subtitle" class="font-mono text-[10px] text-ochre uppercase">DECK INDEX</div>
+                    <h3 id="picker-deck-title" class="font-serif italic text-2xl text-cream">Select Scenario</h3>
+                </div>
+                <button onclick="app.closeScenarioPicker()" class="font-mono text-xs text-creamMuted hover:text-cream bg-obsidian px-2.5 py-1 rounded border border-borderDim">
+                    [ ESC ]
+                </button>
+            </div>
+            <div id="picker-list" class="overflow-y-auto space-y-2 pr-1 flex-1">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM MOBILE NAVIGATION DOCK -->
+    <nav class="sticky bottom-0 z-40 bg-charcoal/95 backdrop-blur-md border-t border-borderDim px-4 py-2">
+        <div class="max-w-lg mx-auto grid grid-cols-4 gap-2">
+            <button onclick="app.showHub()" id="dock-hub" class="flex flex-col items-center py-1 rounded-lg font-mono text-[10px] text-ochre">
+                <span>❖ HUB</span>
+            </button>
+            <button onclick="app.startDeck('part1', app.deckIndices.part1)" id="dock-part1" class="flex flex-col items-center py-1 rounded-lg font-mono text-[10px] text-creamMuted hover:text-ochre">
+                <span>I. ETHICS</span>
+            </button>
+            <button onclick="app.startDeck('part2', app.deckIndices.part2)" id="dock-part2" class="flex flex-col items-center py-1 rounded-lg font-mono text-[10px] text-creamMuted hover:text-sage">
+                <span>II. SOCIAL</span>
+            </button>
+            <button onclick="app.openDossier()" id="dock-dossier" class="flex flex-col items-center py-1 rounded-lg font-mono text-[10px] text-creamMuted hover:text-ochre">
+                <span>▣ DOSSIER</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- APPLICATION ENGINE & 20 DETAILED SCENARIOS -->
+    <!-- ========================================== -->
+    <script>
+        // Multi-Layered Web Audio API Synthesizer
+        const soundEngine = {
+            ctx: null,
+            muted: false,
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            toggleMute() {
+                this.muted = !this.muted;
+                const label = document.getElementById('audio-label');
+                const dot = document.getElementById('audio-dot');
+                if (this.muted) {
+                    label.innerText = 'Sound off';
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-rust';
+                } else {
+                    label.innerText = 'Sound on';
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-sage';
+                    this.playRelayClick();
+                }
+            },
+            playRelayClick() {
+                if (this.muted) return;
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(75, now + 0.065);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.065);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.07);
+                } catch (e) {}
+            },
+            playChoiceLock(isOptionA) {
+                if (this.muted) return;
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    const freqs = isOptionA ? [392.00, 493.88, 587.33] : [349.23, 440.00, 523.25];
+                    freqs.forEach((f, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, now + idx * 0.045);
+                        gain.gain.setValueAtTime(0.08, now + idx * 0.045);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.045 + 0.28);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.045);
+                        osc.stop(now + idx * 0.045 + 0.29);
+                    });
+                } catch (e) {}
+            },
+            playDossierTone() {
+                if (this.muted) return;
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(f, now + i * 0.055);
+                        gain.gain.setValueAtTime(0.07, now + i * 0.055);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.055 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.055);
+                        osc.stop(now + i * 0.055 + 0.23);
+                    });
+                } catch (e) {}
+            }
+        };
+
+        // ============================================================================
+        // DECK I: THE 10 CANONICAL PHILOSOPHICAL DILEMMAS (WITH ANIMATED CUSTOM SVGS)
+        // ============================================================================
+        const deckPart1 = [
+            {
+                id: 'p1_1',
+                code: 'CASE 01 // 1967',
+                author: 'Philippa Foot',
+                domain: 'Action vs. Inaction',
+                tension: 'FATAL CALCULUS',
+                caption: 'FIG 1.1 // ISOMETRIC TRAM JUNCTION',
+                title: 'The Trolley Problem',
+                setup: 'A vintage red municipal tram has lost its brakes and is barreling toward a track fork. Five track workers are tied down on the main line. You stand next to a mechanical switch lever that can divert the tram onto a side spur—where one innocent worker is tied.',
+                briefing: 'Introduced by Philippa Foot in 1967, the Trolley Problem isolates the conflict between negative duties (the duty not to kill) and positive duties (the duty to save lives). Utilitarianism sees a straightforward 5-to-1 arithmetic gain, whereas Kantian deontology questions whether pulling the lever makes you the direct author of a murder.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Pull the Switch Lever',
+                        sub: 'Actively divert the tram: sacrifice 1 worker to save 5.',
+                        poll: 76,
+                        deltas: { util: 14, deon: -10, neur: 4, absu: 0 },
+                        analysis: 'You endorsed Act Utilitarianism. By intervening, you accepted moral agency for one death in exchange for a net preservation of four human lives.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Refuse to Touch the Lever',
+                        sub: 'Keep your hands clean; allow the 5 to perish by fate.',
+                        poll: 24,
+                        deltas: { util: -12, deon: 15, neur: 6, absu: 4 },
+                        analysis: 'You prioritized Deontological Non-Maleficence. You refused to become an instrument of homicide, preserving moral purity while five died.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Perspective Grid -->
+                    <g stroke="#e5e4de" stroke-width="1">
+                        <line x1="0" y1="45" x2="360" y2="45"/><line x1="0" y1="95" x2="360" y2="95"/><line x1="0" y1="145" x2="360" y2="145"/>
+                        <line x1="70" y1="0" x2="70" y2="190"/><line x1="180" y1="0" x2="180" y2="190"/><line x1="290" y1="0" x2="290" y2="190"/>
+                    </g>
+                    <!-- Sleepers & Tracks -->
+                    <path d="M 20 105 L 165 105 L 330 50" fill="none" stroke="#476b5b" stroke-width="3.5"/>
+                    <path d="M 165 105 L 330 150" fill="none" stroke="#93642f" stroke-width="3" stroke-dasharray="6 4"/>
+                    <!-- 5 Workers on Upper Track -->
+                    <g transform="translate(250, 38)">
+                        <circle cx="0" cy="24" r="6" fill="#a94e42" class="svg-heartbeat"/>
+                        <circle cx="15" cy="19" r="6" fill="#a94e42" class="svg-heartbeat"/>
+                        <circle cx="30" cy="14" r="6" fill="#a94e42" class="svg-heartbeat"/>
+                        <circle cx="45" cy="9" r="6" fill="#a94e42" class="svg-heartbeat"/>
+                        <circle cx="60" cy="4" r="6" fill="#a94e42" class="svg-heartbeat"/>
+                        <text x="-5" y="-4" fill="#a94e42" font-family="Space Mono" font-size="9">5 TIED WORKERS</text>
+                    </g>
+                    <!-- 1 Worker on Lower Spur -->
+                    <g transform="translate(275, 142)">
+                        <circle cx="0" cy="0" r="6.5" fill="#93642f"/>
+                        <text x="-20" y="18" fill="#93642f" font-family="Space Mono" font-size="9">1 WORKER</text>
+                    </g>
+                    <!-- Switch Lever Box -->
+                    <g transform="translate(155, 118)">
+                        <rect x="-10" y="10" width="20" height="10" rx="2" fill="#d6d5ce" stroke="#476b5b"/>
+                        <line x1="0" y1="10" x2="8" y2="-12" stroke="#242622" stroke-width="2.5"/>
+                        <circle cx="8" cy="-12" r="4.5" fill="#93642f" class="svg-pulse-ring"/>
+                    </g>
+                    <!-- Animated Chugging Tram -->
+                    <g class="svg-chug">
+                        <circle cx="62" cy="68" r="6" fill="#93642f" opacity="0.5" class="svg-smoke-1"/>
+                        <circle cx="75" cy="65" r="5" fill="#476b5b" opacity="0.5" class="svg-smoke-2"/>
+                        <rect x="45" y="75" width="68" height="32" rx="5" fill="#a94e42" stroke="#242622" stroke-width="1.5"/>
+                        <rect x="53" y="81" width="14" height="11" rx="1.5" fill="#f4f3ef"/>
+                        <rect x="72" y="81" width="14" height="11" rx="1.5" fill="#f4f3ef"/>
+                        <rect x="91" y="81" width="14" height="11" rx="1.5" fill="#93642f"/>
+                        <circle cx="60" cy="109" r="5" fill="#242622"/>
+                        <circle cx="98" cy="109" r="5" fill="#242622"/>
+                    </g>
+                </svg>`
+            },
+            {
+                id: 'p1_2',
+                code: 'CASE 02 // 1985',
+                author: 'Judith Jarvis Thomson',
+                domain: 'Doctrine of Double Effect',
+                tension: 'BODILY INSTRUMENTALIZATION',
+                caption: 'FIG 1.2 // OVERPASS FOOTBRIDGE CALCULUS',
+                title: 'The Fat Man on the Footbridge',
+                setup: 'You stand on a pedestrian footbridge overlooking the tracks. A runaway trolley approaches five tied workers. There is no switch lever this time—only a very heavy stranger leaning over the railing beside you. Pushing him onto the tracks will physically block the trolley, killing him but saving the five.',
+                briefing: 'Judith Jarvis Thomson crafted this variation to expose why most people pull the lever in Case 01 but recoil here. The Doctrine of Double Effect distinguishes between foreseeing death as an unintended side effect (Case 01) versus actively using another person’s body purely as a physical brake pad (Case 02).',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Push the Heavy Stranger Over',
+                        sub: 'Use his body mass to halt the tram and save 5 lives.',
+                        poll: 18,
+                        deltas: { util: 18, deon: -18, neur: 8, absu: 2 },
+                        analysis: 'Cold-blooded mathematical consistency! While 82% of subjects balk at physical shoving, you treated 5 > 1 as invariant across mediums.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Keep Hands Off the Stranger',
+                        sub: 'Refuse to use an innocent bystander as a human shield.',
+                        poll: 82,
+                        deltas: { util: -10, deon: 16, neur: 2, absu: 0 },
+                        analysis: 'You upheld Kant’s Second Formulation: never treat a human being merely as a means to an end, even when five lives hang in the balance.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Lower Track -->
+                    <line x1="15" y1="152" x2="345" y2="152" stroke="#476b5b" stroke-width="3"/>
+                    <!-- Trolley Below -->
+                    <g class="svg-chug">
+                        <rect x="45" y="126" width="56" height="24" rx="4" fill="#a94e42" stroke="#242622"/>
+                        <polygon points="101,130 135,118 135,152 101,148" fill="#93642f" opacity="0.25"/>
+                    </g>
+                    <!-- 5 Workers Right -->
+                    <g transform="translate(275, 144)">
+                        <circle cx="0" cy="0" r="5" fill="#a94e42"/><circle cx="12" cy="0" r="5" fill="#a94e42"/><circle cx="24" cy="0" r="5" fill="#a94e42"/><circle cx="36" cy="0" r="5" fill="#a94e42"/><circle cx="48" cy="0" r="5" fill="#a94e42"/>
+                    </g>
+                    <!-- Overpass Footbridge -->
+                    <rect x="95" y="68" width="170" height="14" fill="#ffffff" stroke="#476b5b" stroke-width="1.5"/>
+                    <line x1="105" y1="52" x2="255" y2="52" stroke="#93642f" stroke-width="1.5" stroke-dasharray="4 2"/>
+                    <!-- Heavy Stranger Leaning -->
+                    <g class="svg-float" transform="translate(185, 42)">
+                        <circle cx="0" cy="0" r="14" fill="#93642f" stroke="#242622" stroke-width="1.5"/>
+                        <circle cx="0" cy="-16" r="6" fill="#242622"/>
+                    </g>
+                    <!-- Subject (You) Behind Him -->
+                    <g transform="translate(145, 44)">
+                        <circle cx="0" cy="-14" r="5.5" fill="#476b5b"/>
+                        <rect x="-5" y="-7" width="10" height="22" rx="3" fill="#476b5b"/>
+                        <line x1="6" y1="-2" x2="20" y2="-2" stroke="#a94e42" stroke-width="2.5"/>
+                    </g>
+                    <!-- Trajectory Arrow -->
+                    <path d="M 195 75 Q 210 110 195 140" fill="none" stroke="#a94e42" stroke-width="2" stroke-dasharray="4 3"/>
+                </svg>`
+            },
+            {
+                id: 'p1_3',
+                code: 'CASE 03 // 1972',
+                author: 'Peter Singer',
+                domain: 'Effective Altruism',
+                tension: 'LUXURY VS. SURVIVAL',
+                caption: 'FIG 1.3 // SHALLOW POND PROXIMITY BIAS',
+                title: 'The Drowning Child & The Bugatti',
+                setup: 'Walking past a shallow ornamental pond on your way to an important brunch, you see a toddler flailing face-down. Saving the child takes 10 seconds and zero danger—but wading in will permanently destroy your $4,000 bespoke Italian suit and vintage timepiece.',
+                briefing: 'Peter Singer’s famous essay "Famine, Affluence, and Morality" uses this scenario to trap our moral hypocrisy: almost everyone agrees it is monstrous to let the child drown to save a $4,000 suit, yet we routinely spend thousands on luxuries while children die of preventable diseases overseas.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Wade In & Ruin the $4,000 Suit',
+                        sub: 'Rescue the toddler immediately; absorb the financial loss.',
+                        poll: 95,
+                        deltas: { util: 12, deon: 12, neur: -4, absu: -6 },
+                        analysis: 'You passed the immediate proximity test—yet Singer notes that unless you wire $4,000 to malaria nets tonight, you value geographic closeness over life itself.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Preserve the Suit & Keep Walking',
+                        sub: 'Prioritize sartorial equity and arrive at brunch dry.',
+                        poll: 5,
+                        deltas: { util: -18, deon: -18, neur: 6, absu: 18 },
+                        analysis: 'Chillingly consistent with how modern consumers treat distant global suffering—you simply applied remote indifference to your local pond.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Pond Ripples -->
+                    <ellipse cx="220" cy="115" rx="105" ry="48" fill="#476b5b" opacity="0.1" stroke="#476b5b" stroke-width="1.5"/>
+                    <ellipse cx="220" cy="115" rx="68" ry="30" fill="none" stroke="#476b5b" stroke-width="1.2" class="svg-pulse-ring"/>
+                    <ellipse cx="220" cy="115" rx="35" ry="16" fill="none" stroke="#a94e42" stroke-width="1.5" class="svg-pulse-ring"/>
+                    <!-- Flailing Child -->
+                    <g class="svg-float" transform="translate(220, 110)">
+                        <circle cx="0" cy="0" r="7" fill="#a94e42"/>
+                        <line x1="-12" y1="-12" x2="-4" y2="-3" stroke="#242622" stroke-width="2.5"/>
+                        <line x1="12" y1="-12" x2="4" y2="-3" stroke="#242622" stroke-width="2.5"/>
+                        <text x="-28" y="-18" fill="#a94e42" font-family="Space Mono" font-size="9">SOS // 0.8M DEPTH</text>
+                    </g>
+                    <!-- Bank & You in $4,000 Suit -->
+                    <path d="M 0 135 Q 80 125 110 175 L 0 190 Z" fill="#ffffff" stroke="#93642f" stroke-width="1.5"/>
+                    <g transform="translate(65, 95)">
+                        <circle cx="0" cy="-22" r="7" fill="#242622"/>
+                        <polygon points="-10,-12 10,-12 13,22 -13,22" fill="#93642f"/>
+                        <polygon points="-3,-12 3,-12 1,6 -1,6" fill="#f4f3ef"/>
+                        <text x="-38" y="-35" fill="#93642f" font-family="Space Mono" font-size="9">$4,000 BESPOKE</text>
+                    </g>
+                </svg>`
+            },
+            {
+                id: 'p1_4',
+                code: 'CASE 04 // 1976',
+                author: 'Judith Jarvis Thomson',
+                domain: 'Medical Deontology',
+                tension: 'SURGICAL HARVESTING',
+                caption: 'FIG 1.4 // CLINICAL ORGAN ALLOCATION WARD',
+                title: 'The Transplant Surgeon',
+                setup: 'You are a brilliant transplant surgeon. Five patients in Ward B will die tonight without organs (two kidneys, two lungs, one heart). A completely healthy backpacker walks in for a routine checkup and falls asleep on your exam table. He is a universal donor. Nobody knows he is here.',
+                briefing: 'If pure utilitarianism demands sacrificing one to save five (as in the Trolley Problem), why shouldn’t a surgeon harvest one healthy checkup patient to save five dying patients? This thought experiment proves that inviolable individual rights act as a "moral firewall" against pure outcome math.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Harvest the Sleeping Backpacker',
+                        sub: 'Silently redistribute his 5 vital organs; save all 5 patients.',
+                        poll: 9,
+                        deltas: { util: 20, deon: -22, neur: 10, absu: 6 },
+                        analysis: 'You took Utilitarianism to its terrifying logical conclusion. Five families celebrate tonight, though nobody will ever visit a clinic for a checkup again.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Uphold the Hippocratic Oath',
+                        sub: 'Wake the backpacker with a clean bill of health; let 5 die.',
+                        poll: 91,
+                        deltas: { util: -12, deon: 18, neur: 0, absu: -4 },
+                        analysis: 'You recognized that institutional trust and bodily autonomy outweigh raw body-count arithmetic.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Left Healthy Donor Bed -->
+                    <rect x="25" y="45" width="105" height="100" rx="6" fill="#ffffff" stroke="#476b5b" stroke-width="1.5"/>
+                    <circle cx="77" cy="85" r="14" fill="#a94e42" class="svg-heartbeat"/>
+                    <polyline points="40,122 60,122 68,108 76,134 84,115 92,122 115,122" fill="none" stroke="#476b5b" stroke-width="2"/>
+                    <text x="38" y="63" fill="#476b5b" font-family="Space Mono" font-size="9">1 HEALTHY DONOR</text>
+                    <!-- Distribution Conduit -->
+                    <path d="M 130 95 L 205 40 M 130 95 L 205 68 M 130 95 L 205 95 M 130 95 L 205 122 M 130 95 L 205 150" stroke="#93642f" stroke-width="1.5" stroke-dasharray="4 3"/>
+                    <!-- 5 Critical Recipients -->
+                    <g transform="translate(210, 26)" font-family="Space Mono" font-size="8" fill="#242622">
+                        <rect x="0" y="0" width="120" height="22" rx="3" fill="#ffffff" stroke="#a94e42"/><text x="10" y="14">WARD 01 // HEART</text>
+                        <rect x="0" y="28" width="120" height="22" rx="3" fill="#ffffff" stroke="#a94e42"/><text x="10" y="42">WARD 02 // LUNG L</text>
+                        <rect x="0" y="56" width="120" height="22" rx="3" fill="#ffffff" stroke="#a94e42"/><text x="10" y="70">WARD 03 // LUNG R</text>
+                        <rect x="0" y="84" width="120" height="22" rx="3" fill="#ffffff" stroke="#a94e42"/><text x="10" y="98">WARD 04 // KIDNEY L</text>
+                        <rect x="0" y="112" width="120" height="22" rx="3" fill="#ffffff" stroke="#a94e42"/><text x="10" y="126">WARD 05 // KIDNEY R</text>
+                    </g>
+                </svg>`
+            },
+            {
+                id: 'p1_5',
+                code: 'CASE 05 // 1950',
+                author: 'Flood, Dresher & Tucker',
+                domain: 'Game Theory',
+                tension: 'NASH EQUILIBRIUM',
+                caption: 'FIG 1.5 // ISOLATED INTERROGATION MATRIX',
+                title: 'The Prisoner’s Dilemma',
+                setup: 'You and your accomplice are locked in separate soundproof interrogation cells. If both stay silent, you each serve 1 year. If you snitch and they stay silent, you walk free (0 years) and they serve 10 years. If both snitch, you both serve 5 years.',
+                briefing: 'Formulated at RAND Corporation in 1950, the Prisoner’s Dilemma demonstrates why two purely rational individuals might not cooperate even when it is in their collective best interest. Defecting strictly dominates cooperating from a self-interested perspective, trapping both players in a worse outcome.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Cooperate (Maintain Silence)',
+                        sub: 'Trust your accomplice; risk 10 years for the 1-year mutual optimum.',
+                        poll: 34,
+                        deltas: { util: 8, deon: 14, neur: 6, absu: -6 },
+                        analysis: 'You chose Kantian universalizability and solidarity over game-theoretic paranoia—exposing yourself to catastrophic betrayal if your partner is a rational economist.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Defect (Snitch Immediately)',
+                        sub: 'Sign the confession first; lock in the Nash Equilibrium.',
+                        poll: 66,
+                        deltas: { util: -6, deon: -12, neur: 10, absu: 12 },
+                        analysis: 'You played the dominant game-theoretic strategy. Individual rationality triumphed over collective welfare.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Cell A -->
+                    <rect x="25" y="30" width="135" height="130" rx="6" fill="#eeede8" stroke="#476b5b" stroke-width="1.5"/>
+                    <polygon points="92,32 55,130 130,130" fill="#476b5b" opacity="0.12" class="svg-flicker"/>
+                    <circle cx="92" cy="105" r="11" fill="#476b5b"/>
+                    <text x="48" y="148" fill="#476b5b" font-family="Space Mono" font-size="9">CELL A // SUBJECT</text>
+                    <!-- Soundproof Wall Divider -->
+                    <line x1="180" y1="15" x2="180" y2="175" stroke="#a94e42" stroke-width="3" stroke-dasharray="6 4"/>
+                    <!-- Cell B -->
+                    <rect x="200" y="30" width="135" height="130" rx="6" fill="#eeede8" stroke="#93642f" stroke-width="1.5"/>
+                    <polygon points="267,32 230,130 305,130" fill="#93642f" opacity="0.12" class="svg-flicker"/>
+                    <circle cx="267" cy="105" r="11" fill="#93642f"/>
+                    <text x="218" y="148" fill="#93642f" font-family="Space Mono" font-size="9">CELL B // PARTNER</text>
+                </svg>`
+            },
+            {
+                id: 'p1_6',
+                code: 'CASE 06 // 1958',
+                author: 'Lawrence Kohlberg',
+                domain: 'Moral Development',
+                tension: 'LIFE VS. PROPERTY STATUTE',
+                caption: 'FIG 1.6 // NOCTURNAL PHARMACY LOCKBOX',
+                title: 'The Heinz Dilemma',
+                setup: 'Heinz’s wife is dying of a rare cancer. A local chemist discovered a radium compound that can save her, charging $2,000 (10x its $200 production cost). Heinz scrapes together $1,000 and begs for credit, but the chemist refuses: "I discovered it, I’m going to make money from it." Should Heinz break in tonight?',
+                briefing: 'Psychologist Lawrence Kohlberg used this scenario to map his 6 Stages of Moral Development. Stage 4 (Law-and-Order) insists stealing is always wrong because society needs property rules; Stage 6 (Universal Ethical Principles) recognizes that the fundamental right to life supersedes commercial patent monopolies.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Shatter the Glass & Steal the Drug',
+                        sub: 'Violate property law to preserve a human life; accept arrest.',
+                        poll: 86,
+                        deltas: { util: 14, deon: 6, neur: -4, absu: -4 },
+                        analysis: 'Kohlberg Stage 6 reasoning: you subordinated statutory property law to a higher universal imperative of preserving human life.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Respect the Chemist’s Property Rights',
+                        sub: 'Obey the legal code; do not commit burglary.',
+                        poll: 14,
+                        deltas: { util: -14, deon: 12, neur: 8, absu: 6 },
+                        analysis: 'Kohlberg Stage 4 legalism: you prioritized the stability of institutional property statutes over an individual life.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Pharmacy Window -->
+                    <rect x="85" y="30" width="190" height="125" rx="8" fill="#ffffff" stroke="#476b5b" stroke-width="2"/>
+                    <!-- Glowing Radium Vial -->
+                    <g class="svg-float" transform="translate(180, 92)">
+                        <circle cx="0" cy="0" r="28" fill="#476b5b" opacity="0.15" class="svg-pulse-ring"/>
+                        <rect x="-10" y="-18" width="20" height="36" rx="4" fill="#476b5b" stroke="#242622" stroke-width="1.5"/>
+                        <text x="-38" y="34" fill="#93642f" font-family="Space Mono" font-size="9">RADIUM // $2,000</text>
+                    </g>
+                    <!-- Crowbar Icon -->
+                    <path d="M 42 135 L 95 85 C 102 78 110 85 104 92" fill="none" stroke="#a94e42" stroke-width="4" stroke-linecap="round"/>
+                </svg>`
+            },
+            {
+                id: 'p1_7',
+                code: 'CASE 07 // 1974',
+                author: 'Robert Nozick',
+                domain: 'Hedonism vs. Authenticity',
+                tension: 'SIMULATED EUPHORIA',
+                caption: 'FIG 1.7 // NEURO-SYNAPTIC PLEASURE VAT',
+                title: 'The Experience Machine',
+                setup: 'Super-duper neuropsychologists have perfected a sensory tank. Once you plug your brain in, you will experience 80 years of extraordinary bliss—writing great novels, falling in love, basking in admiration—without ever suspecting you are floating in a dark lab vat. Do you plug in for life?',
+                briefing: 'In "Anarchy, State, and Utopia" (1974), Robert Nozick designed this thought experiment to refute Ethical Hedonism. If subjective pleasure were the sole measure of a good life, everyone would plug in without hesitation. Our reluctance reveals we care about *actually doing* things and *living in contact with reality*.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Plug Into the Simulation Forever',
+                        sub: 'Guarantee 100% subjective euphoria; abandon baseline reality.',
+                        poll: 27,
+                        deltas: { util: 15, deon: -10, neur: -8, absu: 16 },
+                        analysis: 'Pure Hedonist! Since all experience is ultimately electrochemical firing in the cortex, you opted for guaranteed premium neurotransmitters.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Stay Unplugged in Raw Reality',
+                        sub: 'Embrace authentic struggle, failure, and real human contact.',
+                        poll: 73,
+                        deltas: { util: -6, deon: 12, neur: 6, absu: -10 },
+                        analysis: 'You validated Nozick’s thesis: human flourishing requires agency and truth, not merely pleasurable neural states.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Cryo Tank -->
+                    <rect x="115" y="22" width="130" height="145" rx="22" fill="#eeede8" stroke="#476b5b" stroke-width="2.5"/>
+                    <circle cx="180" cy="88" r="38" fill="#6d7185" opacity="0.22" class="svg-pulse-ring"/>
+                    <!-- Floating Brain / Subject -->
+                    <g class="svg-float" transform="translate(180, 88)">
+                        <ellipse cx="0" cy="0" rx="24" ry="18" fill="#93642f" stroke="#242622" stroke-width="1.5"/>
+                        <path d="M -12 0 Q 0 -10 12 0 M -10 6 Q 0 -2 10 6" fill="none" stroke="#f4f3ef" stroke-width="2"/>
+                    </g>
+                    <!-- Neural Cables -->
+                    <path d="M 40 50 Q 90 50 155 75 M 40 130 Q 95 130 158 100 M 320 60 Q 260 60 205 78" fill="none" stroke="#476b5b" stroke-width="2"/>
+                    <text x="133" y="152" fill="#476b5b" font-family="Space Mono" font-size="9">BLISS_INDEX: 99.9%</text>
+                </svg>`
+            },
+            {
+                id: 'p1_8',
+                code: 'CASE 08 // APPLIED',
+                author: 'Modern Applied Ethics',
+                domain: 'Threshold Deontology',
+                tension: 'CATASTROPHIC COUNTDOWN',
+                caption: 'FIG 1.8 // SUBTERRANEAN DETENTION BUNKER',
+                title: 'The Ticking Time Bomb',
+                setup: 'A thermonuclear device is hidden in a metropolis of 4 million people. The digital timer reads 04:59. You have custody of the operative who planted it; he smirks and refuses to speak. Standard interrogation has failed. Do you authorize extreme physical torture to extract the disarmament code?',
+                briefing: 'This scenario tests whether moral absolutes (like the prohibition against torture) hold when the consequences become astronomical. "Threshold Deontologists" argue that moral duties hold up to a certain catastrophic threshold, after which consequentialist survival takes over.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Authorize Interrogation Torture',
+                        sub: 'Breach human rights conventions to save 4,000,000 citizens.',
+                        poll: 62,
+                        deltas: { util: 18, deon: -20, neur: 8, absu: 2 },
+                        analysis: 'Threshold Consequentialist: when 4 million lives are at stake, you suspended absolute human rights prohibitions.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Uphold Absolute Rights Boundary',
+                        sub: 'Refuse torture unconditionally regardless of the countdown.',
+                        poll: 38,
+                        deltas: { util: -16, deon: 22, neur: 4, absu: 0 },
+                        analysis: 'Kantian Absolutist: *"Fiat justitia, ruat caelum"* (Let justice be done, though the heavens fall).'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Countdown Clock -->
+                    <rect x="85" y="45" width="190" height="82" rx="8" fill="#ffffff" stroke="#a94e42" stroke-width="2.5"/>
+                    <circle cx="180" cy="86" r="55" fill="none" stroke="#a94e42" stroke-width="1" class="svg-pulse-ring"/>
+                    <text x="108" y="102" fill="#a94e42" font-family="Space Mono" font-weight="bold" font-size="42" class="svg-flicker">04:59</text>
+                    <text x="112" y="152" fill="#93642f" font-family="Space Mono" font-size="9">BLAST RADIUS: 4,000,000 POP</text>
+                </svg>`
+            },
+            {
+                id: 'p1_9',
+                code: 'CASE 09 // 375 BC',
+                author: 'Plato (The Republic)',
+                domain: 'Intrinsic Justice',
+                tension: 'ZERO ACCOUNTABILITY',
+                caption: 'FIG 1.9 // LYDIAN INVISIBILITY ARTIFACT',
+                title: 'The Ring of Gyges',
+                setup: 'After an earthquake splits open an ancient bronze tomb, you discover a gold ring. Twisting its bezel inward renders you 100% invisible to human eyes, cameras, and forensic audits. No law or reputation penalty can ever touch you again. How do you live?',
+                briefing: 'In Book II of Plato’s Republic, Glaucon challenges Socrates with the Ring of Gyges, arguing that no human is virtuous by choice—only out of fear of getting caught. If given both a "just man" and an "unjust man" invisibility rings, Glaucon claims both would follow the exact same path of self-interest.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Remain Strictly Moral & Law-Abiding',
+                        sub: 'Treat justice as intrinsically good for the harmony of the soul.',
+                        poll: 41,
+                        deltas: { util: 6, deon: 18, neur: -6, absu: -10 },
+                        analysis: 'Socratic Virtue Ethicist: you aligned with Plato’s conclusion that corrupting one’s own soul is worse than any material poverty.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Use Invisibility for Self-Enrichment',
+                        sub: 'Bypass laws and vaults quietly; enjoy total impunity.',
+                        poll: 59,
+                        deltas: { util: -8, deon: -18, neur: -2, absu: 18 },
+                        analysis: 'You proved Glaucon right: morality for you functions primarily as a social contract enforced by surveillance.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Glowing Ring of Gyges -->
+                    <g class="svg-float" transform="translate(180, 92)">
+                        <circle cx="0" cy="0" r="52" fill="none" stroke="#93642f" stroke-width="1.5" stroke-dasharray="4 4" class="svg-pulse-ring"/>
+                        <circle cx="0" cy="0" r="34" fill="none" stroke="#93642f" stroke-width="9"/>
+                        <!-- All-Seeing Eye Inside Ring -->
+                        <path d="M -20 0 Q 0 -16 20 0 Q 0 16 -20 0 Z" fill="#f4f3ef" stroke="#476b5b" stroke-width="2"/>
+                        <circle cx="0" cy="0" r="6" fill="#476b5b"/>
+                    </g>
+                    <text x="115" y="168" fill="#93642f" font-family="Space Mono" font-size="9">SURVEILLANCE_DETECTION: 0.0%</text>
+                </svg>`
+            },
+            {
+                id: 'p1_10',
+                code: 'CASE 10 // 1984',
+                author: 'Derek Parfit',
+                domain: 'Population Ethics',
+                tension: 'QUALITY VS. AGGREGATE QUANTITY',
+                caption: 'FIG 1.10 // WORLD A BLISS VS. WORLD Z POTATO GRID',
+                title: 'The Repugnant Conclusion',
+                setup: 'As cosmic architect, you must choose between two futures. World A contains 10 million humans living in ecstatic creative fulfillment (+100 utils each = 1 Billion total utils). World Z contains 100 trillion humans whose lives are barely worth living—eating plain potatoes in dim cubicles (+1 util each = 100 Trillion total utils).',
+                briefing: 'In "Reasons and Persons" (1984), Derek Parfit showed that any ethical theory seeking to maximize *total* happiness inevitably prefers World Z over World A, because sheer population volume swamps individual quality of life. Parfit called this "The Repugnant Conclusion."',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Instantiate World A (10M in Bliss)',
+                        sub: 'Prioritize high average quality of life over raw total volume.',
+                        poll: 84,
+                        deltas: { util: -8, deon: 10, neur: 0, absu: -6 },
+                        analysis: 'You rejected Total Utilitarianism in favor of Average/Quality-Weighted flourishing, escaping Parfit’s gray potato dystopia.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Instantiate World Z (100T Barely Happy)',
+                        sub: 'Maximize aggregate mathematical utility across the cosmos.',
+                        poll: 16,
+                        deltas: { util: 22, deon: -10, neur: 6, absu: 18 },
+                        analysis: 'Biting the bullet on Total Utilitarianism! You multiplied lukewarm existence by 100 trillion and declared victory.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- World A Left -->
+                    <rect x="22" y="28" width="140" height="132" rx="6" fill="#ffffff" stroke="#93642f" stroke-width="1.5"/>
+                    <circle cx="92" cy="82" r="24" fill="#93642f" opacity="0.2" class="svg-pulse-ring"/>
+                    <circle cx="78" cy="82" r="6" fill="#93642f"/><circle cx="106" cy="82" r="6" fill="#93642f"/><circle cx="92" cy="66" r="6" fill="#93642f"/>
+                    <text x="36" y="142" fill="#93642f" font-family="Space Mono" font-size="9">WORLD A: 10M ECSTATIC</text>
+                    <!-- World Z Right -->
+                    <rect x="198" y="28" width="140" height="132" rx="6" fill="#ffffff" stroke="#476b5b" stroke-width="1.5"/>
+                    <g fill="#476b5b" opacity="0.75">
+                        <circle cx="218" cy="50" r="2"/><circle cx="233" cy="50" r="2"/><circle cx="248" cy="50" r="2"/><circle cx="263" cy="50" r="2"/><circle cx="278" cy="50" r="2"/><circle cx="293" cy="50" r="2"/><circle cx="308" cy="50" r="2"/><circle cx="323" cy="50" r="2"/>
+                        <circle cx="218" cy="66" r="2"/><circle cx="233" cy="66" r="2"/><circle cx="248" cy="66" r="2"/><circle cx="263" cy="66" r="2"/><circle cx="278" cy="66" r="2"/><circle cx="293" cy="66" r="2"/><circle cx="308" cy="66" r="2"/><circle cx="323" cy="66" r="2"/>
+                        <circle cx="218" cy="82" r="2"/><circle cx="233" cy="82" r="2"/><circle cx="248" cy="82" r="2"/><circle cx="263" cy="82" r="2"/><circle cx="278" cy="82" r="2"/><circle cx="293" cy="82" r="2"/><circle cx="308" cy="82" r="2"/><circle cx="323" cy="82" r="2"/>
+                        <circle cx="218" cy="98" r="2"/><circle cx="233" cy="98" r="2"/><circle cx="248" cy="98" r="2"/><circle cx="263" cy="98" r="2"/><circle cx="278" cy="98" r="2"/><circle cx="293" cy="98" r="2"/><circle cx="308" cy="98" r="2"/><circle cx="323" cy="98" r="2"/>
+                        <circle cx="218" cy="114" r="2"/><circle cx="233" cy="114" r="2"/><circle cx="248" cy="114" r="2"/><circle cx="263" cy="114" r="2"/><circle cx="278" cy="114" r="2"/><circle cx="293" cy="114" r="2"/><circle cx="308" cy="114" r="2"/><circle cx="323" cy="114" r="2"/>
+                    </g>
+                    <text x="208" y="142" fill="#476b5b" font-family="Space Mono" font-size="9">WORLD Z: 100T POTATOES</text>
+                </svg>`
+            }
+        ];
+
+        // ============================================================================
+        // DECK II: 10 EVERYDAY SOCIAL & EXISTENTIAL SPIN-OFF GAMES
+        // ============================================================================
+        const deckPart2 = [
+            {
+                id: 'p2_1',
+                code: 'SOCIAL 01 // FLOOR 07',
+                author: 'The Existential Elevator',
+                domain: 'Proxemic Avoidance',
+                tension: 'AIRBORNE AWKWARDNESS',
+                caption: 'FIG 2.1 // VERTICAL TRANSIT CONTAINMENT CABIN',
+                title: 'The Existential Elevator',
+                setup: 'You board the office elevator on Floor 1. At Floor 3, Davina from Accounting steps in. At Floor 7, she unleashes a wet cough and asks, "Big plans for the weekend?"—it is currently Tuesday at 9:14 AM. At Floor 12, the elevator jolts and halts between floors.',
+                briefing: 'Sociologist Erving Goffman termed elevator etiquette "civil inattention"—acknowledging others’ presence just enough to show you aren’t a threat, then withdrawing gaze onto the Municipal Elevator Safety Certificate.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Aggressive Floor-Indicator Stare',
+                        sub: 'Edge 2 inches away, hold breath, and study the safety certificate for 90 seconds.',
+                        poll: 79,
+                        deltas: { util: 4, deon: 4, neur: 18, absu: 8 },
+                        analysis: 'Diagnosis: Aggressive Floor-Watcher. You treated eye contact inside a 5x5 steel box as an existential breach of sovereignty.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Forced Weather & Weekend Small-Talk',
+                        sub: 'Fake enthusiasm about non-existent weekend plans on a Tuesday.',
+                        poll: 21,
+                        deltas: { util: 8, deon: 10, neur: 14, absu: 12 },
+                        analysis: 'Diagnosis: Forced Weather Commentator. You sacrificed authentic silence on the altar of corporate geniality.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Elevator Shaft & Doors -->
+                    <rect x="95" y="18" width="170" height="154" rx="4" fill="#ffffff" stroke="#476b5b" stroke-width="2"/>
+                    <line x1="180" y1="42" x2="180" y2="172" stroke="#d6d5ce" stroke-width="2"/>
+                    <!-- Digital Floor Header -->
+                    <rect x="145" y="23" width="70" height="16" rx="2" fill="#f4f3ef" stroke="#93642f"/>
+                    <text x="157" y="34" fill="#a94e42" font-family="Space Mono" font-size="10" class="svg-flicker">FL 07 // STALL</text>
+                    <!-- You (Corner Staring Up) -->
+                    <circle cx="132" cy="110" r="10" fill="#476b5b"/>
+                    <rect x="122" y="122" width="20" height="36" rx="3" fill="#476b5b"/>
+                    <!-- Coughing Coworker -->
+                    <circle cx="228" cy="110" r="10" fill="#93642f"/>
+                    <rect x="218" y="122" width="20" height="36" rx="3" fill="#93642f"/>
+                    <circle cx="205" cy="105" r="12" fill="none" stroke="#a94e42" stroke-dasharray="3 2" class="svg-pulse-ring"/>
+                </svg>`
+            },
+            {
+                id: 'p2_2',
+                code: 'SOCIAL 02 // HR MEMO',
+                author: 'Capitalism Edition',
+                domain: 'Corporate Euphemism',
+                tension: 'Q3 HEADCOUNT SYNERGY',
+                caption: 'FIG 2.2 // ENTERPRISE ATTRITION TRACKS',
+                title: 'Trolley Problem: Corporate Edition',
+                setup: 'A runaway Q3 Restructuring Initiative is hurtling down the tracks. Track A holds 5 unpaid summer interns; Track B holds 1 Senior VP whose stock options haven’t vested yet. Pulling the lever labeled "Send to Committee" saves the interns but triggers a mandatory 45-minute agile retrospective.',
+                briefing: 'Modern managerial vocabulary converts ethical violence into frictionless spreadsheet verbs ("right-sizing", "sunsetting", "natural attrition"). The real dilemma is whether anyone can survive a 45-minute camera-on retrospective.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Pull Lever: Trigger 45-Min Retrospective',
+                        sub: 'Save the 5 unpaid interns; endure a calendar invite titled "Quick Sync".',
+                        poll: 42,
+                        deltas: { util: 12, deon: 8, neur: 12, absu: -4 },
+                        analysis: 'Heroic sacrifice: you endured an unmuted Zoom retrospective with Miro boards just to save five interns.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Classify Crash as "Natural Attrition"',
+                        sub: 'Protect the VP’s unvested equity and keep your calendar block clear.',
+                        poll: 58,
+                        deltas: { util: -12, deon: -10, neur: -4, absu: 20 },
+                        analysis: 'True Executive Material! By doing nothing, you protected shareholder alignment and avoided a meeting.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <path d="M 20 95 L 160 95 L 320 45" fill="none" stroke="#476b5b" stroke-width="3"/>
+                    <path d="M 160 95 L 320 145" fill="none" stroke="#93642f" stroke-width="3"/>
+                    <g class="svg-chug">
+                        <rect x="40" y="72" width="75" height="28" rx="4" fill="#6d7185" stroke="#242622"/>
+                        <text x="48" y="90" fill="#242622" font-family="Space Mono" font-size="9">Q3 SYNERGY</text>
+                    </g>
+                    <text x="225" y="38" fill="#476b5b" font-family="Space Mono" font-size="9">5 UNPAID INTERNS</text>
+                    <text x="225" y="164" fill="#93642f" font-family="Space Mono" font-size="9">1 UNVESTED VP</text>
+                </svg>`
+            },
+            {
+                id: 'p2_3',
+                code: 'SOCIAL 03 // CLINIC',
+                author: 'The Waiting Room',
+                domain: 'Public Acoustic Torture',
+                tension: '14-RING MARIMBA',
+                caption: 'FIG 2.3 // FLUORESCENT WAITING ROOM PURGATORY',
+                title: 'The Sterile Waiting Room',
+                setup: 'Fluorescent tubes hum overhead. A wall-mounted TV blares a home shopping network at volume 88. The remote rests on a chair next to a dozing grandma. Simultaneously, a man across from you lets his iPhone play the default Marimba ringtone for 14 full rings before answering on speakerphone.',
+                briefing: 'The Waiting Room exposes the tension between Hobbesian chaos and lockjawed politeness. How much sensory infringement will a citizen absorb before becoming a vigilante?',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Simmer in Silent Internal Fury',
+                        sub: 'Stare at a 2019 issue of Boating Monthly while your blood pressure hits 190.',
+                        poll: 87,
+                        deltas: { util: -4, deon: 8, neur: 20, absu: 6 },
+                        analysis: 'Diagnosis: Pathological Conflict Avoider. You chose internal organ damage over causing a 4-second social ripple.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Seize the Remote & Confront Speakerphone Guy',
+                        sub: 'Become the Waiting Room Vigilante; restore acoustic justice.',
+                        poll: 13,
+                        deltas: { util: 16, deon: -4, neur: -12, absu: 8 },
+                        analysis: 'Diagnosis: Room Vigilante. Ten silent sufferers in the room secretly worshipped you while pretending to look at their shoes.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Flickering Fluorescent Light -->
+                    <rect x="90" y="16" width="180" height="8" rx="4" fill="#476b5b" class="svg-flicker"/>
+                    <!-- Blaring TV -->
+                    <rect x="35" y="42" width="85" height="55" rx="4" fill="#ffffff" stroke="#a94e42" stroke-width="2"/>
+                    <text x="47" y="74" fill="#a94e42" font-family="Space Mono" font-size="10">VOL: 88%</text>
+                    <!-- Speakerphone Guy -->
+                    <g transform="translate(245, 105)">
+                        <circle cx="0" cy="0" r="28" fill="none" stroke="#93642f" stroke-width="1.5" class="svg-pulse-ring"/>
+                        <circle cx="0" cy="0" r="12" fill="#93642f"/>
+                        <text x="-48" y="36" fill="#93642f" font-family="Space Mono" font-size="9">MARIMBA RING x14</text>
+                    </g>
+                </svg>`
+            },
+            {
+                id: 'p2_4',
+                code: 'SOCIAL 04 // 11:42 PM',
+                author: 'Communication Void',
+                domain: 'Asynchronous Dread',
+                tension: 'READ RECEIPT PARALYSIS',
+                caption: 'FIG 2.4 // LOCK SCREEN NOTIFICATION ABYSS',
+                title: 'The Reply Guy / Communication Void',
+                setup: 'Your phone screen illuminates with three simultaneous horrors: (1) A "Read 11:42 PM" timestamp on a vulnerable message you sent 72 hours ago; (2) An ex reacting to your story with a single 🔥 emoji; (3) A LinkedIn message asking for a "quick 15-minute sync to pick your brain."',
+                briefing: 'Modern smartphones compress three distinct registers of human dread—romantic ambiguity, unread vulnerability, and unpaid professional extraction—into a single 6-inch glass rectangle.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Send Triple Follow-Up Paragraph & Accept Sync',
+                        sub: 'Over-explain your vulnerable text to dissolve the silence.',
+                        poll: 26,
+                        deltas: { util: 2, deon: 4, neur: 22, absu: -6 },
+                        analysis: 'Diagnosis: Neurotic Over-Explainer. You attempted to conquer ambiguity through sheer word count.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Enable Airplane Mode & Contemplate the Woods',
+                        sub: 'Archive all threads, ghost LinkedIn, and stare at a wall.',
+                        poll: 74,
+                        deltas: { util: -4, deon: -6, neur: 10, absu: 18 },
+                        analysis: 'Diagnosis: Digital Ghost. Refusing to perceive notifications is the ultimate 21st-century defense mechanism.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <rect x="95" y="18" width="170" height="154" rx="14" fill="#ffffff" stroke="#476b5b" stroke-width="2"/>
+                    <g transform="translate(108, 40)" font-family="Space Mono" font-size="8">
+                        <rect x="0" y="0" width="144" height="28" rx="4" fill="#f4f3ef" stroke="#a94e42"/>
+                        <text x="8" y="17" fill="#a94e42">Read Tue 11:42 PM (No Reply)</text>
+                        <rect x="0" y="36" width="144" height="28" rx="4" fill="#f4f3ef" stroke="#93642f"/>
+                        <text x="8" y="53" fill="#93642f">Ex reacted 🔥 to your story</text>
+                        <rect x="0" y="72" width="144" height="28" rx="4" fill="#f4f3ef" stroke="#476b5b"/>
+                        <text x="8" y="89" fill="#476b5b">LinkedIn: Pick your brain?</text>
+                    </g>
+                </svg>`
+            },
+            {
+                id: 'p2_5',
+                code: 'SOCIAL 05 // ZENO’S CRUMB',
+                author: 'Breakroom Calculus',
+                domain: 'Politeness Halving',
+                tension: 'MOLECULAR PASTRY',
+                caption: 'FIG 2.5 // BREAKROOM COUNTER PASTRY FRACTION',
+                title: 'The Last Cookie in the Breakroom',
+                setup: 'On the office breakroom counter sits a greasy pink bakery box containing 1/8th of a cinnamon Danish. It has been halved four separate times by coworkers too polite to take the last piece, reducing it to a 12-millimeter sliver. As your hand hovers over it, Gareth from Legal walks in for coffee.',
+                briefing: 'Known in office anthropology as "Zeno’s Pastry Paradox": because taking the final piece requires disposing of the box and admitting gluttony, polite workers infinitely bisect the remaining pastry until it reaches subatomic scale.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Swallow the Sliver Whole & Trash the Box',
+                        sub: 'Break the curse of infinite halving while locking eyes with Gareth.',
+                        poll: 54,
+                        deltas: { util: 14, deon: -4, neur: -10, absu: 10 },
+                        analysis: 'Pragmatic Finisher: you liberated the breakroom counter from a stale cardboard box.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Take a Plastic Knife & Bisect it to 1/16th',
+                        sub: 'Leave a microscopic cinnamon molecule so you aren’t "the last person."',
+                        poll: 46,
+                        deltas: { util: -10, deon: 8, neur: 18, absu: 16 },
+                        analysis: 'Zeno’s Disciple: you preserved plausible deniability by leaving a 2-gram crumb inside a giant cardboard box.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Plate -->
+                    <circle cx="180" cy="112" r="52" fill="#ffffff" stroke="#242622" stroke-width="1.5"/>
+                    <circle cx="180" cy="112" r="38" fill="none" stroke="#d6d5ce" stroke-dasharray="3 3"/>
+                    <!-- 1/8th Pastry Sliver -->
+                    <path d="M 180 112 L 180 74 A 38 38 0 0 1 206 85 Z" fill="#93642f" stroke="#242622" stroke-width="1.5"/>
+                    <!-- Hovering Hand -->
+                    <g class="svg-hand-hover" transform="translate(175, 42)">
+                        <path d="M 0 0 L 18 12 L 10 24 L -8 12 Z" fill="#476b5b"/>
+                        <text x="-45" y="-10" fill="#476b5b" font-family="Space Mono" font-size="9">FRACTION: 1/8TH</text>
+                    </g>
+                </svg>`
+            },
+            {
+                id: 'p2_6',
+                code: 'SOCIAL 06 // 06:15 PM',
+                author: 'Cancellation Protocol',
+                domain: 'Past-Self Betrayal',
+                tension: 'SWEATPANTS INERTIA',
+                caption: 'FIG 2.6 // PRE-DEPARTURE COUCH GRAVITY WELL',
+                title: 'The Dinner Party Cancellation Protocol',
+                setup: 'It is Friday at 6:15 PM. Four days ago, an optimistic version of you RSVP’d "Can’t wait!!" to a dinner party 35 minutes across town at 7:00 PM. Present-you is horizontal in sweatpants, experiencing acute dread at the thought of putting on hard pants and being perceived.',
+                briefing: 'Philosopher Derek Parfit explored how our "Future Self" is almost a distinct person to whom our "Past Self" Recklessly signs contracts. At 6:15 PM, the bill comes due.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Transmit the "Sudden Stomach Bug" Text',
+                        sub: 'Deploy a strategic lie for immediate serotonin relief (followed by guilt).',
+                        poll: 71,
+                        deltas: { util: 8, deon: -14, neur: 14, absu: 12 },
+                        analysis: 'The illicit euphoria of canceling plans is the closest humanity ever gets to pure Nozickian Experience Machine bliss.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Put On Hard Pants & Honour the RSVP',
+                        sub: 'Suffer the commute to uphold the social contract.',
+                        poll: 29,
+                        deltas: { util: 4, deon: 16, neur: 6, absu: -8 },
+                        analysis: 'Kantian Duty Champion: you honored a promise made by your delusional Tuesday self.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Couch -->
+                    <rect x="65" y="95" width="230" height="45" rx="10" fill="#ffffff" stroke="#6d7185" stroke-width="2"/>
+                    <rect x="85" y="82" width="190" height="18" rx="8" fill="#476b5b" opacity="0.3"/>
+                    <!-- Clock -->
+                    <text x="135" y="55" fill="#a94e42" font-family="Space Mono" font-size="22" font-weight="bold" class="svg-flicker">18:15 PM</text>
+                    <text x="108" y="162" fill="#93642f" font-family="Space Mono" font-size="9">RSVP ETA: 45 MINS // SWEATPANTS: ON</text>
+                </svg>`
+            },
+            {
+                id: 'p2_7',
+                code: 'SOCIAL 07 // LANE 04',
+                author: 'Queue Game Theory',
+                domain: 'Distributive Justice',
+                tension: 'UNEXPECTED ITEM IN BAGGING',
+                caption: 'FIG 2.7 // SUPERMARKET EXPRESS LANE BOTTLENECK',
+                title: 'The Infinite Supermarket Queue',
+                setup: 'You are in the "12 Items or Fewer" lane with 4 items. The shopper ahead has 19 items, including unlabelled organic turnips requiring manual PLU binder lookup. Suddenly, Lane 5 flashes green: "I can help whoever’s next!" A guy who just walked up behind you lunges for Lane 5.',
+                briefing: 'Queue lines are micro-societies governed by strict First-In-First-Out (FIFO) distributive justice. When a new register opens, the FIFO order shatters into a Hobbesian state of nature.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Execute a Tactical Basket Sprint to Lane 5',
+                        sub: 'Cut off the newcomer and claim your rightful chronological spot.',
+                        poll: 64,
+                        deltas: { util: 10, deon: 6, neur: -6, absu: 6 },
+                        analysis: 'Diagnosis: Queue Tactician. You defended chronological seniority against opportunistic line-jumpers.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Yield Politely & Endure the Turnip Lookup',
+                        sub: 'Wave the line-jumper ahead while smiling through clenched teeth.',
+                        poll: 36,
+                        deltas: { util: -8, deon: 8, neur: 16, absu: 8 },
+                        analysis: 'Diagnosis: Polite Sufferer. You traded 9 minutes of your finite lifespan to avoid looking eager in a grocery store.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Lane 4 Blocked -->
+                    <rect x="45" y="45" width="115" height="32" rx="4" fill="#ffffff" stroke="#a94e42" stroke-width="1.5"/>
+                    <text x="55" y="65" fill="#a94e42" font-family="Space Mono" font-size="9">LANE 4 // 19 ITEMS</text>
+                    <!-- Lane 5 Open -->
+                    <rect x="200" y="45" width="115" height="32" rx="4" fill="#ffffff" stroke="#476b5b" stroke-width="2" class="svg-pulse-ring"/>
+                    <text x="212" y="65" fill="#476b5b" font-family="Space Mono" font-size="9">LANE 5 // OPEN!</text>
+                    <!-- Sprint Vector -->
+                    <path d="M 102 130 Q 180 115 255 88" fill="none" stroke="#93642f" stroke-width="2.5" stroke-dasharray="5 3"/>
+                    <circle cx="102" cy="130" r="9" fill="#93642f"/>
+                </svg>`
+            },
+            {
+                id: 'p2_8',
+                code: 'SOCIAL 08 // WORKDAY',
+                author: 'HR Portal Honesty',
+                domain: 'Performative Labor',
+                tension: 'PASSION FOR LOGISTICS',
+                caption: 'FIG 2.8 // APPLICANT TRACKING SYSTEM QUESTIONNAIRE',
+                title: 'The Job Application Honesty Test',
+                setup: 'After uploading your PDF resume, the portal forces you to manually re-type your entire work history into 40 text boxes, followed by a mandatory essay field: "Why are you deeply passionate about B2B Enterprise Freight Reconciliation at Acme Corp?"',
+                briefing: 'Philosopher Harry Frankfurt’s treatise "On Bullshit" distinguishes the liar (who cares about truth and hides it) from the bullshitter (who participates in a ritual where neither party cares about truth).',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Paste 300 Words of Sycophantic Corporate Prose',
+                        sub: 'Claim childhood dreams of optimizing supply-chain freight invoices.',
+                        poll: 83,
+                        deltas: { util: 12, deon: -12, neur: 8, absu: 14 },
+                        analysis: 'Performative Pragmatist: you recited the liturgical chant required to exchange labor for rent money.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Type: "I Require Currency for Calories & Shelter"',
+                        sub: 'Submit radical existential honesty into the HR database.',
+                        poll: 17,
+                        deltas: { util: -10, deon: 16, neur: -8, absu: 20 },
+                        analysis: 'Radical Truth-Teller: the AI screening filter rejected your application in 0.004 seconds, but Diogenes is proud of you.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <rect x="55" y="28" width="250" height="134" rx="6" fill="#ffffff" stroke="#93642f" stroke-width="1.5"/>
+                    <text x="72" y="52" fill="#93642f" font-family="Space Mono" font-size="9">REQUIRED FIELD * // WORKDAY_PORTAL</text>
+                    <rect x="72" y="64" width="216" height="58" rx="4" fill="#f4f3ef" stroke="#d6d5ce"/>
+                    <text x="82" y="86" fill="#476b5b" font-family="Space Mono" font-size="9">"I need currency to exchange</text>
+                    <text x="82" y="102" fill="#476b5b" font-family="Space Mono" font-size="9">for food and shelter..."</text>
+                </svg>`
+            },
+            {
+                id: 'p2_9',
+                code: 'SOCIAL 09 // 06:30 AM',
+                author: 'The Mirror Problem',
+                domain: 'Temporal Self-Delusion',
+                tension: 'THE 9-MINUTE SNOOZE',
+                caption: 'FIG 2.9 // CIRCADIAN BARGAINING LOOP',
+                title: 'The Mirror Problem (Morning Crisis)',
+                setup: 'Your alarm sounds at 6:30 AM. Your half-conscious brain proposes a mathematical theorem: "If we hit the 9-minute snooze button 4 times, we can skip breakfast, shower in 90 seconds, and still make the train." Once in the shower, you begin winning a heated argument from 2019.',
+                briefing: 'Why is the snooze button 9 minutes long? Early mechanical gears couldn’t do 10. Yet those 9 minutes represent humanity’s purest confrontation with the absurdity of daily repetition (Camus’ Myth of Sisyphus).',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Gamble on 4 Consecutive 9-Minute Snoozes',
+                        sub: 'Trade morning sanity for 36 minutes of fragmented guilt-sleep.',
+                        poll: 81,
+                        deltas: { util: -6, deon: -8, neur: 14, absu: 16 },
+                        analysis: 'Diagnosis: Snooze Gambler. You chose four tiny deaths and resurrections before sprinting out the door with wet hair.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Rise Instantly at 6:30 AM Without Snoozing',
+                        sub: 'Stare into the bathroom mirror and confront raw consciousness.',
+                        poll: 19,
+                        deltas: { util: 10, deon: 14, neur: -8, absu: -6 },
+                        analysis: 'Diagnosis: Stoic Early-Riser. Society both respects and deeply fears anyone who wakes on the first chime.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <circle cx="180" cy="95" r="55" fill="#ffffff" stroke="#a94e42" stroke-width="2.5"/>
+                    <circle cx="180" cy="95" r="68" fill="none" stroke="#93642f" stroke-dasharray="4 4" class="svg-pulse-ring"/>
+                    <text x="142" y="102" fill="#a94e42" font-family="Space Mono" font-size="24" font-weight="bold">06:39</text>
+                    <text x="132" y="122" fill="#476b5b" font-family="Space Mono" font-size="8">[ SNOOZE +09:00 ]</text>
+                </svg>`
+            },
+            {
+                id: 'p2_10',
+                code: 'SOCIAL 10 // AISLE ∞',
+                author: 'Existential Consumerism',
+                domain: 'Hyper-Choice Paralysis',
+                tension: '45 OLIVE OILS',
+                caption: 'FIG 2.10 // THE VOID SUPERMARKET CHECKOUT',
+                title: 'The Void Supermarket',
+                setup: 'You stand in Aisle 7 before 45 brands of Extra Virgin Olive Oil with subtly different serif typography, paralysed by whether you are a "cold-pressed Tuscan estate" person or a "rustic ceramic bottle" person. At self-checkout, the terminal asks: "Donate $1 to end existential dread?" with a line of shoppers watching your screen.',
+                briefing: 'Barry Schwartz’s "Paradox of Choice" meets Jean Baudrillard’s consumer society: we no longer consume products for utility, but as identity signifiers—culminating in public guilt prompts on touchscreen terminals.',
+                choices: [
+                    {
+                        key: 'A',
+                        text: 'Tap "No Thanks ($0.00)" on the Giant Touchscreen',
+                        sub: 'Refuse corporate charity coercion; endure the imaginary judgment of strangers.',
+                        poll: 67,
+                        deltas: { util: 6, deon: 6, neur: 12, absu: 14 },
+                        analysis: 'You refused to subsidize a conglomerate’s tax write-off, though you still spent 4 minutes agonizing over serif olive oil labels.'
+                    },
+                    {
+                        key: 'B',
+                        text: 'Pay the $1.00 Guilt Tax Immediately',
+                        sub: 'Purchase instant moral absolution from a talking cash register.',
+                        poll: 33,
+                        deltas: { util: 8, deon: 4, neur: 16, absu: 8 },
+                        analysis: 'Like medieval indulgences, you paid $1.00 to appease the glowing self-checkout deity.'
+                    }
+                ],
+                svg: `<svg viewBox="0 0 360 190" class="w-full h-full">
+                    <rect width="360" height="190" fill="#f4f3ef"/>
+                    <!-- Infinite Shelves -->
+                    <g stroke="#476b5b" stroke-width="1.2" fill="#ffffff">
+                        <rect x="35" y="35" width="22" height="45"/><rect x="65" y="35" width="22" height="45"/><rect x="95" y="35" width="22" height="45"/>
+                        <rect x="35" y="95" width="22" height="45"/><rect x="65" y="95" width="22" height="45"/><rect x="95" y="95" width="22" height="45"/>
+                    </g>
+                    <!-- Self Checkout Screen -->
+                    <rect x="165" y="32" width="160" height="120" rx="8" fill="#ffffff" stroke="#93642f" stroke-width="2"/>
+                    <text x="180" y="62" fill="#242622" font-family="Space Mono" font-size="9">DONATE $1.00 TO END</text>
+                    <text x="180" y="76" fill="#93642f" font-family="Space Mono" font-size="9">EXISTENTIAL DREAD?</text>
+                    <rect x="180" y="98" width="60" height="28" rx="4" fill="#476b5b"/><text x="195" y="116" fill="#f4f3ef" font-family="Space Mono" font-weight="bold" font-size="9">YES $1</text>
+                    <rect x="250" y="98" width="60" height="28" rx="4" fill="#a94e42"/><text x="268" y="116" fill="#242622" font-family="Space Mono" font-weight="bold" font-size="9">NO $0</text>
+                </svg>`
+            }
+        ];
+
+        // ============================================================================
+        // MAIN APPLICATION CONTROLLER
+        // ============================================================================
+        // Each scene is a deterministic timeline: playback and revisits share the same final state.
+        const sceneDirector = {
+            frame: 0,
+            cancel() { cancelAnimationFrame(this.frame); this.frame = 0; },
+            person(x, y, index = 0) {
+                return `<g data-worker="${index}" transform="translate(${x} ${y})"><ellipse cy="3" rx="9" ry="3" fill="#242622" opacity=".12"/><circle cy="-21" r="4" fill="#c49b7b"/><path d="M-5-15H5L6-3H-6Z" fill="#f8f7f3" stroke="#565b55" stroke-width=".8"/><path d="M-3-3L-4 3M3-3L4 3" stroke="#516677" stroke-width="3"/></g>`;
+            },
+            trolleyScene(bridge = false, corporate = false) {
+                const main = bridge ? 'M15 143H350' : 'M15 104H158L350 48';
+                return `<svg viewBox="0 0 360 205" class="w-full h-full" role="img" aria-label="A trolley approaches people on the tracks">
+                    <rect width="360" height="205" fill="#deded8"/>
+                    <path d="${main}" fill="none" stroke="#92958e" stroke-width="12"/>
+                    ${bridge ? '' : '<path d="M158 104L350 160" fill="none" stroke="#92958e" stroke-width="12"/>'}
+                    <path d="${main}" fill="none" stroke="#deded8" stroke-width="7"/>
+                    ${bridge ? '' : '<path d="M158 104L350 160" fill="none" stroke="#deded8" stroke-width="7"/>'}
+                    <g data-main-workers>${Array.from({length:5},(_,i)=>this.person(253+i*17, bridge ? 143 : 76-i*5,i)).join('')}</g>
+                    ${bridge ? '<path d="M145 60H225M150 60V125M220 60V125M145 40H225" stroke="#777b74" stroke-width="4"/>' : `<g data-side-worker>${this.person(282,140)}</g>`}
+                    ${bridge ? `<g data-stranger>${this.person(195,58)}</g>${this.person(164,58)}` : `<g transform="translate(164 140)"><ellipse rx="12" ry="5" fill="#777b74"/><g data-lever><path d="M0 0L-10-23" stroke="#3c403b" stroke-width="3"/><circle cx="-10" cy="-23" r="4" fill="#a94e42"/></g></g>${this.person(140,153)}`}
+                    <g data-tram transform="translate(60 ${bridge ? 143 : 104})"><ellipse cy="5" rx="32" ry="5" fill="#242622" opacity=".12"/><rect x="-28" y="-37" width="56" height="34" rx="5" fill="#a94e42" stroke="#61392f"/><path d="M-28-13H28" stroke="#e9d7af" stroke-width="6"/><rect x="-22" y="-31" width="12" height="13" rx="2" fill="#dce1dc"/><rect x="-5" y="-31" width="12" height="13" rx="2" fill="#dce1dc"/><rect x="12" y="-31" width="10" height="13" rx="2" fill="#dce1dc"/><circle cx="-17" cy="0" r="5" fill="#3c403b"/><circle cx="17" cy="0" r="5" fill="#3c403b"/></g>
+                    <text x="18" y="24" fill="#666b63" font-size="10">${corporate ? 'Q3 restructuring, on rails.' : bridge ? 'One stranger. Five people below.' : 'One lever. Two possible futures.'}</text>
+                    <text x="248" y="${bridge ? 169 : 37}" fill="#666b63" font-size="9">${corporate ? '5 interns' : '5 workers'}</text>
+                    ${bridge ? '' : `<text x="264" y="174" fill="#666b63" font-size="9">${corporate ? '1 senior VP' : '1 worker'}</text>`}
+                </svg>`;
+            },
+            mount(scenario) {
+                const container = document.getElementById('svg-canvas-container');
+                container.innerHTML = ['p1_1','p1_2','p2_2'].includes(scenario.id)
+                    ? this.trolleyScene(scenario.id === 'p1_2', scenario.id === 'p2_2') : scenario.svg;
+                const svg = container.querySelector('svg');
+                svg.setAttribute('role', 'img');
+                svg.setAttribute('aria-label', scenario.title);
+                return svg;
+            },
+            prepare(scenario, choice) {
+                const svg = this.mount(scenario);
+                const a = choice.key === 'A';
+                const tracks = [];
+                const ns = 'http://www.w3.org/2000/svg';
+                const find = selector => typeof selector === 'string' ? svg.querySelector(selector) : selector;
+                const add = (markup) => { const g = document.createElementNS(ns, 'g'); g.innerHTML = markup; svg.appendChild(g); return g; };
+                const move = (selector, x, y, start = 0, end = 1, fade = false) => {
+                    const el = find(selector); if (!el) throw new Error(`Missing scene actor: ${scenario.id} ${selector}`);
+                    const wrapper = document.createElementNS(ns, 'g'); el.before(wrapper); wrapper.appendChild(el);
+                    tracks.push(t => { const p = Math.max(0, Math.min(1, (t-start)/(end-start))); const ease = p*p*(3-2*p); wrapper.setAttribute('transform', `translate(${x*ease} ${y*ease})`); if (fade) wrapper.style.opacity = 1-ease; });
+                    return wrapper;
+                };
+                const fade = (selector, start = .4, end = .8, opacity = 0) => {
+                    const el = find(selector); const initial = Number(el.getAttribute('opacity') || 1);
+                    tracks.push(t => {const p = Math.max(0, Math.min(1,(t-start)/(end-start)));el.style.opacity = initial+(opacity-initial)*p;});
+                };
+                const words = (selector, before, after, at = .6) => {const el = find(selector);tracks.push(t=>el.textContent = t < at ? before : after);};
+                const note = (text, x=180, y=180) => add(`<text x="${x}" y="${y}" text-anchor="middle" fill="#476b5b" font-size="10">${text}</text>`);
+                const message = text => { const el = note(text); tracks.push(t => el.style.opacity=Math.min(1,t*4)); return el; };
+                let outcome = '';
+                switch (scenario.id) {
+                    case 'p1_1': case 'p2_2': case 'p1_2': {
+                        const bridge = scenario.id === 'p1_2';
+                        const tram = find('[data-tram]');
+                        const startY = bridge ? 143 : 104;
+                        if (!bridge && a) {
+                            const lever = find('[data-lever]');
+                            tracks.push(t => lever.setAttribute('transform', `rotate(${Math.min(1,t/.18)*52})`));
+                        }
+                        if (bridge && a) { move('[data-stranger]', 0, 85, .08, .38); fade('[data-stranger]', .66, .8, .15); }
+                        tracks.push(t => {
+                            const p = Math.max(0,Math.min(1,(t-.2)/.72));
+                            let x,y;
+                            if (bridge) { x=60+(a ? 108 : 330)*p; y=startY; }
+                            else if(p<.32){x=60+98*p/.32;y=startY;}
+                            else {const q=(p-.32)/.68;x=158+232*q;y=104+(a?1:-1)*232*q*56/192;}
+                            tram.setAttribute('transform',`translate(${x} ${y})`);
+                        });
+                        if (!bridge || !a) {
+                            const target = find(!bridge && a ? '[data-side-worker]' : '[data-main-workers]');
+                            [...target.children].forEach((el,i)=>move(el, 10, 5, .58+i*.035, .73+i*.035, true));
+                        }
+                        outcome = a ? (bridge ? 'The trolley stops. Five survive; the stranger dies.' : 'The trolley takes the side track. One dies; five survive.') : 'The trolley stays on course. Five people die.';
+                        if (scenario.id==='p2_2') outcome = a ? 'Five interns saved. One VP lost. Your calendar gains a retrospective.' : 'Five interns lost. The VP and your calendar are untouched.';
+                        break;
+                    }
+                    case 'p1_3':
+                        move('g[transform="translate(65, 95)"]',a?105:-110,a?10:0,0,.45,!a);
+                        move('.svg-float',a?-110:0,a?20:22,.45,.9,!a);
+                        outcome=a?'You carry the child to safety. The suit is ruined.':'You walk away. The child slips beneath the water.';break;
+                    case 'p1_4': {
+                        fade('.svg-heartbeat',.2,.65,a?0:1);
+                        if(a) for(let i=0;i<5;i++){const organ=add('<circle cx="77" cy="85" r="4" fill="#a94e42"/>');move(organ,175, -48+i*28,.2+i*.04,.7+i*.04);}
+                        else fade('g',.3,.9,.15);
+                        const pulse=find('polyline');tracks.push(t=>{if(a&&t>.6)pulse.setAttribute('points','40,122 115,122');});
+                        outcome=a?'Five patients receive organs. The healthy donor dies.':'The donor is protected. Five patients cannot be saved.';break;
+                    }
+                    case 'p1_5':
+                        if(a) {message('You remain silent.');fade('polygon',.2,.8,.05);}
+                        else {const paper=add('<rect x="65" y="78" width="54" height="32" rx="3" fill="#f4f3ef" stroke="#666b63"/><path d="M74 90H106M74 98H97" stroke="#666b63"/>');move(paper,0,48,.2,.8);message('Confession signed.');}
+                        outcome=a?'You stay silent. Your partner’s decision is still unknown.':'You confess. Your sentence still depends on your partner.';break;
+                    case 'p1_6':
+                        move('path',a?28:-35,a?-20:20,0,.3,!a);
+                        if(a){const cracks=add('<path d="M120 55L163 87L135 116M163 87L212 48M163 87L215 130" stroke="#666b63" fill="none"/>');fade(cracks,.4,.65);move('.svg-float',-120,45,.4,.95);}
+                        outcome=a?'The glass breaks. You take the medicine for your wife.':'You leave the medicine behind the locked window.';break;
+                    case 'p1_7':
+                        if(a){move('svg > path',0,0);message('A lifetime of bliss begins.');const glow=find('svg > circle');tracks.push(t=>glow.style.opacity=.22+t*.5);}
+                        else {move('svg > path',-45,0,0,.55,true);move('.svg-float',95,10,.4,.95);}
+                        outcome=a?'You connect to the tank. The imagined life begins.':'You disconnect and return to the world outside.';break;
+                    case 'p1_8':
+                        words('text','04:59','04:58',.4);
+                        message(a?'Interrogation authorized.':'The boundary holds.');
+                        outcome=a?'You authorize torture. A reliable code is not guaranteed.':'You refuse torture. The countdown continues.';break;
+                    case 'p1_9':
+                        if(a)move('.svg-float',0,28,.15,.8);
+                        else {fade('.svg-float',.1,.85,.12);const coins=add('<circle cx="275" cy="136" r="9" fill="#93642f"/><circle cx="295" cy="136" r="9" fill="#93642f"/>');move(coins,-100,0,.4,.95,true);}
+                        outcome=a?'You set the ring down and keep your principles.':'You vanish. The coins vanish with you.';break;
+                    case 'p1_10': {
+                        const veil=add(`<rect x="${a?198:22}" y="28" width="140" height="132" rx="6" fill="#deded8"/>`);
+                        tracks.push(t=>veil.style.opacity=t*.88);
+                        const selected=add(`<rect x="${a?22:198}" y="28" width="140" height="132" rx="6" fill="none" stroke="#476b5b" stroke-width="3"/>`);tracks.push(t=>selected.style.opacity=t);
+                        outcome=a?'World A takes shape: fewer people, richer lives.':'World Z fills up: vast numbers, barely tolerable lives.';break;
+                    }
+                    case 'p2_1':
+                        if(a){move('circle[cx="132"]',-16,-3);move('rect[x="122"]',-16,0);message('Floor 12. Still floor 12.');}
+                        else {const chat=add('<rect x="120" y="56" width="120" height="26" rx="8" fill="#f4f3ef"/><text x="180" y="73" text-anchor="middle" font-size="10" fill="#242622">“Lovely weather…”</text>');move(chat,0,-6,0,.6);}
+                        outcome=a?'You edge away and stare at the floor indicator.':'You fill the stalled elevator with weekend small talk.';break;
+                    case 'p2_3':
+                        words('text', 'VOL: 88%', a?'VOL: 88%':'MUTED',.5);
+                        if(a){move('g',3,0,0,.3);message('You turn another magazine page.');}
+                        else {fade('.svg-pulse-ring',.2,.65);move('g',-12,0,0,.5);}
+                        outcome=a?'The noise continues. You keep your complaint to yourself.':'You turn down the TV and ask him to stop the speakerphone.';break;
+                    case 'p2_4':
+                        move('g',0,a?-12:30,0,.75,!a);
+                        if(a){const reply=add('<rect x="112" y="133" width="136" height="22" rx="4" fill="#476b5b"/><text x="180" y="147" text-anchor="middle" fill="#fff" font-size="9">Just following up again…</text>');tracks.push(t=>reply.style.opacity=Math.min(1,t*2));}
+                        else message('Airplane mode on.');
+                        outcome=a?'Another paragraph sent. The meeting invitation is accepted.':'You switch to airplane mode. The notifications disappear.';break;
+                    case 'p2_5':
+                        move('.svg-hand-hover',0,35,0,.4);
+                        if(a){move('svg > path',0,-60,.4,.85,true);fade('svg > circle',.65,1);}
+                        else {const pastry=find('svg > path');tracks.push(t=>pastry.setAttribute('d',t<.5?'M180 112L180 74A38 38 0 0 1 206 85Z':'M180 112L180 74A38 38 0 0 1 194 77Z'));message('1/16 remains.');}
+                        outcome=a?'You eat the last piece and clear the plate.':'You halve the sliver. The next person inherits the problem.';break;
+                    case 'p2_6': {
+                        const person=add(this.person(180,95));
+                        if(a){move(person,30,0);message('“So sorry. Stomach bug.”');}
+                        else {move(person,185,10,0,1,true);words('text','18:15','18:50',.7);}
+                        outcome=a?'Cancellation sent. You settle back onto the couch.':'You get dressed and head out to keep your promise.';break;
+                    }
+                    case 'p2_7':
+                        if(a)move('svg > circle',153,-42,.1,.85);
+                        else {const rival=add('<circle cx="102" cy="155" r="9" fill="#476b5b"/>');move(rival,153,-67,.1,.85);}
+                        outcome=a?'You reach Lane 5 first with your basket.':'The newcomer takes Lane 5. You keep waiting.';break;
+                    case 'p2_8': {
+                        const texts=svg.querySelectorAll('text');
+                        words(texts[1], '',a?'Since childhood, freight has':'I require currency for',.2);
+                        words(texts[2], '',a?'been my greatest passion.':'food and shelter.',.5);
+                        message('Application submitted.');outcome=a?'Your polished enthusiasm goes to the hiring portal.':'Your honest answer goes to the hiring portal.';break;
+                    }
+                    case 'p2_9': {
+                        const clock=find('text');tracks.push(t=>clock.textContent=a?['06:30','06:39','06:48','06:57','07:06'][Math.min(4,Math.floor(t*5))]:'06:30');
+                        words(svg.querySelectorAll('text')[1],'Alarm ringing',a?'One more snooze…':'Alarm off',.25);
+                        fade('svg > circle:nth-of-type(2)',.2,.8,a?.5:0);
+                        outcome=a?'Four snoozes later, it is 7:06. Time to rush.':'You switch off the alarm and get out of bed.';break;
+                    }
+                    case 'p2_10': {
+                        const tap=add(`<circle cx="${a?280:210}" cy="112" r="18" fill="none" stroke="#476b5b" stroke-width="3"/>`);fade(tap,.3,.7);
+                        const receipt=add(`<rect x="207" y="92" width="78" height="54" rx="3" fill="#f4f3ef" stroke="#666b63"/><text x="246" y="114" text-anchor="middle" font-size="10" fill="#242622">Donation</text><text x="246" y="133" text-anchor="middle" font-size="12" fill="#242622">${a?'$0.00':'$1.00'}</text>`);
+                        move(receipt,0,30,.35,.95);tracks.push(t=>receipt.style.opacity=Math.min(1,Math.max(0,(t-.3)*3)));
+                        outcome=a?'No donation added. Your receipt prints.':'One dollar added. Your receipt prints.';break;
+                    }
+                }
+                return { svg, outcome, draw(t) { tracks.forEach(track=>track(t)); svg.dataset.progress=t.toFixed(3); } };
+            },
+            play(scene, complete) {
+                this.cancel();
+                const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2300;
+                const start = performance.now();
+                const tick = now => {
+                    const progress = duration ? Math.min(1,(now-start)/duration) : 1;
+                    scene.draw(progress);
+                    if(progress<1) this.frame=requestAnimationFrame(tick);
+                    else { this.frame=0; complete(); }
+                };
+                scene.draw(0);
+                this.frame=requestAnimationFrame(tick);
+            }
+        };
+
+        const app = {
+            animating: false,
+            currentDeckKey: 'part1',
+            deckIndices: { part1: 0, part2: 0 },
+            briefingOpen: false,
+            // Stores user choices keyed by scenario id -> { deckKey, scenario, choice }
+            records: {},
+            // 4 Core Psychological Axes (0 to 100 scale, start at 50)
+            telemetry: {
+                util: 50, // Utilitarian Calculus
+                deon: 50, // Kantian / Deontological Rigidity
+                neur: 50, // Social Neurosis / Conflict Avoidance
+                absu: 50  // Existential Detachment / Absurdism
+            },
+
+            init() {
+                this.updateTelemetryHUD();
+                this.updateHubCounts();
+                this.setupTouchGestures();
+            },
+
+            getCurrentDeck() {
+                return this.currentDeckKey === 'part1' ? deckPart1 : deckPart2;
+            },
+
+            getCurrentScenario() {
+                const deck = this.getCurrentDeck();
+                const idx = this.deckIndices[this.currentDeckKey];
+                return deck[idx];
+            },
+
+            showHub() {
+                this.cancelAction();
+                soundEngine.playRelayClick();
+                document.getElementById('view-stage').classList.add('hidden');
+                document.getElementById('view-dossier').classList.add('hidden');
+                document.getElementById('view-hub').classList.remove('hidden');
+                this.updateDockActive('dock-hub');
+                this.updateHubCounts();
+            },
+
+            startDeck(deckKey, index = 0) {
+                soundEngine.playRelayClick();
+                this.currentDeckKey = deckKey;
+                this.deckIndices[deckKey] = index;
+
+                document.getElementById('view-hub').classList.add('hidden');
+                document.getElementById('view-dossier').classList.add('hidden');
+                document.getElementById('view-stage').classList.remove('hidden');
+
+                this.updateDockActive(deckKey === 'part1' ? 'dock-part1' : 'dock-part2');
+                this.renderStage();
+            },
+
+            renderStage() {
+                this.cancelAction();
+                const deck = this.getCurrentDeck();
+                const idx = this.deckIndices[this.currentDeckKey];
+                const item = deck[idx];
+                const isPart1 = this.currentDeckKey === 'part1';
+
+                // Style border glow by deck
+                const cardBorder = document.getElementById('stage-card-border');
+                cardBorder.className = `bg-panel border-2 border-borderDim rounded-2xl overflow-hidden shadow-2xl flex flex-col ${isPart1 ? 'glow-amber' : 'glow-cyan'}`;
+
+                // Step Dots
+                const dotsContainer = document.getElementById('step-dots-container');
+                dotsContainer.innerHTML = '';
+                deck.forEach((scen, i) => {
+                    const dot = document.createElement('button');
+                    const isAnswered = !!this.records[scen.id];
+                    const isCurrent = i === idx;
+                    dot.className = `h-2 rounded-full transition-all ${
+                        isCurrent
+                            ? (isPart1 ? 'w-6 bg-ochre' : 'w-6 bg-sage')
+                            : isAnswered
+                            ? 'w-2 bg-cream/60'
+                            : 'w-2 bg-borderDim hover:bg-creamMuted'
+                    }`;
+                    dot.setAttribute('aria-label', `Scene ${i + 1}: ${scen.title}`);
+                    if (isCurrent) dot.setAttribute('aria-current', 'step');
+                    dot.onclick = () => {
+                        soundEngine.playRelayClick();
+                        this.deckIndices[this.currentDeckKey] = i;
+                        this.renderStage();
+                    };
+                    dotsContainer.appendChild(dot);
+                });
+
+                // Prev/Next Button states
+                document.getElementById('btn-prev-case').disabled = idx === 0;
+
+                // Header Metadata
+                const codeBadge = document.getElementById('case-code-badge');
+                codeBadge.innerText = item.code;
+                codeBadge.className = isPart1
+                    ? 'font-mono text-[10px] font-bold bg-ochre/15 text-ochre border border-ochre/40 px-2 py-0.5 rounded'
+                    : 'font-mono text-[10px] font-bold bg-sage/15 text-sage border border-sage/40 px-2 py-0.5 rounded';
+
+                document.getElementById('case-domain-badge').innerText = item.domain;
+                document.getElementById('case-author-badge').innerText = item.author;
+
+                // SVG Canvas
+                sceneDirector.mount(item);
+                document.getElementById('scene-status').textContent = 'Choose an action to see what happens.';
+                document.getElementById('replay-action').disabled = true;
+                document.getElementById('svg-caption-pill').innerText = item.caption;
+                document.getElementById('case-tension-pill').innerText = item.tension;
+
+                // Narrative & Briefing
+                document.getElementById('case-title').innerText = item.title;
+                document.getElementById('case-setup').innerText = item.setup;
+                document.getElementById('briefing-content').innerText = item.briefing;
+
+                // Render Choice Switches
+                const choicesGrid = document.getElementById('choices-grid');
+                choicesGrid.innerHTML = '';
+                const existingRecord = this.records[item.id];
+
+                item.choices.forEach((c, cIdx) => {
+                    const isSelected = existingRecord && existingRecord.choice.key === c.key;
+                    const btn = document.createElement('button');
+                    const accentHover = cIdx === 0 ? 'hover:border-ochre' : 'hover:border-sage';
+                    const activeBorder = isSelected
+                        ? (cIdx === 0 ? 'border-ochre bg-ochre/10' : 'border-sage bg-sage/10')
+                        : 'border-borderDim bg-obsidian/90';
+
+                    btn.className = `text-left p-3.5 rounded-xl border-2 ${activeBorder} ${accentHover} transition-all flex flex-col justify-between group active:scale-[0.99]`;
+                    btn.innerHTML = `
+                        <div class="flex items-center justify-between w-full mb-1.5">
+                            <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded ${
+                                cIdx === 0 ? 'bg-ochre/20 text-ochre' : 'bg-sage/20 text-sage'
+                            }">Option ${c.key}</span>
+                            <span class="font-mono text-[10px] text-creamMuted group-hover:text-cream transition">Choose →</span>
+                        </div>
+                        <div class="font-sans font-bold text-xs sm:text-sm text-cream leading-snug">${c.text}</div>
+                        <div class="font-sans text-[11px] text-creamMuted mt-1 leading-normal">${c.sub}</div>
+                    `;
+                    btn.setAttribute('aria-pressed', String(!!isSelected));
+                    btn.onclick = () => this.selectChoice(item, c);
+                    choicesGrid.appendChild(btn);
+                });
+
+                // If already answered, show debrief immediately
+                if (existingRecord) {
+                    const scene = sceneDirector.prepare(item, existingRecord.choice);
+                    scene.draw(1);
+                    document.getElementById('scene-status').textContent = scene.outcome;
+                    document.getElementById('replay-action').disabled = false;
+                    this.populateDebrief(item, existingRecord.choice);
+                } else {
+                    document.getElementById('debrief-panel').classList.add('hidden');
+                }
+            },
+
+            toggleBriefing() {
+                soundEngine.playRelayClick();
+                this.briefingOpen = !this.briefingOpen;
+                const content = document.getElementById('briefing-content');
+                const chevron = document.getElementById('briefing-chevron');
+                if (this.briefingOpen) {
+                    content.classList.remove('hidden');
+                    chevron.innerText = '▲';
+                } else {
+                    content.classList.add('hidden');
+                    chevron.innerText = '▼';
+                }
+            },
+
+            cancelAction() {
+                sceneDirector.cancel();
+                this.animating = false;
+                document.getElementById('svg-stage-wrapper').setAttribute('aria-busy', 'false');
+            },
+
+            replayAction() {
+                const scenario = this.getCurrentScenario();
+                const record = this.records[scenario.id];
+                if (record) this.selectChoice(scenario, record.choice);
+            },
+
+            selectChoice(scenario, choice) {
+                if (this.animating) return;
+                this.animating = true;
+                soundEngine.playChoiceLock(choice.key === 'A');
+                document.getElementById('debrief-panel').classList.add('hidden');
+                document.getElementById('replay-action').disabled = true;
+                document.querySelectorAll('#choices-grid button').forEach((button, index) => {
+                    button.disabled = true;
+                    button.setAttribute('aria-pressed', String(scenario.choices[index].key === choice.key));
+                });
+                const stage = document.getElementById('svg-stage-wrapper');
+                stage.setAttribute('aria-busy', 'true');
+                stage.scrollIntoView({ behavior: 'instant', block: 'start' });
+                document.getElementById('scene-status').textContent = choice.text + '…';
+                const scene = sceneDirector.prepare(scenario, choice);
+                sceneDirector.play(scene, () => {
+                    this.records[scenario.id] = { deckKey: this.currentDeckKey, scenario, choice };
+                    this.recalculateTelemetry();
+                    this.updateHubCounts();
+                    this.renderStage();
+                });
+            },
+
+            populateDebrief(scenario, choice) {
+                const panel = document.getElementById('debrief-panel');
+                panel.classList.remove('hidden');
+
+                const optA = scenario.choices[0];
+                const optB = scenario.choices[1];
+
+                document.getElementById('user-selected-pill').innerText = `You chose ${choice.key}`;
+                document.getElementById('poll-label-a').innerText = `[A] ${optA.poll}%`;
+                document.getElementById('poll-label-b').innerText = `[B] ${optB.poll}%`;
+                document.getElementById('poll-bar-a').style.width = `${optA.poll}%`;
+                document.getElementById('poll-bar-b').style.width = `${optB.poll}%`;
+
+                document.getElementById('debrief-analysis-text').innerText = choice.analysis;
+
+                // Render Delta Badges
+                const badgeRow = document.getElementById('delta-badges-row');
+                badgeRow.innerHTML = '';
+                const labels = { util: 'UTIL', deon: 'KANT', neur: 'NEUR', absu: 'ABSU' };
+                Object.keys(choice.deltas).forEach(k => {
+                    const val = choice.deltas[k];
+                    if (val !== 0) {
+                        const span = document.createElement('span');
+                        const sign = val > 0 ? '+' : '';
+                        span.className = `font-mono text-[9px] px-1.5 py-0.5 rounded border ${
+                            val > 0
+                                ? 'bg-sage/10 border-sage/40 text-sage'
+                                : 'bg-rust/10 border-rust/40 text-rust'
+                        }`;
+                        span.innerText = `${sign}${val} ${labels[k]}`;
+                        badgeRow.appendChild(span);
+                    }
+                });
+
+                const deck = this.getCurrentDeck();
+                const idx = this.deckIndices[this.currentDeckKey];
+                const nextLabel = document.getElementById('next-btn-label');
+                nextLabel.innerText = idx < deck.length - 1
+                    ? `Next scene · ${idx + 2} of ${deck.length}`
+                    : 'See your portrait';
+            },
+
+            prevScenario() {
+                soundEngine.playRelayClick();
+                const idx = this.deckIndices[this.currentDeckKey];
+                if (idx > 0) {
+                    this.deckIndices[this.currentDeckKey]--;
+                    this.renderStage();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            },
+
+            nextScenario() {
+                soundEngine.playRelayClick();
+                const deck = this.getCurrentDeck();
+                const idx = this.deckIndices[this.currentDeckKey];
+                if (idx < deck.length - 1) {
+                    this.deckIndices[this.currentDeckKey]++;
+                    this.renderStage();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    this.openDossier();
+                }
+            },
+
+            recalculateTelemetry() {
+                let u = 50, d = 50, n = 50, a = 50;
+                Object.values(this.records).forEach(rec => {
+                    const del = rec.choice.deltas;
+                    u += del.util || 0;
+                    d += del.deon || 0;
+                    n += del.neur || 0;
+                    a += del.absu || 0;
+                });
+                const clamp = v => Math.max(5, Math.min(98, v));
+                this.telemetry = {
+                    util: clamp(u),
+                    deon: clamp(d),
+                    neur: clamp(n),
+                    absu: clamp(a)
+                };
+                this.updateTelemetryHUD();
+            },
+
+            updateTelemetryHUD() {
+                const { util, deon, neur, absu } = this.telemetry;
+                document.getElementById('hud-val-util').innerText = `${util}%`;
+                document.getElementById('hud-bar-util').style.width = `${util}%`;
+
+                document.getElementById('hud-val-deon').innerText = `${deon}%`;
+                document.getElementById('hud-bar-deon').style.width = `${deon}%`;
+
+                document.getElementById('hud-val-neur').innerText = `${neur}%`;
+                document.getElementById('hud-bar-neur').style.width = `${neur}%`;
+
+                document.getElementById('hud-val-absu').innerText = `${absu}%`;
+                document.getElementById('hud-bar-absu').style.width = `${absu}%`;
+            },
+
+            computeArchetype() {
+                const count = Object.keys(this.records).length;
+                if (count === 0) {
+                    return {
+                        primary: 'Undiagnosed Subject (Baseline)',
+                        secondary: 'Awaiting Clinical Dilemma Input',
+                        desc: 'Complete cases in Deck I (The Moral Machine) or Deck II (Everyday Social Spin-Offs) to generate your 4-axis psychological coordinates.'
+                    };
+                }
+
+                const { util, deon, neur, absu } = this.telemetry;
+                const pairs = [
+                    { key: 'util', val: util, title: 'Cold-Blooded Act Utilitarian', sub: 'Aggregate Outcome Engineer', desc: 'You treat human dilemmas as strict mathematical optimization problems. If sacrificing one backpacker or pulling a rusty lever yields a positive net utility delta, you pull without hesitation.' },
+                    { key: 'deon', val: deon, title: 'Sovereign Kantian Deontologist', sub: 'Categorical Imperative Guardian', desc: 'You refuse to bend moral rules or instrumentalize human beings regardless of catastrophic consequences. You honor dinner party RSVPs in sweatpants and keep your hands off footbridge strangers.' },
+                    { key: 'neur', val: neur, title: 'Hyper-Vigilant Conflict Avoider', sub: 'Aggressive Elevator Floor-Watcher', desc: 'Your nervous system registers awkward eye contact, speakerphone marimba ringtones, and 1/8th breakroom pastries as high-altitude existential emergencies.' },
+                    { key: 'absu', val: absu, title: 'Lucid Camusian Absurdist', sub: 'Corporate & Cosmic Ironist', desc: 'You see straight through social contracts, HR application portals, and self-checkout charity prompts—embracing the cosmic irony of pushing boulders up fluorescent hills.' }
+                ];
+
+                pairs.sort((a, b) => b.val - a.val);
+                return {
+                    primary: pairs[0].title,
+                    secondary: `Secondary Axis: ${pairs[1].sub} (${pairs[1].val}%)`,
+                    desc: pairs[0].desc
+                };
+            },
+
+            updateHubCounts() {
+                const allRecs = Object.values(this.records);
+                const p1Count = allRecs.filter(r => r.deckKey === 'part1').length;
+                const p2Count = allRecs.filter(r => r.deckKey === 'part2').length;
+                const total = allRecs.length;
+
+                document.getElementById('answered-count-badge').innerText = `${total}/20`;
+                document.getElementById('deck1-progress-pill').innerText = `${p1Count} / 10 COMPLETED`;
+                document.getElementById('deck2-progress-pill').innerText = `${p2Count} / 10 COMPLETED`;
+
+                const arch = this.computeArchetype();
+                document.getElementById('hub-current-archetype').innerText = arch.primary.toUpperCase();
+            },
+
+            openDossier() {
+                this.cancelAction();
+                soundEngine.playDossierTone();
+                document.getElementById('view-hub').classList.add('hidden');
+                document.getElementById('view-stage').classList.add('hidden');
+                document.getElementById('view-dossier').classList.remove('hidden');
+                this.updateDockActive('dock-dossier');
+
+                const arch = this.computeArchetype();
+                document.getElementById('dossier-archetype-name').innerText = arch.primary;
+                document.getElementById('dossier-sub-archetype').innerText = arch.secondary;
+                document.getElementById('dossier-archetype-desc').innerText = arch.desc;
+
+                this.renderRadarChart();
+                this.renderDossierLogs();
+            },
+
+            renderRadarChart() {
+                const { util, deon, neur, absu } = this.telemetry;
+                // Map 0-100 to radius 10-72 around center (100,100)
+                const rUtil = (util / 100) * 68;
+                const rDeon = (deon / 100) * 68;
+                const rNeur = (neur / 100) * 68;
+                const rAbsu = (absu / 100) * 68;
+
+                // Top: UTIL (100, 100 - rUtil)
+                // Right: DEON (100 + rDeon, 100)
+                // Bottom: NEUR (100, 100 + rNeur)
+                // Left: ABSU (100 - rAbsu, 100)
+                const pts = `100,${100 - rUtil} ${100 + rDeon},100 100,${100 + rNeur} ${100 - rAbsu},100`;
+
+                document.getElementById('radar-svg-container').innerHTML = `
+                    <svg viewBox="0 0 200 200" class="w-full h-full">
+                        <circle cx="100" cy="100" r="68" fill="none" stroke="#d6d5ce" stroke-width="1"/>
+                        <circle cx="100" cy="100" r="45" fill="none" stroke="#d6d5ce" stroke-width="1" stroke-dasharray="3 3"/>
+                        <circle cx="100" cy="100" r="22" fill="none" stroke="#d6d5ce" stroke-width="1"/>
+                        <line x1="100" y1="22" x2="100" y2="178" stroke="#d6d5ce" stroke-width="1"/>
+                        <line x1="22" y1="100" x2="178" y2="100" stroke="#d6d5ce" stroke-width="1"/>
+                        <polygon points="${pts}" fill="rgba(255, 158, 0, 0.25)" stroke="#93642f" stroke-width="2.5"/>
+                        <circle cx="100" cy="${100 - rUtil}" r="4" fill="#93642f"/>
+                        <circle cx="${100 + rDeon}" cy="100" r="4" fill="#476b5b"/>
+                        <circle cx="100" cy="${100 + rNeur}" r="4" fill="#a94e42"/>
+                        <circle cx="${100 - rAbsu}" cy="100" r="4" fill="#6d7185"/>
+                        <text x="100" y="14" text-anchor="middle" fill="#93642f" font-family="Space Mono" font-size="8">UTIL</text>
+                        <text x="186" y="103" text-anchor="middle" fill="#476b5b" font-family="Space Mono" font-size="8">KANT</text>
+                        <text x="100" y="193" text-anchor="middle" fill="#a94e42" font-family="Space Mono" font-size="8">NEUR</text>
+                        <text x="14" y="103" text-anchor="middle" fill="#6d7185" font-family="Space Mono" font-size="8">ABSU</text>
+                    </svg>
+                `;
+
+                const metricsList = document.getElementById('dossier-metrics-list');
+                const axes = [
+                    { label: 'Utilitarian Calculus', val: util, color: 'bg-ochre', text: 'text-ochre' },
+                    { label: 'Kantian Rigidity', val: deon, color: 'bg-sage', text: 'text-sage' },
+                    { label: 'Social Neurosis', val: neur, color: 'bg-rust', text: 'text-rust' },
+                    { label: 'Absurdist Detachment', val: absu, color: 'bg-slate', text: 'text-slate' }
+                ];
+                metricsList.innerHTML = axes.map(a => `
+                    <div class="space-y-1">
+                        <div class="flex justify-between">
+                            <span class="text-creamMuted">${a.label}</span>
+                            <span class="font-bold ${a.text}">${a.val}%</span>
+                        </div>
+                        <div class="w-full h-2 bg-charcoal rounded-full overflow-hidden border border-borderDim">
+                            <div class="${a.color} h-full" style="width: ${a.val}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            renderDossierLogs() {
+                const listEl = document.getElementById('dossier-log-list');
+                const recs = Object.values(this.records);
+                document.getElementById('dossier-completion-stat').innerText = `${recs.length} OF 20 LOGGED`;
+
+                if (recs.length === 0) {
+                    listEl.innerHTML = `<div class="text-xs font-mono text-creamMuted p-4 text-center bg-obsidian rounded-xl border border-borderDim">No dilemmas adjudicated yet. Launch Deck I or Deck II to populate clinical logs.</div>`;
+                    return;
+                }
+
+                listEl.innerHTML = recs.map(r => `
+                    <div class="bg-obsidian border border-borderDim rounded-lg px-3 py-2 flex items-center justify-between text-xs">
+                        <div>
+                            <span class="font-mono text-[9px] text-ochre mr-1.5">[${r.scenario.code.split(' ')[1]}]</span>
+                            <span class="font-semibold text-cream">${r.scenario.title}</span>
+                        </div>
+                        <span class="font-mono text-[10px] text-sage ml-2 shrink-0">Switch [${r.choice.key}]</span>
+                    </div>
+                `).join('');
+            },
+
+            copyDossierReport() {
+                soundEngine.playRelayClick();
+                const arch = this.computeArchetype();
+                const { util, deon, neur, absu } = this.telemetry;
+                const count = Object.keys(this.records).length;
+                const reportText = [
+                    `=== The Existential Compendium ===`,
+                    `PRIMARY DIAGNOSIS: ${arch.primary}`,
+                    `${arch.secondary}`,
+                    `CASES ADJUDICATED: ${count} / 20`,
+                    `METRICS: Utilitarian ${util}% | Kantian ${deon}% | Social Neurosis ${neur}% | Absurdism ${absu}%`,
+                    `SUMMARY: ${arch.desc}`
+                ].join('\n');
+
+                const textarea = document.createElement('textarea');
+                textarea.value = reportText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                const btn = document.getElementById('copy-report-btn');
+                const orig = btn.innerText;
+                btn.innerText = '✓ CLINICAL TRANSCRIPT COPIED TO CLIPBOARD';
+                setTimeout(() => { btn.innerText = orig; }, 2200);
+            },
+
+            openScenarioPicker(deckKey) {
+                soundEngine.playRelayClick();
+                const deck = deckKey === 'part1' ? deckPart1 : deckPart2;
+                document.getElementById('picker-deck-subtitle').innerText = deckKey === 'part1'
+                    ? 'DECK I // CANONICAL THOUGHT EXPERIMENTS'
+                    : 'DECK II // EVERYDAY SOCIAL SPIN-OFFS';
+                document.getElementById('picker-deck-title').innerText = deckKey === 'part1'
+                    ? 'The Moral Machine Index'
+                    : 'Everyday Social Spin-Offs Index';
+
+                const listEl = document.getElementById('picker-list');
+                listEl.innerHTML = '';
+                deck.forEach((item, idx) => {
+                    const answered = this.records[item.id];
+                    const row = document.createElement('button');
+                    row.className = 'w-full text-left bg-obsidian hover:bg-charcoal border border-borderDim hover:border-ochre rounded-xl p-3 transition flex items-center justify-between';
+                    row.innerHTML = `
+                        <div>
+                            <div class="font-mono text-[9px] text-ochre">${item.code} • ${item.author}</div>
+                            <div class="font-serif italic text-lg text-cream leading-snug">${idx + 1}. ${item.title}</div>
+                        </div>
+                        <span class="font-mono text-[9px] px-2 py-0.5 rounded ${
+                            answered ? 'bg-sage/15 text-sage border border-sage/30' : 'bg-panel text-creamMuted'
+                        }">${answered ? 'LOGGED [' + answered.choice.key + ']' : 'OPEN →'}</span>
+                    `;
+                    row.onclick = () => {
+                        this.closeScenarioPicker();
+                        this.startDeck(deckKey, idx);
+                    };
+                    listEl.appendChild(row);
+                });
+
+                document.getElementById('modal-picker').classList.remove('hidden');
+            },
+
+            closeScenarioPicker() {
+                soundEngine.playRelayClick();
+                document.getElementById('modal-picker').classList.add('hidden');
+            },
+
+            resetAllProgress() {
+                this.cancelAction();
+                soundEngine.playRelayClick();
+                this.records = {};
+                this.deckIndices = { part1: 0, part2: 0 };
+                this.recalculateTelemetry();
+                this.updateHubCounts();
+            },
+
+            updateDockActive(activeId) {
+                ['dock-hub', 'dock-part1', 'dock-part2', 'dock-dossier'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (id === activeId) {
+                        el.className = 'flex flex-col items-center py-1 rounded-lg font-mono text-[10px] text-ochre font-bold bg-obsidian border border-ochre/40';
+                    } else {
+                        el.className = 'flex flex-col items-center py-1 rounded-lg font-mono text-[10px] text-creamMuted hover:text-cream';
+                    }
+                });
+            },
+
+            setupTouchGestures() {
+                let touchStartX = 0;
+                let touchEndX = 0;
+                const stage = document.getElementById('svg-stage-wrapper');
+                stage.addEventListener('touchstart', e => {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+                stage.addEventListener('touchend', e => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    const diff = touchStartX - touchEndX;
+                    if (Math.abs(diff) > 50) {
+                        if (diff > 0) this.nextScenario();
+                        else this.prevScenario();
+                    }
+                }, { passive: true });
+            }
+        };
+
+        window.onload = () => app.init();
+    </script>
+</body>
+</html>

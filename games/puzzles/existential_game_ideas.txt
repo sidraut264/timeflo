@@ -1,0 +1,176 @@
+================================================================================
+EXISTENTIAL & PHILOSOPHICAL GAME IDEAS COMPENDIUM
+Engine Archetype: Deadpan / Putty-Gray Canvas / Carousel Slides / Psychological Dossier
+================================================================================
+
+--------------------------------------------------------------------------------
+PART 1: THE UNIFIED DILEMMA ENGINE ("THE MORAL MACHINE")
+--------------------------------------------------------------------------------
+Concept:
+A single, cohesive web app compiling the 10 most influential ethical thought
+experiments in human history into the deadpan, minimalist aesthetic of the
+Trolley Problem game. Each level presents a distinct visual SVG scene, two
+stark choices, a neurotic community poll split, and culminates in a clinical
+philosophical archetype diagnosis (Utilitarian, Kantian Deontologist, Virtue
+Ethicist, or Nihilistic Bystander).
+
+Title Candidates:
+- The Moral Machine
+- Philosophy's Greatest Hits
+- Clinical Ethics Simulator 101
+
+The 10 Canonical Dilemmas:
+
+1. The Trolley Problem (Philippa Foot, 1967)
+   - Scene: Vintage isometric red tram barreling towards a fork.
+   - Setup: Divert the train to kill 1 innocent worker to save 5 tied down.
+   - Twist / Choice: Pull the lever vs. Do nothing (Action vs. Inaction).
+
+2. The Fat Man on the Footbridge (Judith Jarvis Thomson, 1985)
+   - Scene: A bridge overlooking the tracks with a large bystander leaning over.
+   - Setup: The only way to stop the trolley is to physically push this man onto the tracks.
+   - Twist / Choice: Push the stranger vs. Let the trolley roll.
+   - Philosophical Crux: Doctrine of Double Effect vs. Utilitarian body-count calculus.
+
+3. The Drowning Child & The Bugatti (Peter Singer, 1972)
+   - Scene: A shallow murky pond with a child flailing; you stand on the bank in an Italian designer suit ($4,000).
+   - Setup: You can save the child in 5 seconds, but your expensive clothes and watch will be destroyed forever.
+   - Choice: Ruin the suit vs. Walk to your brunch reservation on time.
+   - Follow-up: Singer's critique of global donation distance vs. local proximity.
+
+4. The Transplant Surgeon (Judith Jarvis Thomson)
+   - Scene: Clinical isometric operating room; 1 healthy patient in for a checkup, 5 patients in adjacent beds dying of organ failure.
+   - Setup: Kill the healthy patient silently to harvest heart, lungs, liver, and kidneys to save 5 productive citizens.
+   - Choice: Harvest the checkup guy vs. Let the five die of natural causes.
+   - Philosophical Crux: Utilitarian rights violations vs. Medical Hippocratic oath.
+
+5. The Prisoner's Dilemma (Merrill Flood & Melvin Dresher / Albert Tucker, 1950)
+   - Scene: Split-screen isometric interrogation rooms with harsh overhead lamps.
+   - Setup: You and your accomplice are arrested. Cooperate (stay silent) or defect (snitch).
+   - Choice: Cooperate vs. Snitch.
+   - Twist: If both stay silent: 1 year. If you snitch and they don't: you go free, they get 10 years. Both snitch: 5 years each.
+
+6. The Heinz Dilemma (Lawrence Kohlberg, 1958)
+   - Scene: Rainy isometric street outside an illuminated pharmacy counter with locked glass medicine cases.
+   - Setup: Heinz's wife is dying of cancer. The chemist charges $2,000 for a drug costing $200 to produce. Heinz cannot raise the funds.
+   - Choice: Break into the pharmacy and steal the medicine vs. Respect the legal property rights and let her pass.
+
+7. The Experience Machine (Robert Nozick, 1974)
+   - Scene: A retro-futuristic cryogenic sensory tank filled with warm neon goo and wires.
+   - Setup: You can plug into a simulation that guarantees absolute, unadulterated happiness and fulfillment for the rest of your life, but it isn't real.
+   - Choice: Plug in forever vs. Suffer in mediocre reality.
+   - Philosophical Crux: Hedonism vs. Authenticity.
+
+8. The Ticking Time Bomb Scenario (Modern Applied Ethics)
+   - Scene: A dark subterranean concrete room, a captured suspect, and a digital clock ticking down from 05:00.
+   - Setup: A bomb will detonate in a city of millions unless you extract the code right now. The suspect refuses to talk.
+   - Choice: Sanction torture vs. Maintain absolute moral/human rights boundaries.
+
+9. The Ring of Gyges (Plato's Republic, ~375 BC)
+   - Scene: A shepherd standing over an open tomb holding an ornate gold ring with an eye symbol.
+   - Setup: Wearing the ring makes you completely invisible and undetectable. No laws, cameras, or humans will ever catch you.
+   - Choice: Live an upright, moral life anyway vs. Use invisibility for self-enrichment and zero accountability.
+
+10. The Repugnant Conclusion (Derek Parfit, 1984)
+    - Scene: An endless grid of billions of microscopic, faintly smiling stick figures living in a gray void.
+    - Setup: World A has 10 million people living in pure bliss. World B has 100 trillion people whose lives are barely worth living (mild potato diet and sleep), but aggregate happiness is mathematically higher.
+    - Choice: Choose the smaller paradise vs. Choose the vast ocean of barely-happy beings.
+
+
+--------------------------------------------------------------------------------
+PART 2: EVERYDAY SOCIAL & EXISTENTIAL SPIN-OFF GAMES
+--------------------------------------------------------------------------------
+
+1. The Existential Elevator
+   - Premise: You step into an office elevator on Floor 1. At Floor 3, your coworker enters.
+   - Dilemmas:
+     * Floor 4: Do you make eye contact or inspect the inspection certificate for 30 seconds?
+     * Floor 7: They start coughing. Do you step 2 inches away or pretend you didn't notice?
+     * Floor 12: They ask "Big plans for the weekend?" on a Tuesday.
+     * Floor 20: The elevator halts between floors for 2 minutes. The silence is deafening.
+   - Diagnosis Outcome: "Aggressive Floor-Watcher" vs. "Forced Weather Commentator".
+
+2. The Trolley Problem: Capitalism / Corporate Edition
+   - Premise: Classic trolley tracks, but dressed in HR memos and corporate jargon.
+   - Dilemmas:
+     * Track A has 5 unpaid summer interns; Track B has 1 senior VP whose equity hasn't vested.
+     * Lever is labeled "Send to Committee for Q3 Review".
+     * Saving people triggers a 40-minute mandatory team retrospective.
+     * Letting the trolley roll is categorized as "Natural Attrition".
+
+3. The Waiting Room
+   - Premise: Sterile clinic waiting room. Fluorescent lighting hums.
+   - Dilemmas:
+     * A TV is blaring a home shopping network. The remote is on an empty seat 3 chairs down, next to an awake grandma.
+     * Someone's ringtone has been playing standard marimba for 14 rings.
+     * A person takes a phone call on speaker.
+     * The receptionist leaves the desk and a phone starts ringing unanswered.
+   - Diagnosis: "Pathological Conflict Avoider" vs. "Room vigilante".
+
+4. The Reply Guy / Communication Void
+   - Premise: Clean UI depicting notifications arriving on an iPhone lock screen.
+   - Dilemmas:
+     * "Read 11:42 PM" badge appears on a message you sent 3 days ago.
+     * An ex reacts to an Instagram story with a single flame emoji.
+     * A LinkedIn connection requests a "quick 15-minute sync to pick your brain".
+     * An email arrives with subject: "Quick question (no rush!)".
+   - Mechanics: Swipe to Archive, Ghost, Over-explain, or Delete Account.
+
+5. The Last Cookie in the Breakroom
+   - Premise: Breakroom counter with a paper plate holding 1/4th of a cinnamon pastry.
+   - Dilemmas:
+     * It has been halved three times by people too polite to finish it.
+     * It is now a molecular sliver of crumbs.
+     * Someone walks into the breakroom while your hand is hovering over it.
+     * An anonymous Post-It note says "Enjoy!" (sarcastic or genuine?).
+
+6. The Dinner Party Cancellation Protocol
+   - Premise: It is 6:15 PM. You RSVP'd "Can't wait!" to a dinner party across town at 7:00 PM. You are currently in sweatpants.
+   - Dilemmas:
+     * Draft excuse: "Sudden stomach bug" (cliché, high suspicion).
+     * Draft excuse: "Work emergency" (respectable, but you work in marketing).
+     * Draft excuse: Total honesty ("I do not have the social stamina to perceive or be perceived tonight").
+     * The Worst Choice: Actually going and spending the first hour wishing you had lied.
+
+7. The Infinite Supermarket Queue
+   - Premise: Self-checkout vs. Single-cashier lane with 12 items or fewer.
+   - Dilemmas:
+     * The person in front has 14 items. Two are loose produce requiring weight lookups.
+     * The cashier light starts blinking yellow.
+     * A new register opens: "I can help whoever is next in line!" Do you sprint or defer politely?
+     * "Unexpected item in bagging area" repeats 3 times.
+
+8. The Job Application Honesty Test
+   - Premise: A standard workday HR portal questionnaire.
+   - Dilemmas:
+     * "Where do you see yourself in 5 years?" -> [Quietly existing] vs. [Climbing corporate ladder].
+     * "How do you handle conflict?" -> [Pretend it doesn't exist until it goes away] vs. [Direct escalation].
+     * "Why do you want to work at Acme Logistics?" -> [I need currency to exchange for food and shelter].
+
+9. The Mirror Problem (Morning Routine Crisis)
+   - Premise: Alarm goes off at 6:30 AM.
+   - Dilemmas:
+     * The 9-minute snooze gamble.
+     * Staring at the ceiling contemplating whether you truly need this career.
+     * Drinking water vs. going directly for toxic amounts of espresso.
+     * Rehearsing a shower debate that will never happen in real life.
+
+10. The Void Supermarket (Existential Consumerism)
+    - Premise: Isometric grocery aisle with infinite shelves of identical gray boxes labeled "CEREAL", "CHOICE", and "IDENTITY".
+    - Dilemmas:
+      * 45 variations of olive oil with subtly different serif fonts.
+      * Self-checkout asks if you want to donate $1 to end existential dread.
+      * Realizing nobody is paying attention to what's in your basket, but feeling exposed anyway.
+
+
+--------------------------------------------------------------------------------
+PART 3: ARCHITECTURE & IMPLEMENTATION ROADMAP
+--------------------------------------------------------------------------------
+All of the above concepts can be constructed using the identical lightweight stack:
+- Pure client-side HTML5 + Tailwind CSS (or inline minimal CSS).
+- SVG layer for isometric props (beds, tracks, elevator doors, interrogation tables).
+- Web Audio API synthesizer for mechanical clacks, hums, and tactile click sounds.
+- Mobile touch gesture listener for swipe navigation.
+- Psychological radar chart / dossier summary generator at the end of the slide deck.
+================================================================================
+
