@@ -35,13 +35,17 @@ body,
   position: relative;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   background: #06070a;
   overflow: hidden;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 .phaser-viewport {
   width: 100%;
   height: 100%;
+  touch-action: none;
 }
 
 .phaser-viewport canvas {
@@ -71,11 +75,14 @@ body,
 .menu-content {
   position: relative;
   z-index: 2;
-  max-width: 560px;
-  background: linear-gradient(155deg, rgba(20, 15, 12, 0.92), rgba(10, 11, 15, 0.88));
-  border: 2px solid #594122;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), inset 0 0 36px rgba(0, 0, 0, 0.7);
-  padding: 36px 38px;
+  max-width: 520px;
+  background: linear-gradient(155deg, rgba(18, 13, 10, 0.88), rgba(9, 10, 14, 0.84));
+  backdrop-filter: blur(4px);
+  border: 2px solid #6b4e27;
+  outline: 1px solid rgba(184, 140, 68, 0.2);
+  outline-offset: -7px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.88), inset 0 0 36px rgba(0, 0, 0, 0.72);
+  padding: 34px 38px;
 }
 
 .menu-eyebrow {
@@ -1260,4 +1267,274 @@ body,
   flex-wrap: wrap;
   justify-content: flex-end;
   padding-top: 6px;
+}
+
+/* Portrait Orientation Prompt */
+.landscape-prompt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(5, 6, 9, 0.94);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.landscape-prompt-card {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(160deg, #1b140f, #0e0b09);
+  border: 2px solid #705229;
+  outline: 1px solid rgba(184, 140, 68, 0.22);
+  outline-offset: -7px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95);
+  padding: 28px 24px;
+}
+
+.rotate-device-icon {
+  margin-bottom: 10px;
+  animation: rotatePhoneHint 2.2s ease-in-out infinite;
+}
+
+@keyframes rotatePhoneHint {
+  0%,
+  20% {
+    transform: rotate(0deg);
+  }
+  55%,
+  80% {
+    transform: rotate(-90deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.landscape-eyebrow {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--brass-bright);
+  margin-bottom: 8px;
+}
+
+.landscape-prompt-card h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  color: #f4e6c8;
+}
+
+.landscape-prompt-card p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--parchment-dim);
+}
+
+.landscape-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.landscape-actions .retro-btn {
+  text-align: center;
+}
+
+/* Touch support on Corkboard */
+.board-pin-card {
+  touch-action: none;
+}
+
+/* Mobile Landscape & Compact Viewport Overrides */
+@media (max-width: 960px), (max-height: 540px) {
+  .main-menu-screen {
+    padding: 16px 24px;
+    overflow-y: auto;
+  }
+
+  .menu-content {
+    max-width: min(410px, 88vw);
+    padding: 18px 22px;
+  }
+
+  .menu-eyebrow {
+    font-size: 10px;
+    margin-bottom: 6px;
+  }
+
+  .menu-title {
+    font-size: 1.85rem;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+
+  .menu-subtitle {
+    font-size: 13px;
+    line-height: 1.45;
+    margin-bottom: 14px;
+  }
+
+  .menu-buttons {
+    gap: 7px;
+  }
+
+  .retro-btn {
+    padding: 8px 14px;
+    font-size: 13.5px;
+  }
+
+  .hud-top {
+    padding: 5px 10px;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .hud-location-box {
+    min-width: 115px;
+    flex-shrink: 0;
+  }
+
+  .hud-loc-name {
+    font-size: 14px;
+  }
+
+  .hud-loc-sub {
+    display: none;
+  }
+
+  .hud-exits {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    max-width: 44vw;
+  }
+
+  .hud-exits::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hud-exit-btn,
+  .hud-tool-btn {
+    font-size: 11px;
+    padding: 5px 8px;
+    white-space: nowrap;
+  }
+
+  .hud-actions {
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  .hud-bottom {
+    padding: 6px 12px;
+  }
+
+  .hud-ambient-line {
+    display: none;
+  }
+
+  .hud-pan-hint {
+    margin-left: auto;
+    font-size: 10.5px;
+  }
+
+  .retro-toast {
+    top: 46px;
+    right: 10px;
+    max-width: 240px;
+    padding: 7px 10px;
+  }
+
+  .modal-backdrop {
+    padding: 8px;
+  }
+
+  .modal-xl,
+  .modal-wide {
+    width: 97vw;
+    max-height: 94dvh;
+    height: auto;
+  }
+
+  .panel-header {
+    padding: 9px 14px;
+  }
+
+  .panel-header h2 {
+    font-size: 15px;
+  }
+
+  .dialogue-overlay {
+    padding: 8px;
+  }
+
+  .dialogue-frame {
+    padding: 10px 12px;
+    gap: 12px;
+    max-height: 90dvh;
+  }
+
+  .dialogue-portrait-col {
+    width: 92px;
+  }
+
+  .dialogue-speaker {
+    font-size: 15px;
+  }
+
+  .dialogue-text-box {
+    min-height: 52px;
+    max-height: 82px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    line-height: 1.45;
+  }
+
+  .dialogue-choices {
+    max-height: 115px;
+  }
+
+  .dialogue-choice-btn {
+    padding: 6px 10px;
+    font-size: 12.5px;
+  }
+
+  .inventory-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 7px;
+  }
+
+  .board-layout {
+    grid-template-columns: 1fr 220px;
+    height: 76dvh;
+  }
+}
+
+@media (max-width: 640px) {
+  .inventory-layout,
+  .board-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .board-layout {
+    height: 78dvh;
+  }
+
+  .corkboard-surface {
+    min-height: 240px;
+    border-right: none;
+    border-bottom: 2px solid #4f3920;
+  }
 }

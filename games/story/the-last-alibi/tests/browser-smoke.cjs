@@ -190,6 +190,35 @@ async function main() {
   assert.equal(assets, 41);
   console.log('PASS: New rooms, character images, and all 41 manifest assets');
 
+  // Mobile portrait -> verifies Landscape Prompt appears; Mobile landscape -> prompt disappears & HUD fits cleanly
+  await call('Emulation.setDeviceMetricsOverride', {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 2,
+    mobile: true
+  });
+  await until(`document.querySelector('.landscape-prompt-overlay') !== null`);
+  await delay(250);
+  fs.writeFileSync(
+    '/tmp/alibi-mobile-portrait.png',
+    Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64')
+  );
+  console.log('PASS: Mobile portrait displays Landscape rotation prompt');
+
+  await call('Emulation.setDeviceMetricsOverride', {
+    width: 844,
+    height: 390,
+    deviceScaleFactor: 2,
+    mobile: true
+  });
+  await until(`document.querySelector('.landscape-prompt-overlay') === null`);
+  await delay(350);
+  fs.writeFileSync(
+    '/tmp/alibi-mobile-landscape.png',
+    Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64')
+  );
+  console.log('PASS: Mobile landscape dismisses prompt and renders compact HUD');
+
   assert.equal(errors.length, 0, `Unexpected runtime errors: ${errors.join('\n')}`);
   console.log('ALL BROWSER SMOKE CHECKS PASSED');
   ws.close();

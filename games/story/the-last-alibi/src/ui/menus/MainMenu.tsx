@@ -22,15 +22,29 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onOpenSettings, onOpenCredit
     if (!ctx) return;
 
     let animId = 0;
-    const drops = Array.from({ length: 140 }, () => ({
+    const bgImg = new Image();
+    let bgLoaded = false;
+    bgImg.onload = () => {
+      bgLoaded = true;
+    };
+    bgImg.src = './assets/optimized/environments/mansion/menu_manor.webp';
+
+    const drops = Array.from({ length: 165 }, () => ({
       x: Math.random() * 1280,
       y: Math.random() * 720,
-      len: 14 + Math.random() * 22,
-      speed: 480 + Math.random() * 340
+      len: 16 + Math.random() * 24,
+      speed: 520 + Math.random() * 340
+    }));
+
+    const mist = Array.from({ length: 6 }, (_, i) => ({
+      x: i * 260,
+      y: 520 + (i % 3) * 55,
+      r: 220 + (i % 2) * 80,
+      speed: 12 + (i % 3) * 5
     }));
 
     let lightning = 0;
-    let nextFlash = performance.now() + 3500;
+    let nextFlash = performance.now() + 4200;
     let lastTime = performance.now();
 
     const render = (now: number) => {
@@ -38,114 +52,86 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onOpenSettings, onOpenCredit
       lastTime = now;
 
       if (now > nextFlash) {
-        lightning = 0.85;
-        nextFlash = now + 5200 + Math.random() * 7000;
+        lightning = 0.78;
+        nextFlash = now + 5600 + Math.random() * 7500;
       } else {
-        lightning = Math.max(0, lightning - dt * 2.4);
+        lightning = Math.max(0, lightning - dt * 2.5);
       }
 
       const W = canvas.width;
       const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
 
-      // Storm sky
-      const sky = ctx.createLinearGradient(0, 0, 0, H);
-      sky.addColorStop(0, lightning > 0.2 ? '#263850' : '#080e16');
-      sky.addColorStop(0.55, lightning > 0.2 ? '#364d68' : '#152232');
-      sky.addColorStop(1, '#090b0d');
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, W, H);
+      if (bgLoaded) {
+        // Subtle atmospheric camera drift over the painted manor exterior
+        const driftX = Math.sin(now * 0.00018) * 14;
+        const driftY = Math.cos(now * 0.00014) * 6;
+        const scale = 1.035;
+        const drawW = W * scale;
+        const drawH = H * scale;
+        ctx.drawImage(bgImg, -(drawW - W) / 2 + driftX, -(drawH - H) / 2 + driftY, drawW, drawH);
 
-      // Distant jagged lightning bolt
-      if (lightning > 0.45) {
-        ctx.strokeStyle = `rgba(220, 236, 255, ${lightning * 0.7})`;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(940, 0);
-        ctx.lineTo(918, 95);
-        ctx.lineTo(936, 132);
-        ctx.lineTo(895, 255);
-        ctx.stroke();
+        // Lightning sky illumination pulse
+        if (lightning > 0.02) {
+          ctx.fillStyle = `rgba(195, 220, 250, ${lightning * 0.22})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // Subtle warm flicker over the upper study window & doorway
+        const flicker = 0.06 + Math.sin(now * 0.005) * 0.03;
+        const winGlow = ctx.createRadialGradient(W * 0.72, H * 0.38, 10, W * 0.72, H * 0.38, 170);
+        winGlow.addColorStop(0, `rgba(235, 170, 72, ${flicker})`);
+        winGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = winGlow;
+        ctx.fillRect(W * 0.5, H * 0.1, W * 0.45, H * 0.6);
+      } else {
+        const sky = ctx.createLinearGradient(0, 0, 0, H);
+        sky.addColorStop(0, '#080e16');
+        sky.addColorStop(1, '#152232');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, W, H);
       }
 
-      // Moorland hills
-      ctx.fillStyle = '#0c1117';
-      ctx.beginPath();
-      ctx.moveTo(0, 520);
-      ctx.quadraticCurveTo(310, 445, 650, 490);
-      ctx.quadraticCurveTo(980, 430, W, 510);
-      ctx.lineTo(W, H);
-      ctx.lineTo(0, H);
-      ctx.closePath();
-      ctx.fill();
+      // Drifting low moorland mist
+      for (const m of mist) {
+        m.x += m.speed * dt;
+        if (m.x - m.r > W) m.x = -m.r;
+        const g = ctx.createRadialGradient(m.x, m.y, 10, m.x, m.y, m.r);
+        g.addColorStop(0, 'rgba(135, 155, 175, 0.06)');
+        g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-      // Blackwood Manor Silhouette
-      ctx.fillStyle = '#07080a';
-      ctx.fillRect(540, 290, 440, 210);
-      // Gabled wings & chimney towers
-      ctx.beginPath();
-      ctx.moveTo(525, 290);
-      ctx.lineTo(620, 210);
-      ctx.lineTo(715, 290);
-      ctx.moveTo(745, 290);
-      ctx.lineTo(760, 175);
-      ctx.lineTo(800, 175);
-      ctx.lineTo(815, 290);
-      ctx.moveTo(835, 290);
-      ctx.lineTo(915, 220);
-      ctx.lineTo(995, 290);
-      ctx.fill();
-      // Chimneys
-      ctx.fillRect(575, 185, 22, 65);
-      ctx.fillRect(920, 175, 24, 70);
-
-      // Glowing tungsten windows (including upper study window!)
-      const windows = [
-        { x: 605, y: 335, w: 22, h: 36, glow: 0.75 },
-        { x: 655, y: 335, w: 22, h: 36, glow: 0.45 },
-        { x: 765, y: 325, w: 28, h: 42, glow: 0.92 }, // Edward's Study window
-        { x: 880, y: 335, w: 22, h: 36, glow: 0.65 },
-        { x: 620, y: 410, w: 24, h: 42, glow: 0.85 },
-        { x: 758, y: 405, w: 42, h: 65, glow: 0.55 },
-        { x: 895, y: 410, w: 24, h: 42, glow: 0.5 }
-      ];
-      windows.forEach((win) => {
-        const flicker = win.glow + Math.sin(now * 0.004 + win.x) * 0.06;
-        ctx.fillStyle = `rgba(218, 162, 72, ${flicker})`;
-        ctx.fillRect(win.x, win.y, win.w, win.h);
-        const rad = ctx.createRadialGradient(
-          win.x + win.w / 2,
-          win.y + win.h / 2,
-          2,
-          win.x + win.w / 2,
-          win.y + win.h / 2,
-          52
-        );
-        rad.addColorStop(0, 'rgba(218, 162, 72, 0.25)');
-        rad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = rad;
-        ctx.fillRect(win.x - 45, win.y - 45, win.w + 90, win.h + 90);
-      });
-
-      // Rain
-      ctx.strokeStyle = 'rgba(176, 198, 224, 0.25)';
-      ctx.lineWidth = 1.2;
+      // Animated rain streaks
+      ctx.strokeStyle = 'rgba(184, 206, 232, 0.24)';
+      ctx.lineWidth = 1.25;
       for (const d of drops) {
         d.y += d.speed * dt;
-        d.x -= 95 * dt;
+        d.x -= 110 * dt;
         if (d.y > H) {
           d.y = -20;
-          d.x = Math.random() * (W + 120);
+          d.x = Math.random() * (W + 140);
         }
         ctx.beginPath();
         ctx.moveTo(d.x, d.y);
-        ctx.lineTo(d.x - 4, d.y + d.len);
+        ctx.lineTo(d.x - 4.5, d.y + d.len);
         ctx.stroke();
       }
 
-      // Vignette
-      const vig = ctx.createRadialGradient(W * 0.5, H * 0.5, 200, W * 0.5, H * 0.5, W * 0.72);
+      // Left-side readability gradient & deep atmospheric edge vignette
+      const leftShade = ctx.createLinearGradient(0, 0, W * 0.62, 0);
+      leftShade.addColorStop(0, 'rgba(6, 7, 10, 0.62)');
+      leftShade.addColorStop(0.65, 'rgba(6, 7, 10, 0.25)');
+      leftShade.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = leftShade;
+      ctx.fillRect(0, 0, W * 0.65, H);
+
+      const vig = ctx.createRadialGradient(W * 0.6, H * 0.48, 220, W * 0.5, H * 0.5, W * 0.72);
       vig.addColorStop(0, 'rgba(0,0,0,0)');
-      vig.addColorStop(1, 'rgba(4,5,7,0.82)');
+      vig.addColorStop(1, 'rgba(4,5,7,0.72)');
       ctx.fillStyle = vig;
       ctx.fillRect(0, 0, W, H);
 

@@ -32,6 +32,10 @@ export class ManorRoomScene extends Phaser.Scene {
   private lastInventoryKey = '';
   private nextLightningAt = 0;
   private loadSeq = 0;
+  private isDragging = false;
+  private hasDragged = false;
+  private dragStartX = 0;
+  private dragStartScrollX = 0;
 
   constructor() {
     super('ManorRoomScene');
@@ -91,9 +95,30 @@ export class ManorRoomScene extends Phaser.Scene {
       this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     }
 
-    // Unlock audio on first canvas pointer down
-    this.input.on('pointerdown', () => {
+    // Unlock audio and track touch/mouse drag panning
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       soundEngine.unlock();
+      if (this.isUiBlocking()) return;
+      this.isDragging = true;
+      this.hasDragged = false;
+      this.dragStartX = pointer.x;
+      this.dragStartScrollX = this.targetScrollX;
+    });
+
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (!this.isDragging || !pointer.isDown || this.isUiBlocking()) return;
+      const dx = pointer.x - this.dragStartX;
+      if (Math.abs(dx) > 12) {
+        this.hasDragged = true;
+        this.targetScrollX = Phaser.Math.Clamp(this.dragStartScrollX - dx * 1.45, 0, 582);
+      }
+    });
+
+    this.input.on('pointerup', () => {
+      this.isDragging = false;
+      window.setTimeout(() => {
+        this.hasDragged = false;
+      }, 0);
     });
 
     const st = gameStore.getState();
@@ -351,8 +376,8 @@ export class ManorRoomScene extends Phaser.Scene {
         gameStore.setHoverHint(null);
       });
 
-      zone.on('pointerdown', () => {
-        if (this.isUiBlocking()) return;
+      zone.on('pointerup', () => {
+        if (this.isUiBlocking() || this.hasDragged) return;
         resetMarker();
         soundEngine.playSfx(hp.type === 'collect' ? 'pickup' : 'click');
         gameStore.setHoverHint(null);
@@ -408,10 +433,17 @@ export class ManorRoomScene extends Phaser.Scene {
       }
     }
 
-    // Smooth camera panning via mouse position + keyboard
+    // Smooth camera panning via desktop edge-hover, touch drag, or keyboard
     if (!blocking) {
       const pointer = this.input.activePointer;
-      if (pointer.x >= 0 && pointer.x <= 1280 && pointer.y >= 0 && pointer.y <= 720) {
+      if (
+        !pointer.wasTouch &&
+        !this.isDragging &&
+        pointer.x >= 0 &&
+        pointer.x <= 1280 &&
+        pointer.y >= 0 &&
+        pointer.y <= 720
+      ) {
         const normX = Phaser.Math.Clamp(pointer.x / 1280, 0, 1);
         // Deadzone in center [0.35..0.65], pan smoothly outside
         if (normX < 0.36) {

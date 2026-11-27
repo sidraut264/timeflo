@@ -4,6 +4,7 @@ import { gameStore } from './state/gameStore';
 import { useGameState } from './state/useGameState';
 import { GameHud } from './ui/components/GameHud';
 import { InspectionModal, PuzzleModal } from './ui/components/InspectionAndPuzzleModals';
+import { LandscapePrompt } from './ui/components/LandscapePrompt';
 import { DeductionModal } from './ui/deduction/DeductionModal';
 import { DialogueBox } from './ui/dialogue/DialogueBox';
 import { EvidenceBoardModal } from './ui/evidence-board/EvidenceBoardModal';
@@ -62,6 +63,7 @@ export const App: React.FC = () => {
         />
         {menuSubModal === 'settings' && <SettingsModal onClose={() => setMenuSubModal('none')} />}
         {menuSubModal === 'credits' && <CreditsModal onClose={() => setMenuSubModal('none')} />}
+        <LandscapePrompt />
       </div>
     );
   }
@@ -70,6 +72,7 @@ export const App: React.FC = () => {
     return (
       <div className="game-shell">
         <EndingScreen />
+        <LandscapePrompt />
       </div>
     );
   }
@@ -91,6 +94,7 @@ export const App: React.FC = () => {
       {state.openModal === 'credits' && (
         <CreditsModal onClose={() => gameStore.setModal('none')} />
       )}
+      <LandscapePrompt />
     </div>
   );
 };

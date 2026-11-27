@@ -123,7 +123,7 @@ export const GameHud: React.FC = () => {
           </div>
         ) : (
           <div className="hud-pan-hint">
-            Move cursor near screen edges or press A / D to pan • Click glowing pins to inspect
+            Swipe or pan edges (A / D) • Tap glowing pins to inspect
           </div>
         )}
       </footer>

@@ -1,4 +1,5 @@
 {
+  "titleScreen": "./assets/optimized/environments/mansion/menu_manor.webp",
   "environments": {
     "main_hall": {
       "mid": "./assets/optimized/environments/mansion/layer_2_mid.823f3426342d.webp"
