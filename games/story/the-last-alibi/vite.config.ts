@@ -56,11 +56,11 @@ function copyAssetsPlugin(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react(), copyAssetsPlugin()],
-  base: './',
+  base: command === 'build' ? '/games/story/the-last-alibi/dist/' : '/',
   build: {
     outDir: 'dist',
     emptyOutDir: true
   }
-});
+}));

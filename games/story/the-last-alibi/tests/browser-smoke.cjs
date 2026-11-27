@@ -177,12 +177,13 @@ async function main() {
 
   // Decode every manifest asset in the browser, catching corrupt files and server errors.
   const assets = await js(`(async () => {
-    const m = await (await fetch('./assets/manifest.json')).json();
+    const base = '/games/story/the-last-alibi/dist/';
+    const m = await (await fetch(base + 'assets/manifest.json')).json();
     const urls = [...Object.values(m.environments).flatMap(Object.values),
       ...Object.values(m.portraits), ...Object.values(m.sprites), ...Object.values(m.clues)];
     for (const url of urls) {
       const image = new Image();
-      image.src = url;
+      image.src = url.replace(/^\\.\\/+/, base);
       await image.decode();
     }
     return urls.length;

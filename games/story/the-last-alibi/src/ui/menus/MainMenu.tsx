@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { soundEngine } from '../../game/audio/SoundEngine';
+import { resolveAssetUrl } from '../../game/systems/AssetManifestLoader';
 import { gameStore } from '../../state/gameStore';
 
 interface MainMenuProps {
@@ -27,7 +28,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onOpenSettings, onOpenCredit
     bgImg.onload = () => {
       bgLoaded = true;
     };
-    bgImg.src = './assets/optimized/environments/mansion/menu_manor.webp';
+    bgImg.src = resolveAssetUrl('./assets/optimized/environments/mansion/menu_manor.webp');
 
     const drops = Array.from({ length: 165 }, () => ({
       x: Math.random() * 1280,

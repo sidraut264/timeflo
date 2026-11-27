@@ -2,6 +2,20 @@
   "version": 2,
   "name": "timeflo-arcade",
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/games/story/the-last-alibi",
+      "destination": "/games/story/the-last-alibi/dist/index.html"
+    },
+    {
+      "source": "/games/story/the-last-alibi/",
+      "destination": "/games/story/the-last-alibi/dist/index.html"
+    },
+    {
+      "source": "/games/story/the-last-alibi/index.html",
+      "destination": "/games/story/the-last-alibi/dist/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
