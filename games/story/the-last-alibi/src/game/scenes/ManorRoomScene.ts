@@ -4,7 +4,11 @@ import { LOCATIONS } from '../../data/locations/locations';
 import { gameStore } from '../../state/gameStore';
 import { HotspotDefinition, LocationId } from '../../types/game';
 import { soundEngine } from '../audio/SoundEngine';
-import { getAssetManifestSync, loadAssetManifest } from '../systems/AssetManifestLoader';
+import {
+  getAssetManifestSync,
+  getPreloadedImage,
+  loadAssetManifest
+} from '../systems/AssetManifestLoader';
 import { buildCharacterSpriteTexture, buildRoomLayerTextures } from '../systems/RetroPainter';
 
 interface ActiveHotspotObj {
@@ -162,8 +166,19 @@ export class ManorRoomScene extends Phaser.Scene {
     );
   }
 
+  private ensurePreloadedTexture(key: string, url?: string): boolean {
+    if (this.textures.exists(key)) return true;
+    if (!url) return false;
+    const preloaded = getPreloadedImage(url);
+    if (preloaded) {
+      this.textures.addImage(key, preloaded);
+      return true;
+    }
+    return false;
+  }
+
   private loadImageToTexture(key: string, url: string): Promise<boolean> {
-    if (this.textures.exists(key)) return Promise.resolve(true);
+    if (this.ensurePreloadedTexture(key, url)) return Promise.resolve(true);
     return new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -211,7 +226,9 @@ export class ManorRoomScene extends Phaser.Scene {
       const layerSprites: Phaser.GameObjects.Image[] = [];
       slotNames.forEach((slot, idx) => {
         const customKey = `custom_${loc.id}_${slot}`;
-        const key = this.textures.exists(customKey) ? customKey : fallbackKeys[idx];
+        const relPath = envManifest[slot];
+        const hasCustom = this.ensurePreloadedTexture(customKey, relPath);
+        const key = hasCustom ? customKey : fallbackKeys[idx];
         const img = this.add.image(0, 0, key).setOrigin(0, 0);
         img.setDisplaySize(slot === 'fore' ? 1820 : loc.worldWidth, loc.worldHeight);
         img.setScrollFactor(scrollFactors[idx], 0);
@@ -219,8 +236,7 @@ export class ManorRoomScene extends Phaser.Scene {
         this.roomObjects.push(img);
         layerSprites.push(img);
 
-        const relPath = envManifest[slot];
-        if (relPath && !this.textures.exists(customKey)) {
+        if (relPath && !hasCustom) {
           void this.loadImageToTexture(customKey, relPath).then((ok) => {
             if (ok && seq === this.loadSeq && img.scene) {
               img.setTexture(customKey);
@@ -230,12 +246,12 @@ export class ManorRoomScene extends Phaser.Scene {
         }
       });
 
-      // Render suspects stationed in this room immediately with fallback or custom sprite, then hot-swap when loaded
+      // Render suspects stationed in this room immediately with preloaded sprite (or fallback)
       CHARACTER_LIST.filter((c) => c.locationId === locationId).forEach((char) => {
         const customKey = `custom_character_${char.id}`;
-        const spriteKey = this.textures.exists(customKey)
-          ? customKey
-          : buildCharacterSpriteTexture(this, char);
+        const url = manifest.sprites[char.id];
+        const hasCustom = this.ensurePreloadedTexture(customKey, url);
+        const spriteKey = hasCustom ? customKey : buildCharacterSpriteTexture(this, char);
 
         const spr = this.add.image(char.spriteX, char.spriteY + 225, spriteKey).setOrigin(0.5, 1);
         spr.setScale(char.spriteHeight / spr.height);
@@ -257,8 +273,7 @@ export class ManorRoomScene extends Phaser.Scene {
         };
         startBreathe();
 
-        const url = manifest.sprites[char.id];
-        if (url && !this.textures.exists(customKey)) {
+        if (url && !hasCustom) {
           void this.loadImageToTexture(customKey, url).then((ok) => {
             if (ok && seq === this.loadSeq && spr.scene) {
               spr.setTexture(customKey);

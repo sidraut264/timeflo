@@ -13,6 +13,7 @@ import { CHARACTERS } from '../data/characters/characters';
 import { LOCATIONS } from '../data/locations/locations';
 import { findEvidenceLink } from '../data/evidence/links';
 import { evaluateAccusation } from '../data/story/mystery';
+import { areAllAssetsPreloaded, preloadAllAssets } from '../game/systems/AssetManifestLoader';
 
 const SAVE_KEY = 'the_last_alibi_save_v1';
 const SETTINGS_KEY = 'the_last_alibi_settings_v1';
@@ -40,7 +41,8 @@ export interface ActiveDialogue {
 }
 
 export interface GameRuntimeState {
-  screen: 'menu' | 'playing' | 'ending';
+  screen: 'menu' | 'loading' | 'playing' | 'ending';
+  loadingProgress: { loaded: number; total: number; label: string };
   currentLocation: LocationId;
   inventory: string[];
   discoveredLinks: string[];
@@ -106,9 +108,10 @@ function createInitialJournal(): JournalEntry[] {
   ];
 }
 
-function createFreshState(screen: 'menu' | 'playing'): GameRuntimeState {
+function createFreshState(screen: 'menu' | 'loading' | 'playing'): GameRuntimeState {
   return {
     screen,
+    loadingProgress: { loaded: 0, total: 1, label: 'Preparing case file...' },
     currentLocation: 'main_hall',
     inventory: ['edward_invitation'],
     discoveredLinks: [],
@@ -168,10 +171,37 @@ class GameStore {
     }
   }
 
+  private beginPreloadIfNeeded() {
+    const canPreload =
+      typeof window !== 'undefined' &&
+      typeof Image !== 'undefined' &&
+      !areAllAssetsPreloaded();
+    if (!canPreload) {
+      this.update({ screen: 'playing' });
+      return;
+    }
+
+    this.update({
+      screen: 'loading',
+      loadingProgress: { loaded: 0, total: 41, label: 'Surveying Blackwood Manor...' }
+    });
+
+    void preloadAllAssets((loaded, total, label) => {
+      if (this.state.screen !== 'loading') return;
+      this.update({
+        loadingProgress: { loaded, total, label }
+      });
+    }).then(() => {
+      if (this.state.screen === 'loading') {
+        this.update({ screen: 'playing' });
+      }
+    });
+  }
+
   startNewGame() {
     this.state = createFreshState('playing');
     this.saveGame(true);
-    this.emit();
+    this.beginPreloadIfNeeded();
   }
 
   continueGame(): boolean {
@@ -193,7 +223,7 @@ class GameStore {
         playTimeSeconds: saved.playTimeSeconds || 0,
         activeInspection: null
       };
-      this.emit();
+      this.beginPreloadIfNeeded();
       return true;
     } catch {
       return false;

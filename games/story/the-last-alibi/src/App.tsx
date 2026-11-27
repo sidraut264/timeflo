@@ -11,6 +11,7 @@ import { EvidenceBoardModal } from './ui/evidence-board/EvidenceBoardModal';
 import { InventoryModal } from './ui/inventory/InventoryModal';
 import { JournalModal } from './ui/journal/JournalModal';
 import { EndingScreen } from './ui/menus/EndingScreen';
+import { LoadingScreen } from './ui/menus/LoadingScreen';
 import { MainMenu } from './ui/menus/MainMenu';
 import { CreditsModal, SettingsModal } from './ui/menus/SettingsAndCredits';
 
@@ -63,6 +64,15 @@ export const App: React.FC = () => {
         />
         {menuSubModal === 'settings' && <SettingsModal onClose={() => setMenuSubModal('none')} />}
         {menuSubModal === 'credits' && <CreditsModal onClose={() => setMenuSubModal('none')} />}
+        <LandscapePrompt />
+      </div>
+    );
+  }
+
+  if (state.screen === 'loading') {
+    return (
+      <div className="game-shell">
+        <LoadingScreen />
         <LandscapePrompt />
       </div>
     );
